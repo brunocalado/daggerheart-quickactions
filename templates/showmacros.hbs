@@ -1,0 +1,9 @@
+<div class="show-macros-content standard-form">
+    <div class="macro-list" style="display: flex; flex-direction: column; gap: 8px;">
+        {{#each macros}}
+        <button type="button" class="dh-btn" data-action="executeMacro" data-macro="{{this}}" style="justify-content: flex-start; text-align: left;">
+            <i class="fas fa-bolt" style="margin-right: 8px; width: 16px; text-align: center;"></i> {{this}}
+        </button>
+        {{/each}}
+    </div>
+</div>

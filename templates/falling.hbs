@@ -1,0 +1,36 @@
+<div class="falling-content standard-form">
+    <p class="notes" style="margin-bottom: 10px;">Select the fall height to roll damage instantly:</p>
+    
+    <div class="falling-buttons">
+        <!-- 
+           Botões diretos que ativam a ação 'rollDamage'.
+           Cada um passa o valor correto via 'data-height'.
+        -->
+        
+        <button type="button" class="fall-btn" data-action="rollDamage" data-height="veryclose">
+            <span class="label">Very Close</span>
+            <span class="formula">1d10+3</span>
+        </button>
+        
+        <button type="button" class="fall-btn" data-action="rollDamage" data-height="close">
+            <span class="label">Close</span>
+            <span class="formula">1d20+5</span>
+        </button>
+        
+        <button type="button" class="fall-btn" data-action="rollDamage" data-height="far">
+            <span class="label">Far / Very Far</span>
+            <span class="formula">1d100+15</span>
+        </button>
+        
+        <button type="button" class="fall-btn" data-action="rollDamage" data-height="collision">
+            <span class="label">Collision</span>
+            <span class="formula">1d20+5</span>
+        </button>
+    </div>
+    
+    <div class="form-footer" style="margin-top: 15px;">
+        <button type="button" data-action="cancel" class="dh-btn" style="width: 100%;">
+            <i class="fas fa-times"></i> Cancel
+        </button>
+    </div>
+</div>

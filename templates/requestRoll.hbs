@@ -1,0 +1,58 @@
+<div class="request-roll-content standard-form">
+    <div class="form-group">
+        <label for="difficulty">Difficulty:</label>
+        
+        <!-- MUDANÇA: Agora é um Select de 5 a 30 -->
+        <select name="difficulty" class="dh-select">
+            {{#each difficultyOptions}}
+                <!-- Seleciona 15 por padrão -->
+                <option value="{{this}}" {{#if (eq this 15)}}selected{{/if}}>{{this}}</option>
+            {{/each}}
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="trait">Trait:</label>
+        <select name="trait" class="dh-select">
+            <option value="">-- Select --</option>
+            <option value="strength">Strength</option>
+            <option value="agility">Agility</option>
+            <option value="finesse">Finesse</option>
+            <option value="instinct">Instinct</option>
+            <option value="knowledge">Knowledge</option>
+            <option value="presence">Presence</option>
+        </select>
+    </div>
+    
+    <div class="form-group checkbox-group">
+        <label>
+            <input type="checkbox" name="reaction"> Reaction
+        </label>
+    </div>
+    
+    <div class="form-group checkbox-group">
+        <label>
+            <input type="checkbox" name="advantage"> Advantage
+        </label>
+    </div>
+    
+    <div class="form-group checkbox-group">
+        <label>
+            <input type="checkbox" name="disadvantage"> Disadvantage
+        </label>
+    </div>
+    
+    <div class="form-group">
+        <label for="label">Label/Description:</label>
+        <input type="text" name="label" placeholder="Optional..." class="dh-input">
+    </div>
+
+    <div class="form-footer">
+        <button type="button" data-action="cancel" class="dh-btn">
+            <i class="fas fa-times"></i> Cancel
+        </button>
+        <button type="button" data-action="roll" class="dh-btn">
+            <i class="fas fa-dice-d20"></i> Request Roll
+        </button>
+    </div>
+</div>

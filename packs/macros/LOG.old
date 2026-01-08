@@ -1,0 +1,8 @@
+2026/01/08-13:11:19.122 5fcc Recovering log #1829
+2026/01/08-13:11:19.126 5fcc Delete type=0 #1829
+2026/01/08-13:11:19.126 5fcc Delete type=3 #1827
+2026/01/08-13:13:43.226 5970 Level-0 table #1834: started
+2026/01/08-13:13:43.226 5970 Level-0 table #1834: 0 bytes OK
+2026/01/08-13:13:43.227 5970 Delete type=0 #1832
+2026/01/08-13:13:43.230 5970 Manual compaction at level-0 from '!folders!Hz442cHCkERSfi2B' @ 72057594037927935 : 1 .. '!macros!w6dCoSaCPMc41uVn' @ 0 : 0; will stop at (end)
+2026/01/08-13:13:43.230 5970 Manual compaction at level-1 from '!folders!Hz442cHCkERSfi2B' @ 72057594037927935 : 1 .. '!macros!w6dCoSaCPMc41uVn' @ 0 : 0; will stop at (end)

@@ -1,0 +1,48 @@
+<div class="loot-consumable-container">
+    
+    <!-- 1. Topo: Seleção de Tipo (Botões Grandes) -->
+    <div class="type-selection">
+        <button type="button" 
+            class="type-btn {{#if isLoot}}active{{/if}}" 
+            data-action="selectType" 
+            data-type="Loot"
+            title="Search Loot Tables">
+            <img src="icons/containers/chest/chest-oak-steel-brown.webp" alt="Loot Icon"/>
+            <span>Loot</span>
+        </button>
+
+        <button type="button" 
+            class="type-btn {{#if isConsumable}}active{{/if}}" 
+            data-action="selectType" 
+            data-type="Consumable"
+            title="Search Consumable Tables">
+            <img src="icons/consumables/potions/bottle-corked-red.webp" alt="Consumable Icon"/>
+            <span>Consumable</span>
+        </button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 2. Meio: Botões de Dados (Lado a Lado) -->
+    <div class="dice-row">
+        <button type="button" class="dice-btn" data-action="setFormula" data-formula="1d12">1d12</button>
+        <button type="button" class="dice-btn" data-action="setFormula" data-formula="2d12">2d12</button>
+        <button type="button" class="dice-btn" data-action="setFormula" data-formula="3d12">3d12</button>
+        <button type="button" class="dice-btn" data-action="setFormula" data-formula="4d12">4d12</button>
+        <button type="button" class="dice-btn" data-action="setFormula" data-formula="5d12">5d12</button>
+    </div>
+
+    <!-- 3. Formula Input (Mesma Linha) -->
+    <div class="formula-row">
+        <label>Formula:</label>
+        <input type="text" name="formula" class="dh-input" value="{{formula}}" placeholder="e.g. 1d12" />
+    </div>
+
+    <!-- 4. Footer: Botão Roll Grande -->
+    <div class="footer-row">
+        <button type="button" class="main-roll-btn" data-action="roll">
+            <i class="fas fa-dice"></i> ROLL
+        </button>
+    </div>
+
+</div>
