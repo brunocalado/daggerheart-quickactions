@@ -6,6 +6,8 @@ This module streamlines the flow of gameplay by providing quick access to common
 
 <p align="center"><img width="900" src="docs/preview.webp" alt="Preview"></p>
 
+<p align="center"><img width="900" src="docs/feature.webp"></p>
+
 ## 🌟 Features
 
 ### 🛠️ Core Utilities
