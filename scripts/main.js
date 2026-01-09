@@ -4,7 +4,7 @@
  */
 
 // Import all functions from a single consolidated file
-import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros } from "./apps.js";
+import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll } from "./apps.js";
 
 // ==================================================================
 // GLOBAL API
@@ -18,7 +18,8 @@ Hooks.once("init", () => {
         ScarCheck: scarCheck,
         LootConsumable: activateLootConsumable,
         SpotlightToken: spotlightToken,
-        ShowMacros: showMacros
+        ShowMacros: showMacros,
+        Fate: fateRoll // Added Fate function
     };
     console.log("Daggerheart Quick Actions | Global API Registered: QuickActions");
 });

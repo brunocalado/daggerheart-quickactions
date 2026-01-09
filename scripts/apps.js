@@ -1,6 +1,6 @@
 /**
  * Consolidated file containing all Quick Actions applications.
- * Contains: Downtime (Fear), Falling Damage, Request Roll, Help an Ally, Scar Check, and Loot & Consumables.
+ * Contains: Downtime (Fear), Falling Damage, Request Roll, Help an Ally, Scar Check, Loot & Consumables, and Fate Roll.
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
@@ -743,6 +743,48 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
             macro.execute();
         }
     }
+}
+
+// ==================================================================
+// 9. FATE ROLL (Custom Colorset)
+// ==================================================================
+
+export async function fateRoll(rollType = 'hope') {
+    // Try to get selected actor or user character
+    const actor = canvas.tokens.controlled[0]?.actor || game.user.character;
+
+    const roll = new Roll("1d12");
+    await roll.evaluate();
+
+    let appearance = {};
+
+    if (rollType === 'hope') {
+        appearance = {
+            colorset: "custom",
+            foreground: "#000000",
+            background: "#FFD700", // Gold
+            outline: "#000000",
+            texture: "none"
+        };
+    } else if (rollType === 'fear') {
+        appearance = {
+            colorset: "custom",
+            foreground: "#FFFFFF",
+            background: "#2c003e", // Deep Purple
+            outline: "#000000",
+            texture: "none"
+        };
+    }
+
+    // Apply appearance to the first term (the d12)
+    if (roll.terms[0]) {
+        roll.terms[0].options.appearance = appearance;
+    }
+
+    await roll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: actor }),
+        flavor: `<strong>${rollType.charAt(0).toUpperCase() + rollType.slice(1)} Roll</strong>`
+    });
 }
 
 // ==================================================================
