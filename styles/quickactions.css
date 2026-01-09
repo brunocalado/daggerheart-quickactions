@@ -5,8 +5,8 @@
 /* --- General Application Styles --- */
 .dh-qa-app .window-content {
     padding: 15px;
-    /* Paper background OR dark solid color fallback to ensure readability */
-    background: url('../systems/daggerheart/assets/backgrounds/paper.webp') repeat, #191919;
+    /* Dark solid color background (Image removed to fix console error) */
+    background: #191919;
     color: #C9A060; /* Default Gold color for text */
 }
 
@@ -256,5 +256,4 @@
     background: #333;
     box-shadow: 0 0 15px rgba(201, 160, 96, 0.4);
     transform: scale(1.02);
-}
 }

@@ -80,6 +80,8 @@ QuickActions.SpotlightToken();
 QuickActions.ShowMacros("Macro Name 1", "Macro Name 2");
 ```
 
+Extra macros [here](https://github.com/brunocalado/daggerheart-quickactions/wiki)
+
 ## 📦 Installation
 
 Install via the Foundry VTT Module browser or use this manifest link:
