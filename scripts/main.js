@@ -12,6 +12,15 @@ import { features } from "./features.js";
 // GLOBAL API
 // ==================================================================
 Hooks.once("init", () => {
+    // Register the setting to memorize the number of PCs for Downtime
+    game.settings.register("daggerheart-quickactions", "downtimePCs", {
+        name: "Downtime PCs",
+        scope: "world",      // "world" ensures the GM's choice persists for the game
+        config: false,       // false because we change it via the UI, not the settings menu
+        type: Number,
+        default: 4
+    });
+
     globalThis.QuickActions = {
         Downtime: activateDowntime,
         FallingDamage: activateFallingDamage,

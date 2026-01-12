@@ -2,6 +2,12 @@
     <!-- Estilo inline removido para usar o CSS global da classe .dh-qa-app -->
     <p class="notes">What type of rest would you like to take?</p>
     
+    <!-- Input para Número de PCs -->
+    <div class="form-group" style="margin: 10px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <label for="numberOfPCs" style="font-weight: bold; color: var(--color-text-dark-primary);">PCs:</label>
+        <input type="number" name="numberOfPCs" id="numberOfPCs" value="{{numberOfPCs}}" min="1" step="1" style="max-width: 60px; text-align: center;">
+    </div>
+
     <div class="form-footer" style="display: flex; gap: 10px; margin-top: 15px;">
         <button type="button" data-action="shortRest" class="dh-btn">
             <i class="fas fa-campground"></i> Short Rest

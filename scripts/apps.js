@@ -58,6 +58,15 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /** * Prepare data to be sent to the Handlebars template 
+     */
+    async _prepareContext(options) {
+        const context = await super._prepareContext(options);
+        // Retrieve the saved setting, default is 4 if not set
+        context.numberOfPCs = game.settings.get("daggerheart-quickactions", "downtimePCs");
+        return context;
+    }
+
     async _onShortRest(event, target) {
         await this._processRest("short");
         this.close();
@@ -69,14 +78,29 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _processRest(type) {
-        const currentFear = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Resources.Fear);
-        const numberOfPCs = 4; // TODO: Make dynamic if necessary
+        // Retrieve the number of PCs from the input field in the form
+        const pcInput = this.element.querySelector('[name="numberOfPCs"]');
+        let numberOfPCs = 4; // Default fallback
 
+        if (pcInput && pcInput.value) {
+            numberOfPCs = parseInt(pcInput.value, 10);
+            // Save the value to settings so it persists for next time
+            await game.settings.set("daggerheart-quickactions", "downtimePCs", numberOfPCs);
+        }
+
+        const currentFear = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Resources.Fear);
+        
         const fearRoll = await rollD4WithDiceSoNice();
         if (fearRoll === null) return;
 
         let addedFear = fearRoll;
-        if (type === "long") addedFear += numberOfPCs;
+        let calculationText = `(1d4) ${fearRoll}`;
+
+        // Long Rest adds + Number of PCs
+        if (type === "long") {
+            addedFear += numberOfPCs;
+            calculationText = `(1d4 + ${numberOfPCs} PCs) ${fearRoll} + ${numberOfPCs}`;
+        }
 
         let newFear = Math.min(currentFear + addedFear, 12);
         
@@ -102,6 +126,10 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
                     <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #800080, 2px 2px 2px #000; font-family: 'Lato', sans-serif;">+${addedFear}</div>
                     
+                    <div style="color: #ccc; font-size: 0.8em; margin-top: 5px; font-style: italic;">
+                        ${calculationText}
+                    </div>
+
                     <div style="color: #e0e0e0; font-size: 0.9em; margin-top: 8px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px;">
                         Current Total: ${newFear}
                     </div>
