@@ -2,7 +2,7 @@
   "id": "daggerheart-quickactions",
   "title": "Daggerheart - Quick Actions",
   "description": "Quick Actions",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -12,7 +12,9 @@
       {
         "id": "daggerheart",
         "type": "system",
-        "compatibility": {}
+        "compatibility": {
+          "minimum": "1.4.6"
+        }
       }
     ]
   },
@@ -47,19 +49,7 @@
         "ASSISTANT": "OWNER"
       },
       "flags": {}
-    },
-    {
-      "label": "Loot and Consumable Tables",
-      "type": "RollTable",
-      "name": "loot-and-consumable-tables",
-      "path": "packs/loot-and-consumable-tables",
-      "system": "daggerheart",
-      "ownership": {
-        "PLAYER": "OBSERVER",
-        "ASSISTANT": "OWNER"
-      },
-      "flags": {}
-    } 
+    }
   ],  
   "packFolders": [
     {
@@ -68,8 +58,7 @@
       "color": "#5c0547",
       "packs": [        
         "macros",        
-        "items",
-        "loot-and-consumable-tables"
+        "items"
       ],
       "folders": []
     }

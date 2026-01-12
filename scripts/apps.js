@@ -390,7 +390,8 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const customFormula = formData.get("formula");
         const rollFormula = customFormula || this.localState.formula;
 
-        const packName = "daggerheart-quickactions.loot-and-consumable-tables";
+        // CHANGED: Use the daggerheart.rolltables compendium
+        const packName = "daggerheart.rolltables";
         const pack = game.packs.get(packName);
 
         if (!pack) {
@@ -398,11 +399,17 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             return;
         }
 
+        // CHANGED: Map "Consumable" to "Consumables", keep "Loot" as is
+        let tableName = this.localState.type;
+        if (tableName === "Consumable") {
+            tableName = "Consumables";
+        }
+
         const documents = await pack.getDocuments();
-        const table = documents.find(d => d.name === this.localState.type);
+        const table = documents.find(d => d.name === tableName);
 
         if (!table) {
-            ui.notifications.error(`Table '${this.localState.type}' not found in compendium.`);
+            ui.notifications.error(`Table '${tableName}' not found in compendium.`);
             return;
         }
 
