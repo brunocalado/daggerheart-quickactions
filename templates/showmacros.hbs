@@ -1,9 +1,11 @@
-<div class="show-macros-content standard-form">
-    <div class="macro-list" style="display: flex; flex-direction: column; gap: 8px;">
-        {{#each macros}}
-        <button type="button" class="dh-btn" data-action="executeMacro" data-macro="{{this}}" style="justify-content: flex-start; text-align: left;">
-            <i class="fas fa-bolt" style="margin-right: 8px; width: 16px; text-align: center;"></i> {{this}}
-        </button>
-        {{/each}}
-    </div>
+<div class="standard-form" style="text-align: left; display: flex; flex-direction: column; gap: 0.2rem;">
+    {{#each macros}}
+    <button type="button" class="dh-btn" data-action="executeMacro" data-macro="{{this.id}}" style="margin: 0; padding: 5px; width: 100%; text-align: left; display: flex; align-items: center; justify-content: flex-start; gap: 10px; border-radius: 0;">
+        <img src="{{this.img}}" style="width: 24px; height: 24px; border: none; margin: 0; filter: drop-shadow(0 0 1px #000);"> {{this.name}}
+    </button>
+    {{/each}}
+    
+    {{#unless macros.length}}
+    <p class="notes" style="text-align: left;">No macros defined.</p>
+    {{/unless}}
 </div>

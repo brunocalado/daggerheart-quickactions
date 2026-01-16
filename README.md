@@ -76,8 +76,9 @@ QuickActions.SpotlightToken();
 
 ```javascript
 // Opens a dialog with buttons for specific macros by name
-// Requires macros to exist in the 'daggerheart-quickactions.macros' compendium
-QuickActions.ShowMacros("Macro Name 1", "Macro Name 2");
+// To use the macro name it requires the macros to exist in the 'daggerheart-quickactions.macros' compendium. You can use the UUID to add any macro from world or any compendium.
+// 
+QuickActions.ShowMacros("Macro Name 1", "Macro Name 2", "Macro.CDcmq4UiZMqs6pbs", "Compendium.daggerheart-quickactions.macros.Macro.5SyMBdCHM5TZXqGz");
 ```
 
 Extra macros [here](https://github.com/brunocalado/daggerheart-quickactions/wiki)

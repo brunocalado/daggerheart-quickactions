@@ -750,32 +750,89 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     async _prepareContext(options) {
+        const macroList = [];
+        const defaultPackName = "daggerheart-quickactions.macros";
+        const pack = game.packs.get(defaultPackName);
+        let index = null;
+        
+        // Fetch index to check for names/images if possible without loading all docs
+        if (pack) {
+            index = await pack.getIndex();
+        }
+
+        for (const identifier of this.macroNames) {
+            let displayName = identifier;
+            let displayImg = "icons/svg/dice-target.svg"; // Default macro icon
+            let isUUID = typeof identifier === "string" && identifier.includes(".");
+
+            let doc = null;
+
+            if (isUUID) {
+                try {
+                    // Attempt to load the document to get its name and image
+                    doc = await fromUuid(identifier);
+                } catch (error) {
+                    console.warn(`QuickActions | Could not resolve UUID '${identifier}'.`);
+                }
+            } else if (index) {
+                // Try finding by name in default pack
+                // We use the index first to see if it exists
+                const entry = index.find(m => m.name === identifier);
+                if (entry) {
+                    // The index entry usually has name and img
+                    displayName = entry.name;
+                    displayImg = entry.img;
+                }
+            }
+
+            // If we successfully loaded a full document (via UUID), override with its specific data
+            if (doc) {
+                displayName = doc.name;
+                displayImg = doc.img;
+            }
+
+            macroList.push({
+                id: identifier,   // The original string (Name or UUID) needed for execution logic
+                name: displayName,
+                img: displayImg
+            });
+        }
+
         return {
-            macros: this.macroNames
+            macros: macroList
         };
     }
 
     async _onExecuteMacro(event, target) {
-        const macroName = target.dataset.macro;
-        const packName = "daggerheart-quickactions.macros";
-        const pack = game.packs.get(packName);
+        const identifier = target.dataset.macro;
+        const defaultPackName = "daggerheart-quickactions.macros";
+        let macro = null;
 
-        if (!pack) {
-            ui.notifications.error(`Compendium '${packName}' not found.`);
-            return;
+        // 1. Try finding by Name in the default specific Compendium
+        const pack = game.packs.get(defaultPackName);
+        if (pack) {
+            const index = await pack.getIndex();
+            const entry = index.find(m => m.name === identifier);
+            if (entry) {
+                macro = await pack.getDocument(entry._id);
+            }
         }
 
-        const index = await pack.getIndex();
-        const entry = index.find(m => m.name === macroName);
-
-        if (!entry) {
-            ui.notifications.warn(`Macro '${macroName}' not found in '${packName}'.`);
-            return;
+        // 2. If not found in the default compendium, assume it is a UUID
+        if (!macro) {
+            try {
+                // Resolves UUIDs like "Macro.ID" (World) or "Compendium.scope.pack.Item.ID"
+                macro = await fromUuid(identifier);
+            } catch (err) {
+                // Ignore parse errors, user might have just typed a name that doesn't exist
+            }
         }
 
-        const macro = await pack.getDocument(entry._id);
-        if (macro) {
+        // 3. Execution
+        if (macro && typeof macro.execute === 'function') {
             macro.execute();
+        } else {
+            ui.notifications.warn(`QuickActions: Macro '${identifier}' not found in '${defaultPackName}' nor as a valid UUID.`);
         }
     }
 }
