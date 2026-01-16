@@ -873,9 +873,35 @@ export async function fateRoll(rollType = 'hope') {
         roll.terms[0].options.appearance = appearance;
     }
 
+    // Custom Chat Card Construction
+    const title = `${rollType.charAt(0).toUpperCase() + rollType.slice(1)} Roll`;
+    const titleColor = "#C9A060"; // Default Gold
+    const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
+
+    const content = `
+    <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
+        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
+            <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
+                ${title}
+            </h3>
+        </header>
+        <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
+            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                
+                <div style="color: #ffffff; font-size: 0.9em; margin-bottom: 5px;">Result</div>
+                
+                <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px ${rollType === 'hope' ? '#FFD700' : '#800080'}, 2px 2px 0px #000; font-family: 'Lato', sans-serif; line-height: 1;">
+                    ${roll.total}
+                </div>
+            </div>
+        </div>
+    </div>`;
+
     await roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor: actor }),
-        flavor: `<strong>${rollType.charAt(0).toUpperCase() + rollType.slice(1)} Roll</strong>`
+        content: content,
+        style: CONST.CHAT_MESSAGE_STYLES.OTHER
     });
 }
 

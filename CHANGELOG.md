@@ -1,6 +1,7 @@
 # 0.0.5
 - beastform art updater: READ https://github.com/brunocalado/daggerheart-quickactions/wiki#beastform
 - ShowMacros suporta UUID https://github.com/brunocalado/daggerheart-quickactions#via-api--macros
+- fate roll style fixed
 
 # 0.0.4
 - removed loot table to use from the system
