@@ -7,18 +7,40 @@
 import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll } from "./apps.js";
 // Import Features
 import { features } from "./features.js";
+// Import Beastform
+import { beastformAction } from "./beastform.js";
 
 // ==================================================================
 // GLOBAL API
 // ==================================================================
 Hooks.once("init", () => {
-    // Register the setting to memorize the number of PCs for Downtime
+    // 1. Downtime Setting
     game.settings.register("daggerheart-quickactions", "downtimePCs", {
         name: "Downtime PCs",
-        scope: "world",      // "world" ensures the GM's choice persists for the game
-        config: false,       // false because we change it via the UI, not the settings menu
+        scope: "world",
+        config: false,
         type: Number,
         default: 4
+    });
+
+    // 2. Beastform Root Path (Stored for automation)
+    game.settings.register("daggerheart-quickactions", "beastformRootPath", {
+        name: "Beastform Root Folder",
+        hint: "Path used if you turn on 'Auto Update Beastform Paths'.",
+        scope: "world",
+        config: true,
+        type: String,
+        default: ""
+    });
+
+    // 3. Beastform Auto-Check
+    game.settings.register("daggerheart-quickactions", "beastformAutoCheck", {
+        name: "Auto Update Beastform Paths",
+        hint: "WARNING: Only turn on this if you read the instructions in the wiki.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: false
     });
 
     globalThis.QuickActions = {
@@ -31,9 +53,47 @@ Hooks.once("init", () => {
         SpotlightToken: spotlightToken,
         ShowMacros: showMacros,
         Fate: fateRoll,
-        Features: features // Added Features function
+        Features: features,
+        Beastform: beastformAction // Added Beastform
     };
     console.log("Daggerheart Quick Actions | Global API Registered: QuickActions");
+});
+
+// ==================================================================
+// READY HOOK: AUTOMATION
+// ==================================================================
+Hooks.on("ready", async () => {
+    // Check if automation is enabled
+    const autoCheck = game.settings.get("daggerheart-quickactions", "beastformAutoCheck");
+    
+    if (autoCheck) {
+        const checkImage = "icons/creatures/mammals/rodent-rat-diseaed-gray.webp";
+        const packName = "daggerheart.beastforms";
+        const pack = game.packs.get(packName);
+
+        if (pack) {
+            // We need to find "Agile Scout". 
+            // Using getDocuments() to ensure we have the system data.
+            // Performance note: In a huge compendium index might be better, but for this specific check, loading is safer.
+            const documents = await pack.getDocuments({ type: "beastform" });
+            const agileScout = documents.find(d => d.name === "Agile Scout");
+
+            if (agileScout) {
+                // Check if it has the "default/wrong" image
+                if (agileScout.system.tokenImg === checkImage) {
+                    const savedRoot = game.settings.get("daggerheart-quickactions", "beastformRootPath");
+                    
+                    if (savedRoot) {
+                        console.log("QuickActions | Auto-Check: Agile Scout image mismatch detected. Running Beastform fix...");
+                        // Call the exported logic directly with the saved folder
+                        QuickActions.Beastform(savedRoot);
+                    } else {
+                        ui.notifications.warn("QuickActions: Beastform Auto-Fix triggered, but no Root Folder is saved in settings.");
+                    }
+                }
+            }
+        }
+    }
 });
 
 // ==================================================================
@@ -81,8 +141,7 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
         newFieldset.appendChild(btnDowntime);
         newFieldset.appendChild(btnFalling);
         newFieldset.appendChild(btnRoll);
-        // Note: LootConsumable is not added to the sidebar menu here, only the global API,
-        // similar to the ScarCheck pattern.
+        // Note: LootConsumable, Beastform, etc are not added to the sidebar menu here.
 
         fieldset.after(newFieldset);
     } else {
