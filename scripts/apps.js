@@ -760,42 +760,67 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
             index = await pack.getIndex();
         }
 
-        for (const identifier of this.macroNames) {
-            let displayName = identifier;
+        for (const input of this.macroNames) {
+            let identifier = input;
+            let displayName = input;
             let displayImg = "icons/svg/dice-target.svg"; // Default macro icon
-            let isUUID = typeof identifier === "string" && identifier.includes(".");
+            let found = false;
 
-            let doc = null;
+            // 1. If it's an object (Macro Document), use its UUID directly
+            if (typeof input === "object" && input !== null) {
+                if (input.uuid) identifier = input.uuid;
+                if (input.name) displayName = input.name;
+                if (input.img) displayImg = input.img;
+                found = true;
+            }
 
-            if (isUUID) {
-                try {
-                    // Attempt to load the document to get its name and image
-                    doc = await fromUuid(identifier);
-                } catch (error) {
-                    console.warn(`QuickActions | Could not resolve UUID '${identifier}'.`);
+            // 2. If it is a string
+            if (typeof input === "string") {
+                // Check Default Pack by Name
+                if (index) {
+                    const entry = index.find(m => m.name === input);
+                    if (entry) {
+                        displayName = entry.name;
+                        displayImg = entry.img;
+                        found = true;
+                    }
                 }
-            } else if (index) {
-                // Try finding by name in default pack
-                // We use the index first to see if it exists
-                const entry = index.find(m => m.name === identifier);
-                if (entry) {
-                    // The index entry usually has name and img
-                    displayName = entry.name;
-                    displayImg = entry.img;
+
+                // Check if it is a UUID (World or Compendium) or ID
+                if (!found) {
+                    try {
+                        const doc = await fromUuid(input);
+                        if (doc) {
+                            displayName = doc.name;
+                            displayImg = doc.img;
+                            found = true;
+                        }
+                    } catch (error) {
+                         // Not a valid UUID or not found, proceed.
+                    }
+                }
+
+                // Fallback: Check if it's a valid ID in World Macros (user passed pure ID string)
+                if (!found && !input.includes(".")) {
+                    const worldMacro = game.macros.get(input);
+                    if (worldMacro) {
+                        displayName = worldMacro.name;
+                        displayImg = worldMacro.img;
+                        // Use UUID for robust execution
+                        identifier = worldMacro.uuid; 
+                        found = true;
+                    }
                 }
             }
 
-            // If we successfully loaded a full document (via UUID), override with its specific data
-            if (doc) {
-                displayName = doc.name;
-                displayImg = doc.img;
+            // Only add if we have a valid identifier string
+            if (identifier) {
+                macroList.push({
+                    id: identifier,   // The resolved ID or Name
+                    name: displayName,
+                    img: displayImg
+                });
             }
-
-            macroList.push({
-                id: identifier,   // The original string (Name or UUID) needed for execution logic
-                name: displayName,
-                img: displayImg
-            });
         }
 
         return {
@@ -808,7 +833,7 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const defaultPackName = "daggerheart-quickactions.macros";
         let macro = null;
 
-        // 1. Try finding by Name in the default specific Compendium
+        // 1. Try finding by Name in the default specific Compendium (Priority 1)
         const pack = game.packs.get(defaultPackName);
         if (pack) {
             const index = await pack.getIndex();
@@ -818,21 +843,26 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
-        // 2. If not found in the default compendium, assume it is a UUID
+        // 2. If not found, assume it is a UUID (Priority 2)
         if (!macro) {
             try {
                 // Resolves UUIDs like "Macro.ID" (World) or "Compendium.scope.pack.Item.ID"
                 macro = await fromUuid(identifier);
             } catch (err) {
-                // Ignore parse errors, user might have just typed a name that doesn't exist
+                // Ignore parse errors
             }
         }
 
-        // 3. Execution
+        // 3. Last resort: Check World Macros by Name (Priority 3 - fallback for non-UUID strings)
+        if (!macro) {
+            macro = game.macros.find(m => m.name === identifier);
+        }
+
+        // 4. Execution
         if (macro && typeof macro.execute === 'function') {
             macro.execute();
         } else {
-            ui.notifications.warn(`QuickActions: Macro '${identifier}' not found in '${defaultPackName}' nor as a valid UUID.`);
+            ui.notifications.warn(`QuickActions: Macro '${identifier}' not found in '${defaultPackName}' nor as a valid UUID/Name.`);
         }
     }
 }
@@ -927,11 +957,21 @@ export async function activateLootConsumable() {
 
 export async function showMacros(...args) {
     // Allows calling as showMacros(["A", "B"]) or showMacros("A", "B")
-    let macros = [];
+    let rawMacros = [];
     if (Array.isArray(args[0])) {
-        macros = args[0];
+        rawMacros = args[0];
     } else {
-        macros = args;
+        rawMacros = args;
     }
+
+    // Filter out undefined/null arguments to prevent "Macro '' not found" errors
+    // This happens if a user types Macro.ID in console but the class property doesn't exist
+    const macros = rawMacros.filter(m => m !== undefined && m !== null);
+
+    if (macros.length === 0) {
+        ui.notifications.warn("QuickActions: No valid macro names or UUIDs provided.");
+        return;
+    }
+
     new ShowMacrosApp(macros).render(true);
 }

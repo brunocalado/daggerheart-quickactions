@@ -1,3 +1,6 @@
+# 0.0.6
+- show macros can read world macro from UUID
+
 # 0.0.5
 - beastform art updater: READ https://github.com/brunocalado/daggerheart-quickactions/wiki#beastform
 - ShowMacros suporta UUID https://github.com/brunocalado/daggerheart-quickactions#via-api--macros
