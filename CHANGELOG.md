@@ -1,3 +1,6 @@
+# 0.0.7
+- QuickActions.SpendHope();
+
 # 0.0.6
 - show macros can read world macro from UUID
 

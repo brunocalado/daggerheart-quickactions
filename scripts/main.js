@@ -4,7 +4,7 @@
  */
 
 // Import all functions from a single consolidated file
-import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll } from "./apps.js";
+import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope } from "./apps.js";
 // Import Features
 import { features } from "./features.js";
 // Import Beastform
@@ -53,8 +53,9 @@ Hooks.once("init", () => {
         SpotlightToken: spotlightToken,
         ShowMacros: showMacros,
         Fate: fateRoll,
+        SpendHope: activateSpendHope, // Added SpendHope
         Features: features,
-        Beastform: beastformAction // Added Beastform
+        Beastform: beastformAction
     };
     console.log("Daggerheart Quick Actions | Global API Registered: QuickActions");
 });

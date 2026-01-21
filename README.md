@@ -75,6 +75,11 @@ QuickActions.SpotlightToken();
 ```
 
 ```javascript
+// Choose a number of hope to spend
+QuickActions.SpendHope();
+```
+
+```javascript
 // Opens a dialog with buttons for specific macros by name
 // To use the macro name it requires the macros to exist in the 'daggerheart-quickactions.macros' compendium. You can use the UUID to add any macro from world or any compendium.
 // 

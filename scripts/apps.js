@@ -1,6 +1,6 @@
 /**
  * Consolidated file containing all Quick Actions applications.
- * Contains: Downtime (Fear), Falling Damage, Request Roll, Help an Ally, Scar Check, Loot & Consumables, and Fate Roll.
+ * Contains: Downtime (Fear), Falling Damage, Request Roll, Help an Ally, Scar Check, Loot & Consumables, Fate Roll, and Hope Spender.
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
@@ -936,6 +936,168 @@ export async function fateRoll(rollType = 'hope') {
 }
 
 // ==================================================================
+// 10. HOPE SPENDER APP (Added)
+// ==================================================================
+
+/**
+ * Daggerheart Hope Spender
+ * Version: Foundry VTT v13+ (Application V2 - No Mixin)
+ */
+class HopeSpenderApp extends ApplicationV2 {
+    
+    static DEFAULT_OPTIONS = {
+        id: "daggerheart-hope-spender-v2",
+        tag: "div",
+        window: {
+            title: "Spend Hope",
+            icon: "fas fa-sun",
+            resizable: false
+        },
+        position: {
+            width: 320,
+            height: "auto"
+        },
+        actions: {
+            spend: HopeSpenderApp.prototype._onSpend
+        }
+    };
+
+    /**
+     * 1. Generate the HTML String
+     */
+    async _renderHTML(context, options) {
+        const buttons = [1, 2, 3, 4, 5, 6].map(num => {
+            return `<button type="button" class="dh-hope-btn" data-action="spend" data-value="${num}">${num}</button>`;
+        }).join("");
+
+        return `
+        <style>
+            .dh-wrapper {
+                background: #191919;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                color: #C9A060;
+                height: 100%;
+            }
+            .dh-title {
+                text-align: center;
+                font-family: 'Aleo', serif;
+                font-size: 1.1em;
+                border-bottom: 1px solid #444;
+                padding-bottom: 5px;
+            }
+            .dh-hope-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            .dh-hope-btn {
+                background: #2a2a2a;
+                color: #C9A060;
+                border: 1px solid #C9A060;
+                font-family: 'Aleo', serif;
+                font-size: 1.5em;
+                font-weight: bold;
+                height: 50px;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .dh-hope-btn:hover {
+                background: #C9A060;
+                color: #191919;
+                box-shadow: 0 0 8px #C9A060;
+            }
+        </style>
+        
+        <div class="dh-wrapper">
+            <div class="dh-title">Select Hope to Spend</div>
+            <div class="dh-hope-grid">
+                ${buttons}
+            </div>
+        </div>
+        `;
+    }
+
+    /**
+     * 2. Inject HTML into the DOM (The Fix)
+     * This method is required when not using HandlebarsMixin
+     */
+    _replaceHTML(result, content, options) {
+        content.innerHTML = result;
+        return content;
+    }
+
+    /**
+     * 3. Handle the logic
+     */
+    async _onSpend(event, target) {
+        const spendAmount = parseInt(target.dataset.value);
+        
+        const selectedToken = canvas.tokens.controlled[0];
+        if (!selectedToken) {
+            ui.notifications.warn("Please select a token first!");
+            return;
+        }
+
+        const actor = selectedToken.actor;
+        if (!actor) return;
+
+        const currentHope = actor.system.resources?.hope?.value;
+        if (currentHope === undefined || currentHope === null) {
+            ui.notifications.warn("This actor doesn't have a Hope resource!");
+            return;
+        }
+
+        if (currentHope < spendAmount) {
+            ui.notifications.error(`Not enough Hope! You have ${currentHope}, but tried to spend ${spendAmount}.`);
+            return;
+        }
+
+        const newHope = currentHope - spendAmount;
+        await actor.update({"system.resources.hope.value": newHope});
+
+        // Chat Message Logic
+        const BACKGROUND_IMAGE = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp"; 
+        
+        const content = `
+        <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
+            <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
+                <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
+                    Hope Spent
+                </h3>
+            </header>
+            <div class="card-content" style="background-image: url('${BACKGROUND_IMAGE}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.80); z-index: 0;"></div>
+                <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                    
+                    <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #C9A060, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">
+                        -${spendAmount}
+                    </div>
+                    
+                    <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">
+                        Hope Remaining: ${currentHope} → <span style="color: #C9A060; font-weight: bold;">${newHope}</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        await ChatMessage.create({
+            user: game.user.id,
+            speaker: ChatMessage.getSpeaker({actor: actor}),
+            content: content,
+            style: CONST.CHAT_MESSAGE_STYLES.OTHER
+        });
+
+        this.close();
+    }
+}
+
+// ==================================================================
 // EXPORTED FUNCTIONS
 // ==================================================================
 
@@ -953,6 +1115,10 @@ export async function activateRequestRoll() {
 
 export async function activateLootConsumable() {
     new LootConsumableApp().render(true);
+}
+
+export async function activateSpendHope() {
+    new HopeSpenderApp().render(true);
 }
 
 export async function showMacros(...args) {
