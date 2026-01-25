@@ -27,6 +27,74 @@ async function rollD4WithDiceSoNice() {
     }
 }
 
+/**
+ * Executes the visual fate roll logic (Cards, Colors, Dice So Nice settings)
+ * Used by both the default d12 action and the "ask" dialog.
+ */
+async function performVisualFateRoll(dieFormula, rollType) {
+    // Try to get selected actor or user character
+    const actor = canvas.tokens.controlled[0]?.actor || game.user.character;
+
+    const roll = new Roll(dieFormula);
+    await roll.evaluate();
+
+    let appearance = {};
+
+    if (rollType === 'hope') {
+        appearance = {
+            colorset: "custom",
+            foreground: "#000000",
+            background: "#FFD700", // Gold
+            outline: "#000000",
+            texture: "none"
+        };
+    } else if (rollType === 'fear') {
+        appearance = {
+            colorset: "custom",
+            foreground: "#FFFFFF",
+            background: "#2c003e", // Deep Purple
+            outline: "#000000",
+            texture: "none"
+        };
+    }
+
+    // Apply appearance to the first term (the die)
+    if (roll.terms[0]) {
+        roll.terms[0].options.appearance = appearance;
+    }
+
+    // Custom Chat Card Construction
+    const title = `${rollType.charAt(0).toUpperCase() + rollType.slice(1)} Roll`;
+    const titleColor = "#C9A060"; // Default Gold
+    const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
+
+    const content = `
+    <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
+        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
+            <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
+                ${title}
+            </h3>
+        </header>
+        <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
+            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                
+                <div style="color: #ffffff; font-size: 0.9em; margin-bottom: 5px;">Result</div>
+                
+                <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px ${rollType === 'hope' ? '#FFD700' : '#800080'}, 2px 2px 0px #000; font-family: 'Lato', sans-serif; line-height: 1;">
+                    ${roll.total}
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    await roll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor: actor }),
+        content: content,
+        style: CONST.CHAT_MESSAGE_STYLES.OTHER
+    });
+}
+
 // ==================================================================
 // 1. DOWNTIME / EARN FEAR APP
 // ==================================================================
@@ -868,71 +936,79 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 
 // ==================================================================
-// 9. FATE ROLL (Custom Colorset)
+// 9. FATE ROLL (Custom Colorset & Dialog)
 // ==================================================================
 
-export async function fateRoll(rollType = 'hope') {
-    // Try to get selected actor or user character
-    const actor = canvas.tokens.controlled[0]?.actor || game.user.character;
-
-    const roll = new Roll("1d12");
-    await roll.evaluate();
-
-    let appearance = {};
-
-    if (rollType === 'hope') {
-        appearance = {
-            colorset: "custom",
-            foreground: "#000000",
-            background: "#FFD700", // Gold
-            outline: "#000000",
-            texture: "none"
-        };
-    } else if (rollType === 'fear') {
-        appearance = {
-            colorset: "custom",
-            foreground: "#FFFFFF",
-            background: "#2c003e", // Deep Purple
-            outline: "#000000",
-            texture: "none"
-        };
+class FateRollDialog extends ApplicationV2 {
+    constructor(rollType, options = {}) {
+        super(options);
+        this.rollType = rollType;
     }
 
-    // Apply appearance to the first term (the d12)
-    if (roll.terms[0]) {
-        roll.terms[0].options.appearance = appearance;
-    }
+    static DEFAULT_OPTIONS = {
+        tag: "div",
+        id: "dh-fate-ask-dialog",
+        window: {
+            title: "Select Fate Die",
+            icon: "fas fa-dice",
+            resizable: false
+        },
+        position: { width: 320, height: "auto" },
+        actions: {
+            roll: FateRollDialog.prototype._onRoll
+        }
+    };
 
-    // Custom Chat Card Construction
-    const title = `${rollType.charAt(0).toUpperCase() + rollType.slice(1)} Roll`;
-    const titleColor = "#C9A060"; // Default Gold
-    const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
+    /**
+     * Inline embedded HTML generation (No .hbs file)
+     */
+    async _renderHTML(context, options) {
+        const dice = ["1d4", "1d6", "1d8", "1d10", "1d12", "1d20"];
+        // Create buttons. Uses flexbox for a 3-column grid layout
+        const buttons = dice.map(d => 
+            `<button type="button" class="dh-btn" data-action="roll" data-value="${d}" style="margin: 4px; width: 30%; flex: 1 0 30%;">${d}</button>`
+        ).join("");
 
-    const content = `
-    <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
-        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
-            <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                ${title}
-            </h3>
-        </header>
-        <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                
-                <div style="color: #ffffff; font-size: 0.9em; margin-bottom: 5px;">Result</div>
-                
-                <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px ${rollType === 'hope' ? '#FFD700' : '#800080'}, 2px 2px 0px #000; font-family: 'Lato', sans-serif; line-height: 1;">
-                    ${roll.total}
-                </div>
+        return `
+        <div class="dh-qa-app" style="background: #191919; padding: 15px; height: 100%;">
+            <p style="color: #C9A060; font-family: 'Aleo', serif; text-align: center; margin-bottom: 10px; font-size: 1.1em;">
+                Rolling <strong>${this.rollType.toUpperCase()}</strong>. Choose die:
+            </p>
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">
+                ${buttons}
             </div>
-        </div>
-    </div>`;
+        </div>`;
+    }
 
-    await roll.toMessage({
-        speaker: ChatMessage.getSpeaker({ actor: actor }),
-        content: content,
-        style: CONST.CHAT_MESSAGE_STYLES.OTHER
-    });
+    _replaceHTML(result, content, options) {
+        content.innerHTML = result;
+        return content;
+    }
+
+    async _onRoll(event, target) {
+        const formula = target.dataset.value;
+        await performVisualFateRoll(formula, this.rollType);
+        this.close();
+    }
+}
+
+export async function fateRoll(rollType = 'hope', mode = 'default') {
+    // 1. System Command Mode (/fr)
+    if (mode === 'system') {
+        if (ui.chat) {
+            await ui.chat.processMessage(`/fr type=${rollType}`);
+        }
+        return;
+    }
+
+    // 2. Ask Mode (Open Dialog)
+    if (mode === 'ask') {
+        new FateRollDialog(rollType).render(true);
+        return;
+    }
+
+    // 3. Default Mode (Roll d12 immediately)
+    await performVisualFateRoll('1d12', rollType);
 }
 
 // ==================================================================

@@ -2,7 +2,7 @@
   "id": "daggerheart-quickactions",
   "title": "Daggerheart: Quick Actions",
   "description": "Quick Actions",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -13,7 +13,7 @@
         "id": "daggerheart",
         "type": "system",
         "compatibility": {
-          "minimum": "1.4.6"
+          "minimum": "1.6.0"
         }
       }
     ]
