@@ -307,10 +307,10 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 
 // ==================================================================
-// 3. REQUEST ROLL APP
+// 3. REQUEST ROLL APP (UPDATED V2 EMBEDDED)
 // ==================================================================
 
-class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
+class RequestRollApp extends ApplicationV2 {
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "request-roll-app",
@@ -322,7 +322,7 @@ class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             controls: []
         },
         position: {
-            width: 400,
+            width: 420,
             height: "auto"
         },
         actions: {
@@ -331,33 +331,240 @@ class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    static PARTS = {
-        form: {
-            template: "modules/daggerheart-quickactions/templates/requestRoll.hbs"
-        }
-    };
+    /**
+     * Render the HTML directly to support the layout changes requested
+     * without needing to update an external .hbs file.
+     */
+    async _renderHTML(context, options) {
+        return `
+        <style>
+            .dh-rr-container {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 5px;
+            }
+            .dh-rr-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+            }
+            .dh-rr-label {
+                font-weight: bold;
+                color: #C9A060;
+                flex: 0 0 80px;
+                text-align: right; /* Alinhar labels à direita para visual mais limpo */
+                padding-right: 5px;
+                margin-bottom: 0; /* CORREÇÃO: Remove margem herdada do CSS global */
+            }
+            .dh-rr-input {
+                flex: 1;
+                text-align: center;
+                background: rgba(255,255,255,0.9);
+                border: 1px solid #7a6e5d;
+                padding: 5px;
+                border-radius: 4px;
+                color: #000000 !important; /* CORREÇÃO: Preto para legibilidade */
+                font-weight: bold;
+            }
+            
+            /* Trait Grid */
+            .dh-trait-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr); /* 3 columns */
+                gap: 6px;
+                margin-top: 5px;
+            }
+            .dh-trait-grid button.full-width {
+                grid-column: 1 / -1; /* Span all columns for 'None' */
+            }
 
-    async _prepareContext(options) {
-        const context = await super._prepareContext(options);
-        context.difficultyOptions = Array.from({length: 26}, (_, i) => i + 5);
-        return context;
+            .dh-trait-btn {
+                background: #191919;
+                color: #888;
+                border: 1px solid #444;
+                padding: 6px;
+                cursor: pointer;
+                border-radius: 4px;
+                font-size: 0.9em;
+                text-transform: uppercase;
+                transition: all 0.2s;
+            }
+            .dh-trait-btn:hover {
+                border-color: #C9A060;
+                color: #C9A060;
+            }
+            .dh-trait-btn.active {
+                background: #C9A060;
+                color: #191919;
+                border-color: #C9A060;
+                font-weight: bold;
+                box-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+            }
+
+            /* Checkbox rows */
+            .dh-cb-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-around; /* Espaçamento melhorado */
+                background: rgba(0,0,0,0.2);
+                padding: 8px 10px;
+                border-radius: 4px;
+            }
+            .dh-cb-row-single {
+                display: flex;
+                align-items: center;
+                justify-content: center; /* Centralizar quando item único */
+                background: rgba(0,0,0,0.2);
+                padding: 8px 10px;
+                border-radius: 4px;
+            }
+
+            .dh-cb-label {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #e0e0e0;
+                cursor: pointer;
+                font-size: 0.95em;
+                margin-bottom: 0; /* CORREÇÃO: Remove margem herdada do CSS global */
+            }
+            .dh-cb-label input {
+                accent-color: #C9A060;
+                transform: scale(1.2);
+                margin: 0;
+            }
+            
+            .dh-actions {
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            .dh-btn-submit {
+                background: #C9A060;
+                color: #191919;
+                border: none;
+                padding: 10px;
+                width: 100%;
+                font-weight: bold;
+                text-transform: uppercase;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            .dh-btn-cancel {
+                background: transparent;
+                color: #888;
+                border: 1px solid #555;
+                padding: 10px;
+                width: 30%;
+                text-transform: uppercase;
+                cursor: pointer;
+                border-radius: 4px;
+            }
+            .dh-btn-cancel:hover { color: #fff; border-color: #fff; }
+        </style>
+
+        <div class="dh-rr-container">
+            
+            <!-- Difficulty -->
+            <div class="dh-rr-row">
+                <label class="dh-rr-label">Difficulty</label>
+                <input type="number" name="difficulty" value="15" class="dh-rr-input" placeholder="DC">
+            </div>
+
+            <!-- Trait Selection (Buttons) -->
+            <div>
+                <label class="dh-rr-label" style="text-align: left; display:block;">Trait</label>
+                <input type="hidden" name="trait" value="">
+                <div class="dh-trait-grid">
+                    <button type="button" class="dh-trait-btn full-width active" data-trait="">None</button>
+                    <button type="button" class="dh-trait-btn" data-trait="agility">Agility</button>
+                    <button type="button" class="dh-trait-btn" data-trait="strength">Strength</button>
+                    <button type="button" class="dh-trait-btn" data-trait="finesse">Finesse</button>
+                    <button type="button" class="dh-trait-btn" data-trait="instinct">Instinct</button>
+                    <button type="button" class="dh-trait-btn" data-trait="presence">Presence</button>
+                    <button type="button" class="dh-trait-btn" data-trait="knowledge">Knowledge</button>
+                </div>
+            </div>
+
+            <!-- Checkbox Row 1: Adv / Dis / Reaction -->
+            <div class="dh-cb-row">
+                <label class="dh-cb-label">
+                    Advantage <input type="checkbox" name="advantage">
+                </label>
+                <label class="dh-cb-label">
+                    Disadvantage <input type="checkbox" name="disadvantage">
+                </label>
+                <label class="dh-cb-label">
+                    Reaction <input type="checkbox" name="reaction">
+                </label>
+            </div>
+
+            <!-- Checkbox Row 2: Grant Resources -->
+            <div class="dh-cb-row-single">
+                <label class="dh-cb-label">
+                    Grant Resources <input type="checkbox" name="grantResources" checked>
+                </label>
+            </div>
+
+            <!-- Label -->
+            <div class="dh-rr-row">
+                <label class="dh-rr-label">Label</label>
+                <input type="text" name="label" class="dh-rr-input" placeholder="Optional description...">
+            </div>
+
+            <!-- Actions -->
+            <div class="dh-actions">
+                <button type="button" class="dh-btn-cancel" data-action="cancel">Cancel</button>
+                <!-- CORREÇÃO: type="button" e data-action="roll" para funcionar corretamente na V2 -->
+                <button type="button" class="dh-btn-submit" data-action="roll">Request Roll</button>
+            </div>
+        </div>
+        `;
+    }
+
+    _replaceHTML(result, content, options) {
+        content.innerHTML = result;
+        
+        // --- Trait Selection Logic ---
+        const traitButtons = content.querySelectorAll('.dh-trait-btn');
+        const hiddenInput = content.querySelector('input[name="trait"]');
+
+        traitButtons.forEach(btn => {
+            btn.onclick = (e) => {
+                // 1. Remove active class from all
+                traitButtons.forEach(b => b.classList.remove('active'));
+                
+                // 2. Add active class to clicked
+                btn.classList.add('active');
+                
+                // 3. Update hidden input value
+                hiddenInput.value = btn.dataset.trait;
+            };
+        });
+
+        return content;
     }
 
     async _onRoll(event, target) {
-        const formData = new FormData(this.element);
+        // Encontrar o container a partir do elemento raiz da aplicação
+        const container = this.element;
         
-        const difficulty = formData.get("difficulty");
-        const trait = formData.get("trait");
-        const reaction = formData.has("reaction");
-        const advantage = formData.has("advantage");
-        const disadvantage = formData.has("disadvantage");
-        const labelInput = (formData.get("label") || "").trim();
+        const difficulty = container.querySelector('[name="difficulty"]').value;
+        const trait = container.querySelector('[name="trait"]').value;
+        const reaction = container.querySelector('[name="reaction"]').checked;
+        const grantResources = container.querySelector('[name="grantResources"]').checked;
+        const advantage = container.querySelector('[name="advantage"]').checked;
+        const disadvantage = container.querySelector('[name="disadvantage"]').checked;
+        const labelInput = (container.querySelector('[name="label"]').value || "").trim();
 
         let command = "[[/dr";
         let params = [];
         if (difficulty) params.push(`difficulty=${difficulty}`);
         if (trait) params.push(`trait=${trait}`);
         if (reaction) params.push("reaction=true");
+        if (grantResources) params.push("grantResources=true");
         if (advantage) params.push("advantage=true");
         if (disadvantage) params.push("disadvantage=true");
         
