@@ -1,3 +1,9 @@
+# 0.0.8
+- request roll grant resources and style improve
+- fate roll can use system or you can trigger a dice choice https://github.com/brunocalado/daggerheart-quickactions/wiki
+- GM Quick Actions
+- AerisCinematicCritsforDaggerheart improved. // READ THIS: https://github.com/brunocalado/daggerheart-quickactions/wiki/Aeris-Cinematic-Crits
+
 # 0.0.7
 - QuickActions.SpendHope();
 
