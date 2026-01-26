@@ -336,6 +336,10 @@ class RequestRollApp extends ApplicationV2 {
      * without needing to update an external .hbs file.
      */
     async _renderHTML(context, options) {
+        // Build user options (Only Active users)
+        const connectedUsers = game.users.filter(u => u.active);
+        const userOptions = connectedUsers.map(u => `<option value="${u.id}">${u.name}</option>`).join("");
+
         return `
         <style>
             .dh-rr-container {
@@ -354,9 +358,9 @@ class RequestRollApp extends ApplicationV2 {
                 font-weight: bold;
                 color: #C9A060;
                 flex: 0 0 80px;
-                text-align: right; /* Alinhar labels à direita para visual mais limpo */
+                text-align: right; /* Align labels right for cleaner look */
                 padding-right: 5px;
-                margin-bottom: 0; /* CORREÇÃO: Remove margem herdada do CSS global */
+                margin-bottom: 0; /* CORRECTION: Remove inherited margin */
             }
             .dh-rr-input {
                 flex: 1;
@@ -365,7 +369,7 @@ class RequestRollApp extends ApplicationV2 {
                 border: 1px solid #7a6e5d;
                 padding: 5px;
                 border-radius: 4px;
-                color: #000000 !important; /* CORREÇÃO: Preto para legibilidade */
+                color: #000000 !important; /* CORRECTION: Black for readability */
                 font-weight: bold;
             }
             
@@ -407,7 +411,7 @@ class RequestRollApp extends ApplicationV2 {
             .dh-cb-row {
                 display: flex;
                 align-items: center;
-                justify-content: space-around; /* Espaçamento melhorado */
+                justify-content: space-around; /* Improved spacing */
                 background: rgba(0,0,0,0.2);
                 padding: 8px 10px;
                 border-radius: 4px;
@@ -415,7 +419,7 @@ class RequestRollApp extends ApplicationV2 {
             .dh-cb-row-single {
                 display: flex;
                 align-items: center;
-                justify-content: center; /* Centralizar quando item único */
+                justify-content: center; /* Center single item */
                 background: rgba(0,0,0,0.2);
                 padding: 8px 10px;
                 border-radius: 4px;
@@ -428,12 +432,37 @@ class RequestRollApp extends ApplicationV2 {
                 color: #e0e0e0;
                 cursor: pointer;
                 font-size: 0.95em;
-                margin-bottom: 0; /* CORREÇÃO: Remove margem herdada do CSS global */
+                margin-bottom: 0; /* CORRECTION: Remove inherited margin */
             }
             .dh-cb-label input {
                 accent-color: #C9A060;
                 transform: scale(1.2);
                 margin: 0;
+            }
+
+            /* New Styles for DC modifiers and Target */
+            .dh-sq-btn {
+                width: 32px;
+                height: 30px;
+                padding: 0;
+                border: 1px solid #555;
+                background: #191919;
+                color: #C9A060;
+                cursor: pointer;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                transition: background 0.2s;
+                font-size: 0.9em;
+            }
+            .dh-sq-btn:hover { background: #C9A060; color: #191919; }
+            .dh-dc-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                flex: 1;
             }
             
             .dh-actions {
@@ -467,10 +496,25 @@ class RequestRollApp extends ApplicationV2 {
 
         <div class="dh-rr-container">
             
-            <!-- Difficulty -->
+            <!-- Target Selection (New) -->
+            <div class="dh-rr-row">
+                <label class="dh-rr-label">Send to</label>
+                <select name="targetUser" class="dh-rr-input" style="text-align: left;">
+                    <option value="">All</option>
+                    ${userOptions}
+                </select>
+            </div>
+
+            <!-- Difficulty with Modifiers (New) -->
             <div class="dh-rr-row">
                 <label class="dh-rr-label">Difficulty</label>
-                <input type="number" name="difficulty" value="15" class="dh-rr-input" placeholder="DC">
+                <div class="dh-dc-wrapper">
+                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-5">-5</button>
+                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-1">-1</button>
+                    <input type="number" name="difficulty" value="15" class="dh-rr-input" placeholder="DC">
+                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="1">+1</button>
+                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="5">+5</button>
+                </div>
             </div>
 
             <!-- Trait Selection (Buttons) -->
@@ -517,7 +561,7 @@ class RequestRollApp extends ApplicationV2 {
             <!-- Actions -->
             <div class="dh-actions">
                 <button type="button" class="dh-btn-cancel" data-action="cancel">Cancel</button>
-                <!-- CORREÇÃO: type="button" e data-action="roll" para funcionar corretamente na V2 -->
+                <!-- CORRECTION: type="button" and data-action="roll" for V2 to work correctly -->
                 <button type="button" class="dh-btn-submit" data-action="roll">Request Roll</button>
             </div>
         </div>
@@ -533,14 +577,23 @@ class RequestRollApp extends ApplicationV2 {
 
         traitButtons.forEach(btn => {
             btn.onclick = (e) => {
-                // 1. Remove active class from all
                 traitButtons.forEach(b => b.classList.remove('active'));
-                
-                // 2. Add active class to clicked
                 btn.classList.add('active');
-                
-                // 3. Update hidden input value
                 hiddenInput.value = btn.dataset.trait;
+            };
+        });
+
+        // --- DC Modifier Logic ---
+        const dcInput = content.querySelector('input[name="difficulty"]');
+        const modButtons = content.querySelectorAll('[data-action="mod-dc"]');
+
+        modButtons.forEach(btn => {
+            btn.onclick = (e) => {
+                const mod = parseInt(btn.dataset.value);
+                let currentVal = parseInt(dcInput.value) || 0;
+                let newVal = currentVal + mod;
+                if (newVal < 0) newVal = 0; // Prevent negative DC
+                dcInput.value = newVal;
             };
         });
 
@@ -548,7 +601,6 @@ class RequestRollApp extends ApplicationV2 {
     }
 
     async _onRoll(event, target) {
-        // Encontrar o container a partir do elemento raiz da aplicação
         const container = this.element;
         
         const difficulty = container.querySelector('[name="difficulty"]').value;
@@ -558,6 +610,7 @@ class RequestRollApp extends ApplicationV2 {
         const advantage = container.querySelector('[name="advantage"]').checked;
         const disadvantage = container.querySelector('[name="disadvantage"]').checked;
         const labelInput = (container.querySelector('[name="label"]').value || "").trim();
+        const targetUser = container.querySelector('[name="targetUser"]').value;
 
         let command = "[[/dr";
         let params = [];
@@ -571,6 +624,12 @@ class RequestRollApp extends ApplicationV2 {
         if (params.length > 0) command += " " + params.join(" ");
         command += "]]";
         if (labelInput) command += `{${labelInput}}`;
+
+        // Whisper logic
+        let whisperArray = [];
+        if (targetUser) {
+            whisperArray.push(targetUser);
+        }
 
         const content = `
         <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
@@ -591,7 +650,8 @@ class RequestRollApp extends ApplicationV2 {
             user: game.user.id,
             speaker: ChatMessage.getSpeaker(),
             content: content,
-            style: CONST.CHAT_MESSAGE_STYLES.OTHER
+            style: CONST.CHAT_MESSAGE_STYLES.OTHER,
+            whisper: whisperArray // If empty, sends to everyone (Public)
         });
         this.close();
     }
