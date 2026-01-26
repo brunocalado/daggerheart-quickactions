@@ -4,7 +4,7 @@
  */
 
 // Import all functions from a single consolidated file
-import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope } from "./apps.js";
+import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt } from "./apps.js";
 // Import Features
 import { features } from "./features.js";
 // Import Beastform
@@ -43,6 +43,32 @@ Hooks.once("init", () => {
         default: false
     });
 
+    // 4. Cinematic Request Synchronization (Force Open Logic)
+    game.settings.register("daggerheart-quickactions", "cinematicRequest", {
+        name: "Cinematic Roll Request",
+        scope: "world",     // Sincroniza entre todos os clientes
+        config: false,      // Invisível no menu
+        default: {},
+        type: Object,
+        onChange: (value) => {
+            // Essa função roda em TODOS os clientes conectados quando o valor muda
+            if (!value || !value.timestamp) return;
+
+            // Ignora requisições antigas (mais de 10s) para evitar abrir ao recarregar a página (F5)
+            const timeDiff = Date.now() - value.timestamp;
+            if (timeDiff > 10000) return;
+
+            // Verifica o alvo
+            // Se targetId for vazio, é para todos. Se tiver ID, verifica se sou eu.
+            const isTarget = !value.targetId || value.targetId === game.user.id;
+
+            if (isTarget) {
+                // Chama a função exportada do apps.js para abrir a janela
+                showCinematicPrompt(value.data);
+            }
+        }
+    });
+
     globalThis.QuickActions = {
         Downtime: activateDowntime,
         FallingDamage: activateFallingDamage,
@@ -53,7 +79,7 @@ Hooks.once("init", () => {
         SpotlightToken: spotlightToken,
         ShowMacros: showMacros,
         Fate: fateRoll,
-        SpendHope: activateSpendHope, // Added SpendHope
+        SpendHope: activateSpendHope, 
         Features: features,
         Beastform: beastformAction
     };
@@ -73,9 +99,6 @@ Hooks.on("ready", async () => {
         const pack = game.packs.get(packName);
 
         if (pack) {
-            // We need to find "Agile Scout". 
-            // Using getDocuments() to ensure we have the system data.
-            // Performance note: In a huge compendium index might be better, but for this specific check, loading is safer.
             const documents = await pack.getDocuments({ type: "beastform" });
             const agileScout = documents.find(d => d.name === "Agile Scout");
 
@@ -86,7 +109,6 @@ Hooks.on("ready", async () => {
                     
                     if (savedRoot) {
                         console.log("QuickActions | Auto-Check: Agile Scout image mismatch detected. Running Beastform fix...");
-                        // Call the exported logic directly with the saved folder
                         QuickActions.Beastform(savedRoot);
                     } else {
                         ui.notifications.warn("QuickActions: Beastform Auto-Fix triggered, but no Root Folder is saved in settings.");
@@ -142,7 +164,6 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
         newFieldset.appendChild(btnDowntime);
         newFieldset.appendChild(btnFalling);
         newFieldset.appendChild(btnRoll);
-        // Note: LootConsumable, Beastform, etc are not added to the sidebar menu here.
 
         fieldset.after(newFieldset);
     } else {

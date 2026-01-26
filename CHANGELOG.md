@@ -1,3 +1,6 @@
+# 0.0.9
+- request roll show dialog to player
+
 # 0.0.8
 - request roll grant resources and style improve
 - fate roll can use system or you can trigger a dice choice https://github.com/brunocalado/daggerheart-quickactions/wiki
