@@ -51,6 +51,7 @@ QuickActions.FallingDamage();
 
 ```javascript
 // Opens the Roll Request dialog
+// You can use QuickActions.RequestRoll(false); to prevent it from show images.
 QuickActions.RequestRoll();
 ```
 

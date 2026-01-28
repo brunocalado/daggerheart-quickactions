@@ -1,8 +1,8 @@
-2026/01/28-10:03:35.597 5d04 Recovering log #2487
-2026/01/28-10:03:35.601 5d04 Delete type=0 #2487
-2026/01/28-10:03:35.601 5d04 Delete type=3 #2485
-2026/01/28-10:04:06.009 1e3c Level-0 table #2493: started
-2026/01/28-10:04:06.009 1e3c Level-0 table #2493: 0 bytes OK
-2026/01/28-10:04:06.009 1e3c Delete type=0 #2491
-2026/01/28-10:04:06.009 1e3c Manual compaction at level-0 from '!folders!Hz442cHCkERSfi2B' @ 72057594037927935 : 1 .. '!macros!w6dCoSaCPMc41uVn' @ 0 : 0; will stop at (end)
-2026/01/28-10:04:06.009 1e3c Manual compaction at level-1 from '!folders!Hz442cHCkERSfi2B' @ 72057594037927935 : 1 .. '!macros!w6dCoSaCPMc41uVn' @ 0 : 0; will stop at (end)
+2026/01/28-10:06:26.284 5720 Recovering log #2492
+2026/01/28-10:06:26.287 5720 Delete type=0 #2492
+2026/01/28-10:06:26.288 5720 Delete type=3 #2490
+2026/01/28-10:09:08.464 1e3c Level-0 table #2497: started
+2026/01/28-10:09:08.464 1e3c Level-0 table #2497: 0 bytes OK
+2026/01/28-10:09:08.466 1e3c Delete type=0 #2495
+2026/01/28-10:09:08.466 1e3c Manual compaction at level-0 from '!folders!Hz442cHCkERSfi2B' @ 72057594037927935 : 1 .. '!macros!w6dCoSaCPMc41uVn' @ 0 : 0; will stop at (end)
+2026/01/28-10:09:08.466 1e3c Manual compaction at level-1 from '!folders!Hz442cHCkERSfi2B' @ 72057594037927935 : 1 .. '!macros!w6dCoSaCPMc41uVn' @ 0 : 0; will stop at (end)
