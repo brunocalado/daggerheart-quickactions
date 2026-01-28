@@ -199,6 +199,12 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // 3. REQUEST ROLL APP
 // ==================================================================
 class RequestRollApp extends ApplicationV2 {
+    constructor(options = {}) {
+        super(options);
+        // Recebe a opção showImages (default true se não for passado)
+        this.showImages = options.showImages ?? true;
+    }
+
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "request-roll-app",
@@ -446,27 +452,33 @@ class RequestRollApp extends ApplicationV2 {
 
         // BRANCH LOGIC: Special Roll vs Standard Roll
         if (specialRoll) {
-            // Special Logic: Hope or Fear ONLY
-            // Ignores Difficulty, Advantage, Disadvantage, Reaction, Grant Resources
-            // Command is strictly lowercase: /fr type=hope or /fr type=fear
-            // Capitalized for Visuals/Chat compatibility if needed
-            const capSpecial = specialRoll.charAt(0).toUpperCase() + specialRoll.slice(1);
-            
-            rawCommand = `/fr type=${capSpecial}`;
-            
-            if (cinematicMode) {
-                // In Cinematic Mode, we still send the formatted command to be executed by the player client
-                // which seems to work fine.
-            } else {
-                // Chat Mode
-                // PREVENT ERROR: Do NOT send the inline roll [[/fr ...]] to chat.
-                // Just display a nice text indicating what happened.
-                displayCommand = `<span style="font-size: 1.2em; font-weight:bold; color: ${specialRoll === 'hope' ? '#FFD700' : '#b54ec4'}; text-shadow: 1px 1px 2px black;">${capSpecial.toUpperCase()} ROLL</span>`; 
-                if (labelInput) displayCommand += `<br><span style="font-size: 0.9em;">${labelInput}</span>`;
+            const capSpecial = specialRoll.toLowerCase(); // hope or fear
+
+            // NEW LOGIC: Non-Cinematic Hope/Fear sends direct command
+            if (!cinematicMode) {
+                // Comando simples: [[/fr type=hope]] ou [[/fr type=fear]]
+                // Adiciona {label} se houver
+                let textCommand = `[[/fr type=${capSpecial}]]`;
+                if (labelInput) {
+                    textCommand += `{${labelInput}}`;
+                }
+
+                await ChatMessage.create({
+                    user: game.user.id,
+                    content: textCommand
+                    // speaker não é estritamente necessário para este comando, pois o Foundry resolve
+                });
+                
+                this.close();
+                return;
             }
+
+            // Cinematic Mode Logic (Visuals)
+            const displaySpecial = capSpecial.charAt(0).toUpperCase() + capSpecial.slice(1);
+            rawCommand = `/fr type=${displaySpecial}`;
             
             // Setup Cinematic Data for Special (Visuals only)
-            cinematicTraitLabel = capSpecial; // "Hope" or "Fear"
+            cinematicTraitLabel = displaySpecial; // "Hope" or "Fear"
             cinematicDifficulty = ""; // Do not show difficulty
             
         } else {
@@ -494,7 +506,8 @@ class RequestRollApp extends ApplicationV2 {
                 label: labelInput || "GM Requests a Roll",
                 difficulty: cinematicDifficulty,
                 trait: cinematicTraitLabel,
-                rawTrait: specialRoll ? "" : trait // Se for especial, não manda rawTrait para não buscar imagem de atributo
+                rawTrait: specialRoll ? "" : trait, // Se for especial, não manda rawTrait para não buscar imagem de atributo
+                showImages: this.showImages // Passa a configuração de imagem para o cliente
             };
             
             await game.settings.set("daggerheart-quickactions", "cinematicRequest", {
@@ -507,6 +520,7 @@ class RequestRollApp extends ApplicationV2 {
             return;
         }
 
+        // Standard Text Chat Logic (Traits)
         let whisperArray = targetUser ? [targetUser] : [];
         const content = `
         <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
@@ -563,22 +577,26 @@ class CinematicRollPrompt extends ApplicationV2 {
         }
 
         // Lógica de Imagem (Atualizada)
-        let imageName = "";
-        
-        if (this.data.rawTrait) {
-            // Se tem rawTrait, é um atributo normal (agility, strength, etc)
-            imageName = this.data.rawTrait.toLowerCase();
-        } else {
-            // Se não tem rawTrait, verificamos o label tratado
-            if (checkLabel === "Hope") imageName = "hope";
-            else if (checkLabel === "Fear") imageName = "fear";
-            else if (checkLabel === "Duality Roll") imageName = "none";
-        }
-
         let imageHtml = "";
-        if (imageName) {
-            const imagePath = `modules/daggerheart-quickactions/assets/requestroll/${imageName}.webp`;
-            imageHtml = `<img src="${imagePath}" style="max-width: 400px; border: none; filter: drop-shadow(0 0 10px rgba(201, 160, 96, 0.5)); margin-bottom: 10px;" />`;
+        
+        // Verifica se imagens devem ser exibidas (default é true se undefined)
+        if (this.data.showImages !== false) {
+            let imageName = "";
+            
+            if (this.data.rawTrait) {
+                // Se tem rawTrait, é um atributo normal (agility, strength, etc)
+                imageName = this.data.rawTrait.toLowerCase();
+            } else {
+                // Se não tem rawTrait, verificamos o label tratado
+                if (checkLabel === "Hope") imageName = "hope";
+                else if (checkLabel === "Fear") imageName = "fear";
+                else if (checkLabel === "Duality Roll") imageName = "none";
+            }
+
+            if (imageName) {
+                const imagePath = `modules/daggerheart-quickactions/assets/requestroll/${imageName}.webp`;
+                imageHtml = `<img src="${imagePath}" style="max-width: 400px; border: none; filter: drop-shadow(0 0 10px rgba(201, 160, 96, 0.5)); margin-bottom: 10px;" />`;
+            }
         }
 
         // Lógica de Dificuldade (Não exibir se vazia)
@@ -912,7 +930,17 @@ class HopeSpenderApp extends ApplicationV2 {
 // ==================================================================
 export async function activateDowntime() { new DowntimeApp().render(true); }
 export async function activateFallingDamage() { new FallingDamageApp().render(true); }
-export async function activateRequestRoll() { new RequestRollApp().render(true); }
+
+/**
+ * Atualizado: Aceita argumento para controlar se imagens são exibidas no prompt cinemático
+ * @param {boolean|object} arg - Se false, suprime imagens. Se evento/undefined, trata como true.
+ */
+export async function activateRequestRoll(arg) {
+    // Se arg for booleano false, usa false. Caso contrário (undefined ou evento), usa true.
+    const showImages = (typeof arg === "boolean") ? arg : true;
+    new RequestRollApp({ showImages }).render(true);
+}
+
 export async function activateLootConsumable() { new LootConsumableApp().render(true); }
 export async function activateSpendHope() { new HopeSpenderApp().render(true); }
 export async function showCinematicPrompt(data) { 
