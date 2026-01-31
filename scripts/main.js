@@ -4,7 +4,7 @@
  */
 
 // Import all functions from a single consolidated file
-import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt } from "./apps.js";
+import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt, activateTemplateCreator } from "./apps.js";
 // Import Features
 import { features } from "./features.js";
 // Import Beastform
@@ -80,6 +80,7 @@ Hooks.once("init", () => {
         ShowMacros: showMacros,
         Fate: fateRoll,
         SpendHope: activateSpendHope, 
+        Templates: activateTemplateCreator, // Added to global API
         Features: features,
         Beastform: beastformAction
     };

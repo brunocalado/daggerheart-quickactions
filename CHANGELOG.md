@@ -1,3 +1,6 @@
+# 0.1.1
+- new: QuickActions.Templates();
+
 # 0.1.0
 - QuickActions.RequestRoll() works for fate rolls now
 - // You can use QuickActions.RequestRoll(false); to prevent it from use images.

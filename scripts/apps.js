@@ -1,6 +1,6 @@
 /**
  * Consolidated file containing all Quick Actions applications.
- * Contains: Downtime (Fear), Falling Damage, Request Roll, Help an Ally, Scar Check, Loot & Consumables, Fate Roll, and Hope Spender.
+ * Contains: Downtime (Fear), Falling Damage, Request Roll, Help an Ally, Scar Check, Loot & Consumables, Fate Roll, Hope Spender, and Templates.
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
@@ -926,6 +926,761 @@ class HopeSpenderApp extends ApplicationV2 {
 }
 
 // ==================================================================
+// 12. TEMPLATE CREATOR APP (PORTED FROM MACRO)
+// ==================================================================
+class TemplateCreatorApp extends ApplicationV2 {
+    constructor(options = {}) {
+        super(options);
+        
+        // Retrieve saved settings from user flags (Persistence)
+        const savedSettings = game.user.getFlag("daggerheart-quickactions", "templateSettings") || {};
+        
+        // Default state combined with saved settings
+        this.localState = { 
+            type: savedSettings.type || 'circle',
+            range: savedSettings.range || 'm',
+            effect: savedSettings.effect || 'none',
+            hidden: savedSettings.hidden || false
+        };
+    }
+
+    static DEFAULT_OPTIONS = {
+        tag: "div",
+        id: "daggerheart-template-app",
+        classes: ["dh-qa-app"],
+        window: { 
+            title: "Template Tool", 
+            icon: "fas fa-shapes", 
+            resizable: false,
+            controls: []
+        },
+        position: { width: 420, height: "auto" }
+    };
+
+    async _renderHTML(context, options) {
+        const hasTokenMagic = game.modules.get("tokenmagic")?.active;
+
+        return `
+        <style>
+            .dh-qa-app { 
+                background: #1a1a1a; 
+                color: #e0e0e0; 
+                font-family: 'Signika', sans-serif; 
+                box-sizing: border-box;
+            }
+            .dh-qa-app * {
+                box-sizing: border-box;
+            }
+            .dh-trait-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+                margin-top: 5px;
+            }
+            .dh-trait-btn {
+                background: #2b2b2b;
+                color: #999;
+                border: 1px solid #444;
+                padding: 8px 4px;
+                cursor: pointer;
+                border-radius: 4px;
+                font-size: 0.85em;
+                text-transform: uppercase;
+                transition: all 0.2s;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1;
+            }
+            .dh-trait-btn:hover { border-color: #C9A060; color: #C9A060; }
+            .dh-trait-btn.active {
+                background: #C9A060;
+                color: #191919;
+                border-color: #C9A060;
+                font-weight: 800;
+                box-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+            }
+            .dh-select {
+                width: 100%;
+                height: auto;
+                background: #2b2b2b;
+                color: #e0e0e0;
+                border: 1px solid #444;
+                padding: 8px;
+                border-radius: 4px;
+                margin-top: 5px;
+                font-family: inherit;
+                cursor: pointer;
+                display: block;
+            }
+            .dh-select:focus {
+                outline: none;
+                border-color: #C9A060;
+            }
+            .dh-checkbox-row {
+                margin-top: 12px;
+                display: flex;
+                align-items: center;
+            }
+            .dh-checkbox-row input[type="checkbox"] {
+                accent-color: #C9A060;
+                width: 16px;
+                height: 16px;
+                margin: 0 8px 0 0;
+                cursor: pointer;
+            }
+            .dh-btn-submit {
+                background: #C9A060;
+                color: #191919;
+                border: none;
+                padding: 12px;
+                width: 100%;
+                font-weight: 800;
+                text-transform: uppercase;
+                cursor: pointer;
+                border-radius: 4px;
+                transition: all 0.2s;
+                margin-top: 5px;
+            }
+            .dh-btn-submit:hover {
+                filter: brightness(1.15);
+                box-shadow: 0 0 12px rgba(201, 160, 96, 0.5);
+            }
+            .dh-copy-row {
+                display: flex; 
+                gap: 5px; 
+                margin-top: 10px; 
+                align-items: center;
+            }
+            .dh-copy-input {
+                flex: 1; 
+                background: rgba(0,0,0,0.3); 
+                color: #C9A060; 
+                border: 1px solid #444; 
+                padding: 5px; 
+                text-align: center;
+                border-radius: 4px;
+            }
+            .dh-sq-action-btn {
+                width: 32px; 
+                height: 32px; 
+                background: #2b2b2b;
+                border: 1px solid #444;
+                color: #C9A060;
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                cursor: pointer;
+                border-radius: 4px;
+                transition: background 0.2s;
+            }
+            .dh-sq-action-btn:hover {
+                background: #444;
+                border-color: #C9A060;
+            }
+            .dh-rr-label { 
+                font-weight: 700; 
+                color: #C9A060; 
+                display: block; 
+                margin-bottom: 4px;
+                font-size: 0.9em;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .dh-rr-container { padding: 10px; }
+            hr.dh-hr { border: 0; border-top: 1px solid #444; margin: 15px 0; }
+        </style>
+        
+        <div class="dh-rr-container">
+            <label class="dh-rr-label">Shape</label>
+            <div class="dh-trait-grid">
+                <button type="button" class="dh-trait-btn ${this.localState.type === 'circle' ? 'active' : ''}" data-group="type" data-value="circle"><i class="fas fa-circle" style="margin-right:4px"></i>Circle</button>
+                <button type="button" class="dh-trait-btn ${this.localState.type === 'cone' ? 'active' : ''}" data-group="type" data-value="cone"><i class="fas fa-wifi" style="transform: rotate(-45deg); margin-right:4px"></i>Cone</button>
+                <button type="button" class="dh-trait-btn ${this.localState.type === 'front' ? 'active' : ''}" data-group="type" data-value="front"><i class="fas fa-wifi" style="margin-right:4px"></i>Front</button>
+                <button type="button" class="dh-trait-btn ${this.localState.type === 'ray' ? 'active' : ''}" data-group="type" data-value="ray"><i class="fas fa-bolt" style="margin-right:4px"></i>Ray</button>
+            </div>
+
+            <label class="dh-rr-label" style="margin-top: 12px;">Distance</label>
+            <div class="dh-trait-grid">
+                <button type="button" class="dh-trait-btn ${this.localState.range === 'm' ? 'active' : ''}" data-group="range" data-value="m">Melee</button>
+                <button type="button" class="dh-trait-btn ${this.localState.range === 'vc' ? 'active' : ''}" data-group="range" data-value="vc">V.Close</button>
+                <button type="button" class="dh-trait-btn ${this.localState.range === 'c' ? 'active' : ''}" data-group="range" data-value="c">Close</button>
+                <button type="button" class="dh-trait-btn ${this.localState.range === 'f' ? 'active' : ''}" data-group="range" data-value="f">Far</button>
+            </div>
+
+            <!-- New Copy Row -->
+            <div class="dh-copy-row">
+                <input type="text" id="dh-template-code" class="dh-copy-input" readonly value="">
+                <button type="button" id="btn-copy-code" class="dh-trait-btn" style="width: auto; padding: 0 10px; height: 32px;">Copy</button>
+                <button type="button" id="btn-chat-code" class="dh-sq-action-btn" title="Send to Chat"><i class="fas fa-comment"></i></button>
+            </div>
+            
+            ${hasTokenMagic ? `
+            <label class="dh-rr-label" style="margin-top: 12px;">Magic Effect</label>
+            <select id="dh-effect-select" class="dh-select">
+                <option value="none">None</option>
+                <option value="glow">Glowing Outline</option>
+                <option value="rays">Annihilating Rays</option>
+                <option value="bulge">Bulging Out</option>
+                <option value="classic_rays">Classic Rays</option>
+                <option value="classic_rays_2">Classic Rays 2</option>
+                <option value="fairy">Fairy Fireflies</option>
+                <option value="fire">Fire Rays</option>
+                <option value="flames">Flames</option>
+                <option value="protoplasm">Protoplasm</option>
+                <option value="water">Watery Surface</option>
+                <option value="zone_blizzard">Zone: Blizzard</option>
+                <option value="zone_electricity">Zone: Electricity</option>
+                <option value="zone_fire">Zone: Fire</option>
+            </select>
+            ` : ''}
+
+            <div class="dh-checkbox-row">
+                <input type="checkbox" id="dh-hidden-checkbox" ${this.localState.hidden ? 'checked' : ''}>
+                <label for="dh-hidden-checkbox" class="dh-rr-label" style="margin-bottom: 0; cursor: pointer;">Hide Template</label>
+            </div>
+
+            <hr class="dh-hr">
+
+            <div class="dh-actions">
+                <button type="button" class="dh-btn-submit" id="btn-create-template">
+                    <i class="fas fa-crosshairs"></i> Place Template
+                </button>
+            </div>
+        </div>`;
+    }
+
+    _replaceHTML(result, content, options) {
+        content.innerHTML = result;
+
+        const typeButtons = content.querySelectorAll('[data-group="type"]');
+        const rangeButtons = content.querySelectorAll('[data-group="range"]');
+        const submitBtn = content.querySelector('#btn-create-template');
+        const effectSelect = content.querySelector('#dh-effect-select');
+        const hiddenCheckbox = content.querySelector('#dh-hidden-checkbox');
+        const copyInput = content.querySelector('#dh-template-code');
+        const btnCopy = content.querySelector('#btn-copy-code');
+        const btnChat = content.querySelector('#btn-chat-code');
+
+        const updateCodeString = () => {
+            let shapeText = "circle";
+            if (this.localState.type === "cone") shapeText = "cone";
+            else if (this.localState.type === "front") shapeText = "rect";
+            else if (this.localState.type === "ray") shapeText = "ray";
+
+            let distText = "m";
+            if (this.localState.range === "m") distText = "m";
+            else if (this.localState.range === "vc") distText = "c"; // Mapped per user instruction
+            else if (this.localState.range === "c") distText = "vc"; // Mapped per user instruction
+            else if (this.localState.range === "f") distText = "f";
+
+            const code = `@Template[type:${shapeText}|range:${distText}]`;
+            if (copyInput) copyInput.value = code;
+        };
+
+        // Initialize text
+        updateCodeString();
+
+        const updateUI = () => {
+            typeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === this.localState.type);
+            });
+            rangeButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === this.localState.range);
+            });
+            updateCodeString();
+        };
+        
+        if (effectSelect) {
+            effectSelect.value = this.localState.effect;
+            effectSelect.onchange = (ev) => {
+                this.localState.effect = ev.target.value;
+            };
+        }
+
+        if (hiddenCheckbox) {
+            hiddenCheckbox.onchange = (ev) => {
+                this.localState.hidden = ev.target.checked;
+            }
+        }
+
+        typeButtons.forEach(btn => {
+            btn.onclick = (ev) => {
+                ev.preventDefault();
+                this.localState.type = btn.dataset.value;
+                updateUI();
+            };
+        });
+
+        rangeButtons.forEach(btn => {
+            btn.onclick = (ev) => {
+                ev.preventDefault();
+                this.localState.range = btn.dataset.value;
+                updateUI();
+            };
+        });
+
+        if (btnCopy) {
+            btnCopy.onclick = (ev) => {
+                ev.preventDefault();
+                if (copyInput && copyInput.value) {
+                    game.clipboard.copyPlainText(copyInput.value);
+                    ui.notifications.info("Template code copied to clipboard!");
+                }
+            };
+        }
+
+        if (btnChat) {
+            btnChat.onclick = async (ev) => {
+                ev.preventDefault();
+                const code = copyInput ? copyInput.value : "";
+                if (code) {
+                    const content = `
+                    <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
+                        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
+                            <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
+                                Template Tool
+                            </h3>
+                        </header>
+                        <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
+                            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                                <div style="color: #ffffff !important; font-size: 1.2em; font-weight: bold; margin-bottom: 10px; text-shadow: 0px 0px 8px #000;">
+                                    ${code}
+                                </div>
+                                <div style="color: #ccc; font-size: 0.9em; font-style: italic;">
+                                    Click above to place the template
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                    
+                    await ChatMessage.create({
+                        user: game.user.id,
+                        content: content,
+                        style: CONST.CHAT_MESSAGE_STYLES.OTHER
+                    });
+                }
+            };
+        }
+
+        if (submitBtn) {
+            submitBtn.onclick = (ev) => {
+                ev.preventDefault();
+                this._onCreateTemplate();
+            };
+        }
+
+        return content;
+    }
+
+    async _onCreateTemplate() {
+        const selectEl = this.element.querySelector('#dh-effect-select');
+        if (selectEl) {
+            this.localState.effect = selectEl.value;
+        }
+
+        const checkboxEl = this.element.querySelector('#dh-hidden-checkbox');
+        if (checkboxEl) {
+            this.localState.hidden = checkboxEl.checked;
+        }
+
+        // Save State for next time (Persistence)
+        await game.user.setFlag("daggerheart-quickactions", "templateSettings", this.localState);
+
+        const ranges = { "m": 5, "vc": 15, "c": 30, "f": 60 };
+        
+        const shapes = { 
+            "circle": "circle", 
+            "cone": "cone", 
+            "ray": "ray", 
+            "front": "cone"
+        };
+
+        const dist = ranges[this.localState.range] || 5;
+        const selectedType = this.localState.type;
+        const dbType = shapes[selectedType] || "circle";
+        const userColor = game.user.color?.css || "#C9A060"; 
+
+        const templateData = {
+            t: dbType,
+            user: game.user.id,
+            distance: dist,
+            fillColor: userColor,
+            direction: 0,
+            x: 0,
+            y: 0,
+            effect: this.localState.effect,
+            hidden: this.localState.hidden
+        };
+
+        if (selectedType === "cone") {
+            templateData.angle = 53.13;
+        } else if (selectedType === "front") {
+            templateData.angle = 180;
+        }
+        
+        if (selectedType === "ray") {
+            templateData.width = 5;
+        }
+
+        this.close();
+        this._activatePreviewTool(templateData);
+    }
+
+    _getTMFXConfig(effectName, colorInt, userId) {
+        const randomID = foundry.utils.randomID;
+        
+        const buildBase = (presetName, filters) => ({
+            tokenmagic: {
+                templateData: {
+                    opacity: 1,
+                    tint: null,
+                    preset: presetName
+                },
+                filters: filters,
+                options: null
+            }
+        });
+
+        const makeFilter = (params) => ({
+            tmFilters: {
+                tmFilterId: params.filterId,
+                tmFilterInternalId: randomID(),
+                tmFilterType: params.filterType,
+                tmFilterOwner: userId,
+                tmParams: {
+                    ...params,
+                    placeableId: randomID(),
+                    filterInternalId: randomID(),
+                    filterOwner: userId,
+                    placeableType: "MeasuredTemplate",
+                    updateId: randomID()
+                }
+            }
+        });
+
+        switch(effectName) {
+            case 'glow':
+                return buildBase("Glowing Outline", [
+                    makeFilter({
+                        filterType: "glow",
+                        filterId: "Glowing Outline",
+                        outerStrength: 5.5, innerStrength: 0,
+                        color: colorInt, quality: 0.5, padding: 10,
+                        animated: { outerStrength: { active: true, loopDuration: 3000, animType: "syncCosOscillation", val1: 5.5, val2: 1.5 } },
+                        zOrder: 1, rank: 10004, enabled: true
+                    })
+                ]);
+
+            case 'rays':
+                return buildBase("Annihilating Rays", [
+                    makeFilter({
+                        filterType: "xray",
+                        filterId: "Annihilating Rays",
+                        time: 0, color: colorInt, blend: 9,
+                        dimX: 1, dimY: 1, anchorX: 0.5, anchorY: 0.5, divisor: 6, intensity: 4,
+                        animated: { time: { active: true, speed: 0.0012, animType: "move" } },
+                        zOrder: 1, rank: 10001, enabled: true
+                    })
+                ]);
+
+            case 'bulge':
+                return buildBase("Bulging Out", [
+                    makeFilter({
+                        filterType: "bulgepinch",
+                        filterId: "Bulging Out",
+                        padding: 150, strength: 0, radiusPercent: 200,
+                        animated: { strength: { active: true, animType: "cosOscillation", loopDuration: 2000, val1: 0, val2: 0.45 } },
+                        zOrder: 1, rank: 10004, enabled: true
+                    })
+                ]);
+
+            case 'classic_rays':
+                return buildBase("Classic Rays", [
+                    makeFilter({
+                        filterType: "ray",
+                        filterId: "Classic Rays",
+                        time: 0, color: colorInt, alpha: 0.5, divisor: 32, anchorX: 0.5, anchorY: 0.5,
+                        animated: { time: { active: true, speed: 0.0005, animType: "move" } },
+                        zOrder: 1, rank: 10005, enabled: true
+                    })
+                ]);
+
+            case 'classic_rays_2':
+                return buildBase("Classic Rays 2", [
+                    makeFilter({
+                        filterType: "ray",
+                        filterId: "Classic Rays 2",
+                        time: 0, color: colorInt, alpha: 1, divisor: 16, anchorX: 0.5, anchorY: 0.5, alphaDiscard: true,
+                        animated: { time: { active: true, speed: 0.0009, animType: "move" } },
+                        zOrder: 1, rank: 10006, enabled: true
+                    })
+                ]);
+
+            case 'fairy':
+                return buildBase("Fairy Fireflies : Frenetic", [
+                    makeFilter({
+                        filterType: "globes",
+                        filterId: "Fairy Fireflies : Frenetic",
+                        color: colorInt, time: 98.8, zOrder: 1, distortion: 1.45, scale: 80, alphaDiscard: true,
+                        animated: { time: { active: true, animType: "move", speed: 0.0016 } },
+                        rank: 10010, enabled: true
+                    }),
+                    makeFilter({
+                        filterType: "glow",
+                        filterId: "Fairy Fireflies : Frenetic",
+                        outerStrength: 7.5, innerStrength: 0.5, color: colorInt, quality: 0.5, padding: 10, zOrder: 2,
+                        animated: { outerStrength: { active: true, loopDuration: 3000, animType: "syncCosOscillation", val1: 7.5, val2: 5.5 } },
+                        rank: 10011, enabled: true
+                    })
+                ]);
+
+            case 'fire':
+                return buildBase("Fire Rays", [
+                    makeFilter({
+                        filterType: "ray",
+                        filterId: "Fire Rays",
+                        time: 0, color: colorInt, alpha: 1, divisor: 24, anchorX: 0.5, anchorY: 0.5, alphaDiscard: true, zOrder: 1,
+                        animated: { time: { active: true, speed: 0.0009, animType: "move" } },
+                        rank: 10015, enabled: true
+                    }),
+                    makeFilter({
+                        filterType: "glow",
+                        filterId: "Fire Rays",
+                        outerStrength: 1, innerStrength: 1, color: colorInt, quality: 0.5, padding: 10, zOrder: 2,
+                        rank: 10016, enabled: true
+                    }),
+                    makeFilter({
+                        filterType: "fire",
+                        filterId: "Fire Rays",
+                        intensity: 1.5, color: 16777215, amplitude: 1.3, time: 0, blend: 2, fireBlend: 1, zOrder: 3,
+                        animated: { time: { active: true, speed: -0.0016, animType: "move" } },
+                        rank: 10017, enabled: true
+                    })
+                ]);
+
+            case 'flames':
+                return buildBase("Flames", [
+                    makeFilter({
+                        filterType: "fire",
+                        filterId: "Flames",
+                        intensity: 1.5, color: colorInt, // Usando cor do jogador para fogo colorido
+                        amplitude: 1.3, time: 0, blend: 2, fireBlend: 1,
+                        animated: { time: { active: true, speed: -0.0016, animType: "move" } },
+                        zOrder: 1, rank: 10018, enabled: true
+                    })
+                ]);
+
+            case 'protoplasm':
+                return buildBase("Protoplasm", [
+                    makeFilter({
+                        filterType: "liquid",
+                        filterId: "Protoplasm",
+                        color: colorInt, time: 0, blend: 8, intensity: 4, spectral: true, scale: 1.4,
+                        animated: { time: { active: true, speed: 0.001, animType: "move" } },
+                        zOrder: 1, rank: 10027, enabled: true
+                    })
+                ]);
+
+            case 'water':
+                return buildBase("Watery Surface", [
+                    makeFilter({
+                        filterType: "flood",
+                        filterId: "Watery Surface",
+                        color: colorInt, time: 0, billowy: 0.43, tintIntensity: 0.72, glint: 0.31, scale: 70, padding: 10,
+                        animated: { time: { active: true, speed: 0.0006, animType: "move" } },
+                        zOrder: 1, rank: 10038, enabled: true
+                    })
+                ]);
+
+            case 'zone_blizzard':
+                return buildBase("Zone : Blizzard", [
+                    makeFilter({
+                        filterType: "xglow",
+                        filterId: "Zone : Blizzard",
+                        auraType: 1, color: colorInt, thickness: 4.5, scale: 5, time: 0, auraIntensity: 0.25, subAuraIntensity: 1, threshold: 0.5, discard: false,
+                        animated: { 
+                            time: { active: true, speed: 0.0018, animType: "move" },
+                            thickness: { val1: 2, val2: 3.3, animType: "cosOscillation", loopDuration: 3000 },
+                            subAuraIntensity: { val1: 0.05, val2: 0.1, animType: "cosOscillation", loopDuration: 6000 },
+                            auraIntensity: { val1: 0.9, val2: 2.2, animType: "cosOscillation", loopDuration: 3000 }
+                        },
+                        zOrder: 1, rank: 10042, enabled: true
+                    }),
+                    makeFilter({
+                        filterType: "smoke",
+                        filterId: "Zone : Blizzard",
+                        color: colorInt, time: 0, blend: 2, dimY: 1,
+                        animated: { 
+                            time: { active: true, speed: -0.005, animType: "move" },
+                            dimX: { val1: 0.4, val2: 0.2, animType: "cosOscillation", loopDuration: 3000 }
+                        },
+                        zOrder: 2, rank: 10043, enabled: true
+                    })
+                ]);
+
+            case 'zone_electricity':
+                return buildBase("Zone : Electricity", [
+                    makeFilter({
+                        filterType: "xglow",
+                        filterId: "Zone : Electricity",
+                        auraType: 2, color: colorInt, scale: 1.5, time: 0, auraIntensity: 1, subAuraIntensity: 0.9, threshold: 0, discard: true,
+                        animated: { 
+                            time: { active: true, speed: 0.0027, animType: "move" },
+                            thickness: { active: true, loopDuration: 3000, animType: "cosOscillation", val1: 1, val2: 2 }
+                        },
+                        zOrder: 1, rank: 10046, enabled: true
+                    }),
+                    makeFilter({
+                        filterType: "electric",
+                        filterId: "Zone : Electricity",
+                        color: 16777215, // Raios brancos para contraste
+                        time: 0, blend: 1, intensity: 5,
+                        animated: { time: { active: true, speed: 0.002, animType: "move" } },
+                        zOrder: 2, rank: 10047, enabled: true
+                    })
+                ]);
+
+            case 'zone_fire':
+                return buildBase("Zone : Fire", [
+                    makeFilter({
+                        filterType: "xglow",
+                        filterId: "Zone : Fire",
+                        auraType: 1, color: colorInt, scale: 1.5, time: 0, auraIntensity: 1.8, subAuraIntensity: 0.25, threshold: 0.6, discard: false,
+                        animated: { 
+                            time: { active: true, speed: 0.0027, animType: "move" },
+                            thickness: { active: true, loopDuration: 3000, animType: "cosOscillation", val1: 2, val2: 5 }
+                        },
+                        zOrder: 1, rank: 10048, enabled: true
+                    }),
+                    makeFilter({
+                        filterType: "fire",
+                        filterId: "Zone : Fire",
+                        intensity: 1.5, color: 16777215, // Núcleo branco
+                        amplitude: 1, time: 0, blend: 2, fireBlend: 1,
+                        animated: { time: { active: true, speed: -0.0015, animType: "move" } },
+                        zOrder: 2, rank: 10049, enabled: true
+                    })
+                ]);
+            
+            default:
+                return {};
+        }
+    }
+
+    async _activatePreviewTool(data) {
+        const safeEffect = data.effect;
+        
+        if (!canvas.templates) canvas.templates.activate();
+
+        const doc = new foundry.documents.MeasuredTemplateDocument(data, {parent: canvas.scene});
+        const template = new foundry.canvas.placeables.MeasuredTemplate(doc);
+        
+        template.eventMode = "none"; 
+
+        canvas.templates.preview.addChild(template);
+        template.draw();
+
+        const _onMouseMove = (event) => {
+            const pos = event.data.getLocalPosition(canvas.app.stage);
+            let snapped = {x: pos.x, y: pos.y};
+            
+            if (canvas.grid.getSnappedPoint) {
+                snapped = canvas.grid.getSnappedPoint({x: pos.x, y: pos.y}, {mode: 3});
+            } 
+            
+            template.document.x = snapped.x;
+            template.document.y = snapped.y;
+            template.refresh();
+        };
+
+        const _onMouseWheel = (event) => {
+            event.preventDefault(); 
+            event.stopPropagation();
+            
+            const delta = Math.sign(event.deltaY);
+            template.document.direction += (delta * 15);
+            template.refresh();
+        };
+
+        const _onClickLeft = async (event) => {
+            if (event.data.originalEvent.button !== 0) return;
+
+            const finalX = template.document.x;
+            const finalY = template.document.y;
+            const finalDirection = template.document.direction;
+            const finalFillColor = template.document.fillColor; 
+
+            _cleanup();
+
+            let templateFlags = {};
+            const isTMFXActive = game.modules.get("tokenmagic")?.active;
+
+            if (isTMFXActive && safeEffect && safeEffect !== 'none') {
+                try {
+                    // Conversão de cor robusta
+                    let colorInt;
+                    if (foundry.utils.Color) {
+                        colorInt = foundry.utils.Color.from(finalFillColor || 0xC9A060).valueOf();
+                    } else {
+                        const cVal = (typeof finalFillColor === 'object') ? finalFillColor.css : finalFillColor;
+                        colorInt = parseInt(cVal.replace("#", ""), 16);
+                    }
+                    
+                    const userId = game.user.id;
+                    
+                    templateFlags = this._getTMFXConfig(safeEffect, colorInt, userId);
+
+                } catch (err) {
+                    console.error("[DH-ERROR] Falha ao gerar efeitos Token Magic:", err);
+                }
+            }
+
+            const finalData = {
+                t: data.t,
+                user: game.user.id,
+                x: finalX,
+                y: finalY,
+                direction: finalDirection,
+                distance: data.distance,
+                fillColor: data.fillColor,
+                angle: data.angle,
+                width: data.width,
+                hidden: data.hidden, // Passa o estado de ocultação
+                flags: templateFlags
+            };
+            
+            try {
+                await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", [finalData]);
+            } catch(e) {
+                console.error("Erro ao criar template:", e);
+            }
+        };
+
+        const _onClickRight = (event) => {
+            _cleanup();
+        };
+
+        const _cleanup = () => {
+            canvas.stage.off("mousemove", _onMouseMove);
+            canvas.stage.off("pointerdown", _onClickLeft);
+            canvas.stage.off("rightdown", _onClickRight);
+            canvas.app.view.removeEventListener("wheel", _onMouseWheel);
+            
+            canvas.templates.preview.removeChild(template);
+            template.destroy({children: true});
+        };
+
+        canvas.stage.on("mousemove", _onMouseMove);
+        canvas.stage.on("pointerdown", _onClickLeft);
+        canvas.stage.on("rightdown", _onClickRight);
+        canvas.app.view.addEventListener("wheel", _onMouseWheel, {passive: false});
+    }
+}
+
+// ==================================================================
 // EXPORTED FUNCTIONS
 // ==================================================================
 export async function activateDowntime() { new DowntimeApp().render(true); }
@@ -943,6 +1698,8 @@ export async function activateRequestRoll(arg) {
 
 export async function activateLootConsumable() { new LootConsumableApp().render(true); }
 export async function activateSpendHope() { new HopeSpenderApp().render(true); }
+export async function activateTemplateCreator() { new TemplateCreatorApp().render(true); } // Added Export
+
 export async function showCinematicPrompt(data) { 
     // Force true ensures it pops up even if recently closed or minimized
     // Adicionado bloqueio para GM não ver a tela se ele mesmo iniciou (normalmente)
