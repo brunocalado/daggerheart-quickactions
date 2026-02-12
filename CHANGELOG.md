@@ -1,3 +1,6 @@
+# 0.1.2
+- QuickActions.RequestRoll(); is easier to pick a player
+
 # 0.1.1
 - new: QuickActions.Templates();
 

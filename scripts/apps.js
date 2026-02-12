@@ -210,14 +210,19 @@ class RequestRollApp extends ApplicationV2 {
         id: "request-roll-app",
         classes: ["dh-qa-app", "request-roll-app"],
         window: { title: "Roll Configuration", icon: "fas fa-dice-d20", resizable: false, controls: [] },
-        position: { width: 480, height: "auto" }, // Increased Width to fit 70px input
+        position: { width: 650, height: "auto" }, // Increased Width for 2 columns
         actions: { roll: RequestRollApp.prototype._onRoll, cancel: RequestRollApp.prototype._onCancel }
     };
 
     async _renderHTML(context, options) {
         // Filtrar usuários para remover GMs e manter apenas usuários ativos
         const connectedUsers = game.users.filter(u => u.active && !u.isGM);
-        const userOptions = connectedUsers.map(u => `<option value="${u.id}">${u.name}</option>`).join("");
+        
+        // Build User Buttons HTML
+        let userButtonsHtml = `<button type="button" class="dh-user-btn" data-action="roll" data-target="">All Players</button>`;
+        connectedUsers.forEach(u => {
+            userButtonsHtml += `<button type="button" class="dh-user-btn" data-action="roll" data-target="${u.id}" style="color:${u.color.css}">${u.name}</button>`;
+        });
 
         // Recuperar flag do modo cinematic
         const savedCinematic = game.user.getFlag("daggerheart-quickactions", "cinematicMode") ?? false;
@@ -225,17 +230,22 @@ class RequestRollApp extends ApplicationV2 {
 
         return `
         <style>
-            .dh-rr-container { display: flex; flex-direction: column; gap: 12px; padding: 5px; }
+            /* Layout */
+            .dh-main-layout { display: flex; gap: 15px; height: 100%; }
+            .dh-left-col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+            .dh-right-col { width: 150px; display: flex; flex-direction: column; gap: 5px; border-left: 1px solid #444; padding-left: 10px; overflow-y: auto; max-height: 400px; }
+
+            /* Existing Styles Adapted */
             .dh-rr-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
             .dh-rr-label { font-weight: bold; color: #C9A060; flex: 0 0 80px; text-align: right; padding-right: 5px; margin-bottom: 0; }
             .dh-rr-input { flex: 1; text-align: center; background: rgba(255,255,255,0.9); border: 1px solid #7a6e5d; padding: 5px; border-radius: 4px; color: #000000 !important; font-weight: bold; }
+            
             .dh-trait-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 5px; }
             .dh-trait-grid button.full-width { grid-column: 1 / -1; }
             
-            /* Trait Buttons - WHITE text when not active */
             .dh-trait-btn { 
                 background: #191919; 
-                color: #ffffff; /* Changed from #888 to White */
+                color: #ffffff; 
                 border: 1px solid #666; 
                 padding: 6px; 
                 cursor: pointer; 
@@ -247,7 +257,6 @@ class RequestRollApp extends ApplicationV2 {
             .dh-trait-btn:hover { border-color: #C9A060; color: #C9A060; }
             .dh-trait-btn.active { background: #C9A060; color: #191919; border-color: #C9A060; font-weight: bold; box-shadow: 0 0 8px rgba(201, 160, 96, 0.4); }
             
-            /* Special Roll Buttons */
             .dh-special-btn { font-weight: bold; border-width: 2px; }
             .dh-special-btn[data-special="hope"] { border-color: #FFD700; color: #FFD700; }
             .dh-special-btn[data-special="hope"].active, .dh-special-btn[data-special="hope"]:hover { background: #FFD700; color: #000; box-shadow: 0 0 8px #FFD700; }
@@ -261,106 +270,105 @@ class RequestRollApp extends ApplicationV2 {
             .dh-sq-btn { width: 32px; height: 30px; padding: 0; border: 1px solid #555; background: #191919; color: #C9A060; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.2s; font-size: 0.9em; }
             .dh-sq-btn:hover { background: #C9A060; color: #191919; }
             .dh-dc-wrapper { display: flex; align-items: center; gap: 4px; flex: 1; }
-            .dh-actions { display: flex; gap: 10px; margin-top: 10px; }
             
-            /* Submit Button - More visible + Hover Animation */
-            .dh-btn-submit { 
-                background: #C9A060; 
-                color: #191919; 
-                border: none; 
-                padding: 10px; 
-                width: 100%; 
-                font-weight: bold; 
-                text-transform: uppercase; 
-                cursor: pointer; 
+            /* User Buttons (Right Column) */
+            .dh-user-btn {
+                background: #2b2b2b;
+                color: #e0e0e0;
+                border: 1px solid #555;
+                padding: 8px;
+                text-align: left;
+                cursor: pointer;
                 border-radius: 4px;
-                transition: all 0.2s; /* Added transition */
+                transition: all 0.2s;
+                font-weight: bold;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                width: 100%;
             }
-            .dh-btn-submit:hover {
-                transform: scale(1.02); /* Pop out effect */
-                filter: brightness(1.1); /* Brighter */
-                box-shadow: 0 0 10px rgba(201, 160, 96, 0.6); /* Glow */
+            .dh-user-btn:hover {
+                background: #C9A060;
+                color: #191919 !important;
+                border-color: #C9A060;
             }
 
-            /* Cancel Button - Lighter color */
             .dh-btn-cancel { 
                 background: transparent; 
-                color: #e0e0e0; /* Lighter than #888 */
-                border: 1px solid #777; /* More visible border */
+                color: #e0e0e0; 
+                border: 1px solid #777; 
                 padding: 10px; 
-                width: 30%; 
+                width: 100%; 
                 text-transform: uppercase; 
                 cursor: pointer; 
                 border-radius: 4px; 
                 transition: all 0.2s;
+                margin-top: auto;
             }
             .dh-btn-cancel:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,0.1); }
         </style>
-        <div class="dh-rr-container">
-            
-            <div class="dh-rr-row">
-                <label class="dh-rr-label">Difficulty</label>
-                <div class="dh-dc-wrapper">
-                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-5">-5</button>
-                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-2">-2</button>
-                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-1">-1</button>
-                    <!-- Larger width for input -->
-                    <input type="number" name="difficulty" value="15" class="dh-rr-input" placeholder="DC" style="width: 70px; flex: 0 0 70px;">
-                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="1">+1</button>
-                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="2">+2</button>
-                    <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="5">+5</button>
-                    <button type="button" class="dh-sq-btn" data-action="clear-dc" title="Clear Difficulty" style="margin-left: 5px; color: #ff6b6b; border-color: #ff6b6b;">
-                        <i class="fas fa-eraser"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div>
-                <label class="dh-rr-label" style="text-align: left; display:block;">Trait</label>
-                <input type="hidden" name="trait" value="">
-                <input type="hidden" name="specialRoll" value=""> <!-- Stores 'hope' or 'fear' -->
-                
-                <div class="dh-trait-grid">
-                    <button type="button" class="dh-trait-btn full-width active" data-trait="">None</button>
-                    
-                    <!-- Special Rolls Row MOVED HERE -->
-                    <div style="grid-column: 1 / -1; display: flex; gap: 10px; margin-bottom: 2px;">
-                         <button type="button" class="dh-trait-btn dh-special-btn" data-special="hope" style="flex:1;">HOPE</button>
-                         <button type="button" class="dh-trait-btn dh-special-btn" data-special="fear" style="flex:1;">FEAR</button>
+        
+        <div class="dh-main-layout">
+            <!-- LEFT COLUMN -->
+            <div class="dh-left-col">
+                <div class="dh-rr-row">
+                    <label class="dh-rr-label">Difficulty</label>
+                    <div class="dh-dc-wrapper">
+                        <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-5">-5</button>
+                        <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-2">-2</button>
+                        <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-1">-1</button>
+                        <input type="number" name="difficulty" value="15" class="dh-rr-input" placeholder="DC" style="width: 70px; flex: 0 0 70px;">
+                        <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="1">+1</button>
+                        <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="2">+2</button>
+                        <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="5">+5</button>
+                        <button type="button" class="dh-sq-btn" data-action="clear-dc" title="Clear Difficulty" style="margin-left: 5px; color: #ff6b6b; border-color: #ff6b6b;">
+                            <i class="fas fa-eraser"></i>
+                        </button>
                     </div>
-
-                    <button type="button" class="dh-trait-btn" data-trait="agility">Agility</button>
-                    <button type="button" class="dh-trait-btn" data-trait="strength">Strength</button>
-                    <button type="button" class="dh-trait-btn" data-trait="finesse">Finesse</button>
-                    <button type="button" class="dh-trait-btn" data-trait="instinct">Instinct</button>
-                    <button type="button" class="dh-trait-btn" data-trait="presence">Presence</button>
-                    <button type="button" class="dh-trait-btn" data-trait="knowledge">Knowledge</button>
                 </div>
-            </div>
+                
+                <div>
+                    <label class="dh-rr-label" style="text-align: left; display:block;">Trait</label>
+                    <input type="hidden" name="trait" value="">
+                    <input type="hidden" name="specialRoll" value="">
+                    
+                    <div class="dh-trait-grid">
+                        <button type="button" class="dh-trait-btn full-width active" data-trait="">None</button>
+                        <div style="grid-column: 1 / -1; display: flex; gap: 10px; margin-bottom: 2px;">
+                             <button type="button" class="dh-trait-btn dh-special-btn" data-special="hope" style="flex:1;">HOPE</button>
+                             <button type="button" class="dh-trait-btn dh-special-btn" data-special="fear" style="flex:1;">FEAR</button>
+                        </div>
+                        <button type="button" class="dh-trait-btn" data-trait="agility">Agility</button>
+                        <button type="button" class="dh-trait-btn" data-trait="strength">Strength</button>
+                        <button type="button" class="dh-trait-btn" data-trait="finesse">Finesse</button>
+                        <button type="button" class="dh-trait-btn" data-trait="instinct">Instinct</button>
+                        <button type="button" class="dh-trait-btn" data-trait="presence">Presence</button>
+                        <button type="button" class="dh-trait-btn" data-trait="knowledge">Knowledge</button>
+                    </div>
+                </div>
 
-            <div class="dh-cb-row">
-                <label class="dh-cb-label">Advantage <input type="checkbox" name="advantage"></label>
-                <label class="dh-cb-label">Disadvantage <input type="checkbox" name="disadvantage"></label>
-                <label class="dh-cb-label">Reaction <input type="checkbox" name="reaction"></label>
-            </div>
-            <div class="dh-cb-row">
-                <label class="dh-cb-label">Grant Resources <input type="checkbox" name="grantResources" checked></label>
-                <label class="dh-cb-label" style="color: #ffaa44;">Cinematic Mode <input type="checkbox" name="cinematicMode" ${checkedAttr}></label>
-            </div>
-            
-            <div class="dh-rr-row">
-                <label class="dh-rr-label">Label</label>
-                <input type="text" name="label" class="dh-rr-input" placeholder="Optional description...">
-            </div>
+                <div class="dh-cb-row">
+                    <label class="dh-cb-label">Advantage <input type="checkbox" name="advantage"></label>
+                    <label class="dh-cb-label">Disadvantage <input type="checkbox" name="disadvantage"></label>
+                    <label class="dh-cb-label">Reaction <input type="checkbox" name="reaction"></label>
+                </div>
+                <div class="dh-cb-row">
+                    <label class="dh-cb-label">Grant Resources <input type="checkbox" name="grantResources" checked></label>
+                    <label class="dh-cb-label" style="color: #ffaa44;">Cinematic Mode <input type="checkbox" name="cinematicMode" ${checkedAttr}></label>
+                </div>
+                
+                <div class="dh-rr-row">
+                    <label class="dh-rr-label">Label</label>
+                    <input type="text" name="label" class="dh-rr-input" placeholder="Optional description...">
+                </div>
 
-            <div class="dh-rr-row">
-                <label class="dh-rr-label">Send to</label>
-                <select name="targetUser" class="dh-rr-input" style="text-align: left;"><option value="">All Players</option>${userOptions}</select>
-            </div>
-
-            <div class="dh-actions">
                 <button type="button" class="dh-btn-cancel" data-action="cancel">Cancel</button>
-                <button type="button" class="dh-btn-submit" data-action="roll">Request Roll</button>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="dh-right-col">
+                <div style="font-weight: bold; color: #C9A060; text-align: center; margin-bottom: 5px; text-transform: uppercase; font-size: 0.9em;">Send To</div>
+                ${userButtonsHtml}
             </div>
         </div>`;
     }
@@ -440,7 +448,7 @@ class RequestRollApp extends ApplicationV2 {
         const disadvantage = container.querySelector('[name="disadvantage"]').checked;
         const cinematicMode = container.querySelector('[name="cinematicMode"]').checked;
         const labelInput = (container.querySelector('[name="label"]').value || "").trim();
-        const targetUser = container.querySelector('[name="targetUser"]').value;
+        const targetUser = target.dataset.target || "";
 
         // Persistir a escolha do Cinematic Mode
         await game.user.setFlag("daggerheart-quickactions", "cinematicMode", cinematicMode);
@@ -515,7 +523,7 @@ class RequestRollApp extends ApplicationV2 {
                 data: dataPacket,
                 timestamp: Date.now()
             });
-            ui.notifications.info("Cinematic Request sent to player(s) screen.");
+            //ui.notifications.info("Cinematic Request sent to player(s) screen.");
             this.close();
             return;
         }
