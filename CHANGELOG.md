@@ -1,3 +1,6 @@
+# 0.1.3
+- You can level up players
+
 # 0.1.2
 - QuickActions.RequestRoll(); is easier to pick a player
 

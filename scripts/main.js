@@ -4,7 +4,7 @@
  */
 
 // Import all functions from a single consolidated file
-import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt, activateTemplateCreator } from "./apps.js";
+import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt, activateTemplateCreator, activateLevelUp } from "./apps.js";
 // Import Features
 import { features } from "./features.js";
 // Import Beastform
@@ -80,7 +80,8 @@ Hooks.once("init", () => {
         ShowMacros: showMacros,
         Fate: fateRoll,
         SpendHope: activateSpendHope, 
-        Templates: activateTemplateCreator, // Added to global API
+        Templates: activateTemplateCreator,
+        LevelUp: activateLevelUp,
         Features: features,
         Beastform: beastformAction
     };
@@ -152,6 +153,13 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     btnRoll.style.cssText = btnStyle;
     btnRoll.onclick = activateRequestRoll;
 
+    // Button 4: Level Up
+    const btnLevelUp = document.createElement("button");
+    btnLevelUp.type = "button";
+    btnLevelUp.innerHTML = `<i class="fas fa-arrow-up"></i> Level Up Players`;
+    btnLevelUp.classList.add("dh-custom-btn");
+    btnLevelUp.style.cssText = btnStyle;
+    btnLevelUp.onclick = activateLevelUp;
 
     // Insertion into DOM (Sidebar)
     const fieldset = element.querySelector("fieldset");
@@ -165,11 +173,13 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
         newFieldset.appendChild(btnDowntime);
         newFieldset.appendChild(btnFalling);
         newFieldset.appendChild(btnRoll);
+        newFieldset.appendChild(btnLevelUp);
 
         fieldset.after(newFieldset);
     } else {
         element.appendChild(btnDowntime);
         element.appendChild(btnFalling);
         element.appendChild(btnRoll);
+        element.appendChild(btnLevelUp);
     }
 });

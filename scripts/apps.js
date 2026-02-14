@@ -1689,6 +1689,88 @@ class TemplateCreatorApp extends ApplicationV2 {
 }
 
 // ==================================================================
+// LEVEL UP APP
+// ==================================================================
+class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
+    static _instance = null;
+
+    static DEFAULT_OPTIONS = {
+        id: "daggerheart-level-up",
+        classes: ["dh-level-up"],
+        window: { title: "Level Up Players", icon: "fas fa-arrow-up", resizable: false, controls: [] },
+        position: { width: 420, height: "auto" },
+        actions: { levelUp: LevelUpApp.prototype._onLevelUp, levelUpAll: LevelUpApp.prototype._onLevelUpAll }
+    };
+
+    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/level-up.hbs" } };
+
+    async _prepareContext() {
+        const players = [];
+        for (const user of game.users) {
+            if (user.isGM) continue;
+            const actor = user.character;
+            const hasActor = !!actor;
+            const currentLevel = hasActor ? (actor.system?.levelData?.level?.current ?? "?") : null;
+            const changedLevel = hasActor ? (actor.system?.levelData?.level?.changed ?? currentLevel) : null;
+            const hasPending = hasActor && changedLevel !== null && changedLevel > currentLevel;
+
+            players.push({
+                userId: user.id,
+                userName: user.name,
+                userColor: user.color?.toString() || "#ffffff",
+                actorId: actor?.id || null,
+                characterName: actor?.name || null,
+                avatar: actor?.img || "icons/svg/mystery-man.svg",
+                currentLevel,
+                changedLevel,
+                hasPending,
+                hasActor
+            });
+        }
+        const hasAnyActor = players.some(p => p.hasActor);
+        return { players, hasAnyActor };
+    }
+
+    async _onLevelUpAll() {
+        const actors = [];
+        for (const user of game.users) {
+            if (user.isGM) continue;
+            const actor = user.character;
+            if (!actor) continue;
+            const currentLevel = actor.system?.levelData?.level?.current ?? 1;
+            const changedLevel = actor.system?.levelData?.level?.changed ?? currentLevel;
+            await actor.update({ "system.levelData.level.changed": changedLevel + 1 });
+            actors.push(actor.name);
+        }
+        if (actors.length) {
+            ui.notifications.info(`Leveled up: ${actors.join(", ")}`);
+        }
+        this.render();
+    }
+
+    async _onLevelUp(event, target) {
+        const actorId = target.dataset.actorId;
+        const actor = game.actors.get(actorId);
+        if (!actor) {
+            ui.notifications.error("Actor not found.");
+            return;
+        }
+        const currentLevel = actor.system?.levelData?.level?.current ?? 1;
+        const changedLevel = actor.system?.levelData?.level?.changed ?? currentLevel;
+        const newChanged = changedLevel + 1;
+
+        await actor.update({ "system.levelData.level.changed": newChanged });
+        ui.notifications.info(`${actor.name} leveled up to ${newChanged}!`);
+        this.render();
+    }
+
+    _onClose(options) {
+        super._onClose(options);
+        LevelUpApp._instance = null;
+    }
+}
+
+// ==================================================================
 // EXPORTED FUNCTIONS
 // ==================================================================
 export async function activateDowntime() { new DowntimeApp().render(true); }
@@ -1706,7 +1788,20 @@ export async function activateRequestRoll(arg) {
 
 export async function activateLootConsumable() { new LootConsumableApp().render(true); }
 export async function activateSpendHope() { new HopeSpenderApp().render(true); }
-export async function activateTemplateCreator() { new TemplateCreatorApp().render(true); } // Added Export
+export async function activateTemplateCreator() { new TemplateCreatorApp().render(true); }
+
+export async function activateLevelUp() {
+    if (!game.user.isGM) {
+        ui.notifications.warn("Only the GM can use Level Up.");
+        return;
+    }
+    if (LevelUpApp._instance?.rendered) {
+        LevelUpApp._instance.bringToFront();
+        return;
+    }
+    LevelUpApp._instance = new LevelUpApp();
+    LevelUpApp._instance.render(true);
+}
 
 export async function showCinematicPrompt(data) { 
     // Force true ensures it pops up even if recently closed or minimized

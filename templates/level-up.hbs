@@ -1,0 +1,56 @@
+<div class="level-up-container">
+
+    {{#if hasAnyActor}}
+    <button type="button" class="level-up-all-btn" data-action="levelUpAll">
+        <i class="fas fa-angles-up"></i> Level Up All Players
+    </button>
+    {{/if}}
+
+    <div class="level-up-player-list">
+        {{#each players}}
+        <div class="level-up-player-row {{#unless this.hasActor}}no-actor{{/unless}}">
+            {{#if this.hasActor}}
+            <img class="level-up-avatar" src="{{this.avatar}}" alt="{{this.characterName}}" />
+            {{else}}
+            <div class="level-up-avatar-placeholder">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            {{/if}}
+
+            <div class="level-up-info">
+                {{#if this.hasActor}}
+                <span class="level-up-character-name">{{this.characterName}}</span>
+                {{else}}
+                <span class="level-up-character-name empty">No Character</span>
+                {{/if}}
+                <span class="level-up-user-name">
+                    <span class="level-up-color-dot" style="background-color: {{this.userColor}};"></span>
+                    {{this.userName}}
+                </span>
+            </div>
+
+            {{#if this.hasActor}}
+            <div class="level-up-controls">
+                <div class="level-up-level-display">
+                    {{#if this.hasPending}}
+                    <span class="level-up-pending">LV {{this.currentLevel}} ➔ {{this.changedLevel}} (PENDING)</span>
+                    {{else}}
+                    <span class="level-up-label">LV</span>
+                    <span class="level-up-value">{{this.currentLevel}}</span>
+                    {{/if}}
+                </div>
+                <button type="button" class="level-up-btn" data-action="levelUp" data-actor-id="{{this.actorId}}" title="Level Up">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            {{/if}}
+        </div>
+        {{else}}
+        <div class="level-up-empty">
+            <i class="fas fa-users-slash"></i>
+            <p>No players found.</p>
+        </div>
+        {{/each}}
+    </div>
+
+</div>
