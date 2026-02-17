@@ -24,7 +24,7 @@
     <div class="dui-player-list">
         {{#each rows}}
         <!-- Adicionei a classe 'player-view' se não for GM para ajustar o Grid no CSS -->
-        <div class="dui-row {{#unless this.included}}dui-row--excluded{{/unless}} {{#unless this.isGM}}player-view{{/unless}}" data-actor-id="{{this.actorId}}">
+        <div class="dui-row {{#unless this.included}}dui-row--excluded{{/unless}} {{#unless this.isGM}}player-view{{/unless}} {{#if this.hasPrepare}}dui-row--preparing{{/if}}" data-actor-id="{{this.actorId}}">
 
             <!-- Esta coluna só existe para o GM agora -->
             {{#if this.isGM}}

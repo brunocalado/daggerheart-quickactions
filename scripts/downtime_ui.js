@@ -292,6 +292,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             const isOwnRow = userId === game.user.id;
 
+            const hasPrepare = playerChoices.actions.includes("prepare");
+
             rows.push({
                 userId,
                 userName: user.name,
@@ -307,7 +309,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 isGM,
                 canInteract: isOwnRow,
                 selectedCount,
-                atMaxChoices
+                atMaxChoices,
+                hasPrepare
             });
         }
 
