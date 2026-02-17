@@ -2080,12 +2080,14 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         };
     }
 
-    _onRender() {
-        // Attach change listeners to target selects (AppV2 actions only handle click)
-        const selects = this.element.querySelectorAll(".dui-target-select");
-        for (const select of selects) {
-            select.addEventListener("change", (event) => this._onSetTarget(event));
-        }
+    _onFirstRender() {
+        // Event delegation: single listener on root element, valid for any select that appears later
+        // This ensures the listener is always active, even if selects are added/removed via re-renders
+        this.element.addEventListener("change", (event) => {
+            if (event.target.classList.contains("dui-target-select")) {
+                this._onSetTarget(event);
+            }
+        });
     }
 
     // --- Player writes own choices to user flag ---
@@ -2188,7 +2190,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _onSetTarget(event) {
-        const select = event.currentTarget;
+        const select = event.target;
         const actorId = select.dataset.actorId;
         const actionKey = select.dataset.actionKey;
         const targetId = select.value;
