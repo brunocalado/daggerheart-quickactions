@@ -172,10 +172,10 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     // Button 1: Earn Fear from Downtime
     const btnDowntime = document.createElement("button");
     btnDowntime.type = "button";
-    btnDowntime.innerHTML = `<i class="fas fa-bed"></i> Earn Fear (Downtime)`;
+    btnDowntime.innerHTML = `<i class="fas fa-bed"></i> Downtime`;
     btnDowntime.classList.add("dh-custom-btn");
     btnDowntime.style.cssText = btnStyle;
-    btnDowntime.onclick = activateDowntime;
+    btnDowntime.onclick = activateDowntimeUI;
 
     // Button 2: Falling And Collision Damage
     const btnFalling = document.createElement("button");
