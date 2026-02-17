@@ -3,6 +3,7 @@
     {{!-- Tab Bar --}}
     <nav class="dui-cfg-tab-bar">
         <button type="button" class="dui-cfg-tab active" data-tab="craft">Craft</button>
+        <button type="button" class="dui-cfg-tab" data-tab="custom">Custom</button>
     </nav>
 
     {{!-- Craft Panel --}}
@@ -28,6 +29,23 @@
             {{/each}}
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addCraftRow">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    {{!-- Custom Panel --}}
+    <div class="dui-cfg-panel" data-panel="custom">
+        <div class="dui-custom-list" id="dui-custom-list">
+            {{#each customMoves}}
+            <div class="dui-custom-row" data-index="{{@index}}">
+                <input type="text" class="dui-custom-input" name="customMove_{{@index}}" value="{{this.label}}" maxlength="27" placeholder="Move name...">
+                <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="{{@index}}" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            {{/each}}
+        </div>
+        <button type="button" class="dui-craft-add-btn" data-action="addCustomRow">
             <i class="fas fa-plus"></i>
         </button>
     </div>

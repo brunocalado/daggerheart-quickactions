@@ -221,6 +221,12 @@ async function _applyDowntimeEffects() {
                 eventLines.push(`${actor.name} chose Prepare (+${actualGain} Hope${prepareBonus === 2 ? ", paired" : ""}${modText}${cappedText})`);
             }
 
+            // Custom move actions
+            if (action.startsWith("custom_")) {
+                const moveLabel = action.slice("custom_".length);
+                eventLines.push(`${actor.name}: ${moveLabel}`);
+            }
+
             // Craft downtime actions
             if (action.startsWith("craft_")) {
                 const recipeUuid = action.slice("craft_".length);
@@ -368,7 +374,9 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         actions: {
             saveMovesConfig: ConfigureMovesApp.prototype._onSaveMovesConfig,
             addCraftRow: ConfigureMovesApp.prototype._onAddCraftRow,
-            removeCraftRow: ConfigureMovesApp.prototype._onRemoveCraftRow
+            removeCraftRow: ConfigureMovesApp.prototype._onRemoveCraftRow,
+            addCustomRow: ConfigureMovesApp.prototype._onAddCustomRow,
+            removeCustomRow: ConfigureMovesApp.prototype._onRemoveCustomRow
         }
     };
 
@@ -390,7 +398,9 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        return { craftEntries: resolvedEntries };
+        const customMoves = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
+
+        return { craftEntries: resolvedEntries, customMoves };
     }
 
     _onRender(context, options) {
@@ -487,6 +497,24 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         target.closest('.dui-craft-row').remove();
     }
 
+    _onAddCustomRow() {
+        const customList = this.element.querySelector('#dui-custom-list');
+        const nextIndex = customList.querySelectorAll('.dui-custom-row').length;
+        const newRow = document.createElement('div');
+        newRow.className = 'dui-custom-row';
+        newRow.dataset.index = String(nextIndex);
+        newRow.innerHTML = `
+            <input type="text" class="dui-custom-input" name="customMove_${nextIndex}" value="" maxlength="27" placeholder="Move name...">
+            <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="${nextIndex}" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>`;
+        customList.appendChild(newRow);
+    }
+
+    _onRemoveCustomRow(event, target) {
+        target.closest('.dui-custom-row').remove();
+    }
+
     async _onSaveMovesConfig() {
         const el = this.element;
 
@@ -502,7 +530,17 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             i++;
         }
 
+        // Collect custom moves from text inputs
+        const customMoves = [];
+        for (const input of el.querySelectorAll('.dui-custom-input')) {
+            const label = input.value.trim();
+            if (label) {
+                customMoves.push({ label });
+            }
+        }
+
         await game.settings.set("daggerheart-quickactions", "downtimeCraftEntries", craftEntries);
+        await game.settings.set("daggerheart-quickactions", "downtimeCustomMoves", customMoves);
         ui.notifications.info("Moves configuration saved.");
         this.close();
     }
@@ -581,6 +619,13 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (owned) {
                     extraActions.push({ key: `craft_${entry.recipeUuid}`, label: recipeItem.name, hasTarget: false, isExtra: true });
                 }
+            }
+
+            // Build custom move actions from global setting
+            const customMoves = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
+            for (const move of customMoves) {
+                if (!move.label) continue;
+                extraActions.push({ key: `custom_${move.label}`, label: move.label, hasTarget: false, isExtra: true });
             }
 
             const allActions = [...availableActions, ...extraActions];

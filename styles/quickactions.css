@@ -1076,6 +1076,37 @@
         }
     }
 
+    /* Custom Tab */
+    & .dui-custom-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    & .dui-custom-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(201,160,96,0.15);
+    }
+
+    & .dui-custom-input {
+        flex: 1;
+        padding: 8px 10px;
+        background: #2a2a2a;
+        color: var(--cfg-text);
+        border: 1px solid #555;
+        border-radius: 6px;
+        font-size: 13px;
+
+        &:focus {
+            border-color: var(--cfg-gold);
+            outline: none;
+            box-shadow: 0 0 4px rgba(201,160,96,0.3);
+        }
+    }
+
     /* Footer */
     & .dui-cfg-footer {
         padding: 10px 12px;

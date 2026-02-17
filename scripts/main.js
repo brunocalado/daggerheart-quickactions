@@ -79,6 +79,15 @@ Hooks.once("init", () => {
         type: Array
     });
 
+    // 5b. Global custom moves (shared across all actors)
+    game.settings.register("daggerheart-quickactions", "downtimeCustomMoves", {
+        name: "Downtime Custom Moves",
+        scope: "world",
+        config: false,
+        default: [],
+        type: Array
+    });
+
     // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)
     game.settings.register("daggerheart-quickactions", "downtimeActorConfigs", {
         name: "Downtime Actor Configs",
