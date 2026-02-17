@@ -8,6 +8,15 @@ import { rollD4WithDiceSoNice } from "./apps.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+const DEFAULT_CRAFT_ENTRIES = [
+    { recipeUuid: "Compendium.daggerheart.loot.Item.PQxvxAVBbkt0TleC", craftUuid: "Compendium.daggerheart.consumables.Item.tPfKtKRRjv8qdSqy" },
+    { recipeUuid: "Compendium.daggerheart.loot.Item.1TLpFsp3PLDsqoTw", craftUuid: "Compendium.daggerheart.consumables.Item.b6vGSPFWOlzZZDLO" },
+    { recipeUuid: "Compendium.daggerheart.loot.Item.5YZls8XH3MB7twNa", craftUuid: "Compendium.daggerheart.consumables.Item.Zsh2AvZr8EkGtLyw" },
+    { recipeUuid: "Compendium.daggerheart.loot.Item.MhCo8i0cRXzdnXbA", craftUuid: "Compendium.daggerheart.consumables.Item.Nwv5ydGf0MWnzq1n" }
+];
+
+const ALLOWED_CRAFT_TYPES = ["loot", "consumable", "weapon", "armor"];
+
 // ==================================================================
 // DOWNTIME UI HELPERS
 // ==================================================================
@@ -207,6 +216,37 @@ async function _applyDowntimeEffects() {
                 const cappedText = actualGain < totalGain ? " [capped]" : "";
                 eventLines.push(`${actor.name} chose Prepare (+${actualGain} Hope${prepareBonus === 2 ? ", paired" : ""}${modText}${cappedText})`);
             }
+
+            // Craft downtime actions
+            if (action.startsWith("craft_")) {
+                const recipeUuid = action.slice("craft_".length);
+                const recipeItem = await fromUuid(recipeUuid);
+                const recipeName = recipeItem?.name ?? "Unknown Recipe";
+                eventLines.push(`${actor.name} used ${recipeName}`);
+
+                // Find matching craft entry to grant the crafted item
+                const craftEntries = gmActorState.craftEntries ?? DEFAULT_CRAFT_ENTRIES;
+                const entry = craftEntries.find(e => e.recipeUuid === recipeUuid);
+                if (entry?.craftUuid) {
+                    try {
+                        const craftItem = await fromUuid(entry.craftUuid);
+                        if (craftItem) {
+                            const itemData = craftItem.toObject();
+                            await actor.createEmbeddedDocuments("Item", [itemData]);
+                            const craftMsg = `
+                            <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden; font-family: 'Aleo', serif;">
+                                <div class="card-content" style="background: #191919; padding: 12px; text-align: center;">
+                                    <div style="color: #C9A060; font-weight: bold; font-size: 1.1em; margin-bottom: 6px;">Item Crafted</div>
+                                    <div style="color: #e0e0e0;">${actor.name} crafted <strong style="color:#C9A060;">${craftItem.name}</strong> and it was added to their inventory.</div>
+                                </div>
+                            </div>`;
+                            await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content: craftMsg });
+                        }
+                    } catch (err) {
+                        console.error(`daggerheart-quickactions | Failed to grant crafted item for "${recipeName}":`, err);
+                    }
+                }
+            }
         }
     }
 
@@ -239,6 +279,200 @@ async function _applyDowntimeEffects() {
         if (user.getFlag("daggerheart-quickactions", "downtimeChoices")) {
             await user.unsetFlag("daggerheart-quickactions", "downtimeChoices");
         }
+    }
+}
+
+// ==================================================================
+// CONFIGURE ACTOR APP
+// ==================================================================
+class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
+    #actorId = null;
+    #resolve = null;
+
+    static DEFAULT_OPTIONS = {
+        id: "daggerheart-configure-actor",
+        classes: ["dh-configure-actor"],
+        window: { title: "Configure Actor", resizable: true },
+        position: { width: 480, height: 420 },
+        actions: {
+            saveConfig: ConfigureActorApp.prototype._onSaveConfig,
+            addCraftRow: ConfigureActorApp.prototype._onAddCraftRow,
+            removeCraftRow: ConfigureActorApp.prototype._onRemoveCraftRow
+        }
+    };
+
+    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/configure-actor.hbs" } };
+
+    constructor(actorId, actorState, resolve) {
+        super();
+        this.#actorId = actorId;
+        this._actorState = actorState;
+        this.#resolve = resolve;
+    }
+
+    async _prepareContext() {
+        const s = this._actorState;
+        const craftEntries = s.craftEntries ?? DEFAULT_CRAFT_ENTRIES;
+
+        // Resolve craft entry names from UUIDs
+        const resolvedEntries = [];
+        for (const entry of craftEntries) {
+            const recipe = entry.recipeUuid ? await fromUuid(entry.recipeUuid) : null;
+            const craft = entry.craftUuid ? await fromUuid(entry.craftUuid) : null;
+            resolvedEntries.push({
+                recipeUuid: entry.recipeUuid || "",
+                recipeName: recipe?.name || "",
+                craftUuid: entry.craftUuid || "",
+                craftName: craft?.name || ""
+            });
+        }
+
+        return {
+            maxChoices: s.maxChoices ?? 2,
+            hpModifier: s.hpModifier ?? 0,
+            stressModifier: s.stressModifier ?? 0,
+            hopeModifier: s.hopeModifier ?? 0,
+            armorSlotModifier: s.armorSlotModifier ?? 0,
+            craftEntries: resolvedEntries
+        };
+    }
+
+    _onRender(context, options) {
+        // Tab switching
+        this.element.querySelectorAll('.dui-cfg-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.element.querySelectorAll('.dui-cfg-tab').forEach(t => t.classList.remove('active'));
+                this.element.querySelectorAll('.dui-cfg-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                this.element.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+            });
+        });
+
+        // Craft drag-drop
+        const craftList = this.element.querySelector('#dui-craft-list');
+        if (!craftList) return;
+
+        craftList.addEventListener('dragover', (e) => {
+            const dropZone = e.target.closest('.dui-craft-drop');
+            if (dropZone) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                dropZone.classList.add('dragover');
+            }
+        });
+
+        craftList.addEventListener('dragleave', (e) => {
+            const dropZone = e.target.closest('.dui-craft-drop');
+            if (dropZone) dropZone.classList.remove('dragover');
+        });
+
+        craftList.addEventListener('drop', async (e) => {
+            const dropZone = e.target.closest('.dui-craft-drop');
+            if (!dropZone) return;
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+
+            let data;
+            try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
+            if (data.type !== 'Item') {
+                ui.notifications.warn("Only items can be dropped here.");
+                return;
+            }
+
+            const item = await fromUuid(data.uuid);
+            if (!item) {
+                ui.notifications.warn("Could not resolve item.");
+                return;
+            }
+            if (!ALLOWED_CRAFT_TYPES.includes(item.type)) {
+                ui.notifications.warn(`Only loot, consumable, weapon, or armor items are allowed. Got: ${item.type}`);
+                return;
+            }
+
+            const row = dropZone.closest('.dui-craft-row');
+            const idx = row.dataset.index;
+            const slot = dropZone.dataset.slot;
+            const inputName = slot === 'recipe' ? `craftRecipe_${idx}` : `craftCraft_${idx}`;
+
+            const hiddenInput = row.querySelector(`input[name="${inputName}"]`);
+            if (hiddenInput) hiddenInput.value = data.uuid;
+
+            dropZone.querySelector('.dui-craft-name').textContent = item.name;
+            dropZone.classList.remove('empty');
+            dropZone.classList.add('filled');
+        });
+    }
+
+    _onAddCraftRow() {
+        const craftList = this.element.querySelector('#dui-craft-list');
+        const nextIndex = craftList.querySelectorAll('.dui-craft-row').length;
+        const newRow = document.createElement('div');
+        newRow.className = 'dui-craft-row';
+        newRow.dataset.index = String(nextIndex);
+        newRow.innerHTML = `
+            <div class="dui-craft-drop empty" data-slot="recipe" data-index="${nextIndex}">
+                <i class="fas fa-scroll"></i>
+                <span class="dui-craft-name">Drag Recipe Here</span>
+            </div>
+            <i class="fas fa-arrow-right dui-craft-arrow"></i>
+            <div class="dui-craft-drop empty" data-slot="craft" data-index="${nextIndex}">
+                <i class="fas fa-flask"></i>
+                <span class="dui-craft-name">Drag Crafted Item Here</span>
+            </div>
+            <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="${nextIndex}" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="hidden" name="craftRecipe_${nextIndex}" value="">
+            <input type="hidden" name="craftCraft_${nextIndex}" value="">`;
+        craftList.appendChild(newRow);
+    }
+
+    _onRemoveCraftRow(event, target) {
+        target.closest('.dui-craft-row').remove();
+    }
+
+    _onSaveConfig() {
+        const el = this.element;
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+        // Collect craft entries from hidden inputs
+        const craftEntries = [];
+        let i = 0;
+        while (el.querySelector(`input[name="craftRecipe_${i}"]`)) {
+            const recipeUuid = el.querySelector(`input[name="craftRecipe_${i}"]`).value;
+            const craftUuid = el.querySelector(`input[name="craftCraft_${i}"]`).value;
+            if (recipeUuid || craftUuid) {
+                craftEntries.push({ recipeUuid, craftUuid });
+            }
+            i++;
+        }
+
+        const result = {
+            maxChoices: clamp(parseInt(el.querySelector('[name="maxChoices"]').value) || 2, 1, 6),
+            hpModifier: clamp(parseInt(el.querySelector('[name="hpModifier"]').value) || 0, 0, 10),
+            stressModifier: clamp(parseInt(el.querySelector('[name="stressModifier"]').value) || 0, 0, 10),
+            hopeModifier: clamp(parseInt(el.querySelector('[name="hopeModifier"]').value) || 0, 0, 10),
+            armorSlotModifier: clamp(parseInt(el.querySelector('[name="armorSlotModifier"]').value) || 0, 0, 10),
+            craftEntries
+        };
+
+        if (this.#resolve) this.#resolve(result);
+        this.close();
+    }
+
+    _onClose(options) {
+        super._onClose(options);
+        if (this.#resolve) {
+            this.#resolve(null);
+            this.#resolve = null;
+        }
+    }
+
+    static open(actorId, actorState) {
+        return new Promise((resolve) => {
+            const app = new ConfigureActorApp(actorId, actorState, resolve);
+            app.render(true);
+        });
     }
 }
 
@@ -302,7 +536,21 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const selectedCount = playerChoices.actions.length;
             const atMaxChoices = selectedCount >= gmState.maxChoices;
 
-            const annotatedActions = availableActions.map(a => ({
+            // Build craft downtime actions from actor items
+            const craftEntries = gmState.craftEntries ?? DEFAULT_CRAFT_ENTRIES;
+            const extraActions = [];
+            for (const entry of craftEntries) {
+                if (!entry.recipeUuid) continue;
+                const recipeItem = await fromUuid(entry.recipeUuid);
+                if (!recipeItem) continue;
+                const owned = actor.items.find(i => i.name === recipeItem.name);
+                if (owned) {
+                    extraActions.push({ key: `craft_${entry.recipeUuid}`, label: recipeItem.name, hasTarget: false, isExtra: true });
+                }
+            }
+
+            const allActions = [...availableActions, ...extraActions];
+            const annotatedActions = allActions.map(a => ({
                 ...a,
                 selected: playerChoices.actions.includes(a.key),
                 targetActorId: playerChoices.targets?.[a.key] ?? "",
@@ -382,72 +630,25 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const actorId = target.dataset.actorId;
         const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
         const actorState = state?.actors?.[actorId] ?? {};
-        const current = actorState.maxChoices ?? 2;
-        const hpMod = actorState.hpModifier ?? 0;
-        const stressMod = actorState.stressModifier ?? 0;
-        const hopeMod = actorState.hopeModifier ?? 0;
-        const armorMod = actorState.armorSlotModifier ?? 0;
 
-        const content = `
-        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
-            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
-                <label style="font-weight:bold;">Max Actions:</label>
-                <input type="number" name="maxChoices" value="${current}" min="1" max="6" style="width:60px;text-align:center;">
-            </div>
-            <hr style="border:1px solid rgba(201,160,96,0.3);margin:4px 0;">
-            <div style="font-weight:bold;text-align:center;color:#C9A060;">Rest Recovery Modifiers</div>
-            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
-                <label>HP Modifier:</label>
-                <input type="number" name="hpModifier" value="${hpMod}" min="0" max="10" style="width:60px;text-align:center;">
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
-                <label>Stress Modifier:</label>
-                <input type="number" name="stressModifier" value="${stressMod}" min="0" max="10" style="width:60px;text-align:center;">
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
-                <label>Hope Modifier:</label>
-                <input type="number" name="hopeModifier" value="${hopeMod}" min="0" max="10" style="width:60px;text-align:center;">
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
-                <label>Armor Slot Modifier:</label>
-                <input type="number" name="armorSlotModifier" value="${armorMod}" min="0" max="10" style="width:60px;text-align:center;">
-            </div>
-        </div>`;
+        const result = await ConfigureActorApp.open(actorId, actorState);
+        if (!result) return;
 
-        const result = await foundry.applications.api.DialogV2.prompt({
-            window: { title: "Configure Actor" },
-            content,
-            ok: {
-                label: "Save",
-                callback: (event, button) => {
-                    const f = button.form.elements;
-                    return {
-                        maxChoices: Math.max(1, Math.min(6, parseInt(f.maxChoices.value) || 2)),
-                        hpModifier: Math.max(0, Math.min(10, parseInt(f.hpModifier.value) || 0)),
-                        stressModifier: Math.max(0, Math.min(10, parseInt(f.stressModifier.value) || 0)),
-                        hopeModifier: Math.max(0, Math.min(10, parseInt(f.hopeModifier.value) || 0)),
-                        armorSlotModifier: Math.max(0, Math.min(10, parseInt(f.armorSlotModifier.value) || 0))
-                    };
-                }
-            }
-        });
+        Object.assign(state.actors[actorId], result);
+        state.timestamp = Date.now();
+        await game.settings.set("daggerheart-quickactions", "downtimeUIState", state);
 
-        if (result) {
-            Object.assign(state.actors[actorId], result);
-            state.timestamp = Date.now();
-            await game.settings.set("daggerheart-quickactions", "downtimeUIState", state);
-
-            // Persist configs so they survive across sessions
-            const persistedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
-            persistedConfigs[actorId] = {
-                maxChoices: result.maxChoices,
-                hpModifier: result.hpModifier,
-                stressModifier: result.stressModifier,
-                hopeModifier: result.hopeModifier,
-                armorSlotModifier: result.armorSlotModifier
-            };
-            await game.settings.set("daggerheart-quickactions", "downtimeActorConfigs", persistedConfigs);
-        }
+        // Persist configs so they survive across sessions
+        const persistedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
+        persistedConfigs[actorId] = {
+            maxChoices: result.maxChoices,
+            hpModifier: result.hpModifier,
+            stressModifier: result.stressModifier,
+            hopeModifier: result.hopeModifier,
+            armorSlotModifier: result.armorSlotModifier,
+            craftEntries: result.craftEntries
+        };
+        await game.settings.set("daggerheart-quickactions", "downtimeActorConfigs", persistedConfigs);
     }
 
     async _onSetRestType(event, target) {
@@ -542,7 +743,7 @@ export async function activateDowntimeUI() {
     // Initialize GM-controlled state with all non-GM character actors
     // Load persistent configs so modifiers and maxChoices survive across sessions
     const savedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
-    const defaults = { included: true, maxChoices: 2, hpModifier: 0, stressModifier: 0, hopeModifier: 0, armorSlotModifier: 0 };
+    const defaults = { included: true, maxChoices: 2, hpModifier: 0, stressModifier: 0, hopeModifier: 0, armorSlotModifier: 0, craftEntries: DEFAULT_CRAFT_ENTRIES };
     const actors = {};
     for (const user of game.users) {
         if (user.isGM) continue;

@@ -859,3 +859,224 @@
         }
     }
 }
+
+/* --- Configure Actor Dialog --- */
+.dh-configure-actor {
+    --cfg-gold: #C9A060;
+    --cfg-bg: #191919;
+    --cfg-text: #e0e0e0;
+    --cfg-text-dim: #999;
+
+    & .window-content {
+        background: var(--cfg-bg);
+        padding: 0;
+    }
+
+    & .dui-cfg-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Tab Bar */
+    & .dui-cfg-tab-bar {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid var(--cfg-gold);
+        padding: 0 12px;
+        background: rgba(0,0,0,0.2);
+        flex-shrink: 0;
+    }
+
+    & .dui-cfg-tab {
+        padding: 8px 16px;
+        cursor: pointer;
+        color: var(--cfg-text-dim);
+        border: 1px solid transparent;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        font-weight: bold;
+        background: none;
+        font-size: 13px;
+        transition: all 0.15s;
+
+        &:hover {
+            color: var(--cfg-text);
+        }
+
+        &.active {
+            color: var(--cfg-gold);
+            border-color: var(--cfg-gold);
+            background: rgba(201,160,96,0.1);
+        }
+    }
+
+    /* Panels */
+    & .dui-cfg-panel {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        flex: 1;
+        overflow-y: auto;
+
+        &.active {
+            display: flex;
+        }
+    }
+
+    /* General Tab Fields */
+    & .dui-cfg-field {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        & label {
+            color: var(--cfg-text);
+            font-size: 13px;
+            margin: 0;
+            text-shadow: none;
+        }
+
+        & input[type="number"] {
+            width: 60px;
+            text-align: center;
+            background: #2a2a2a;
+            color: var(--cfg-text);
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 4px;
+        }
+    }
+
+    & .dui-cfg-divider {
+        border: none;
+        border-top: 1px solid rgba(201,160,96,0.3);
+        margin: 4px 0;
+    }
+
+    & .dui-cfg-section-title {
+        font-weight: bold;
+        text-align: center;
+        color: var(--cfg-gold);
+        font-size: 13px;
+    }
+
+    /* Craft Tab */
+    & .dui-craft-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    & .dui-craft-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(201,160,96,0.15);
+    }
+
+    & .dui-craft-drop {
+        flex: 1;
+        padding: 8px 10px;
+        border: 2px dashed rgba(201,160,96,0.4);
+        border-radius: 6px;
+        text-align: center;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        transition: all 0.15s;
+
+        &.empty {
+            color: var(--cfg-text-dim);
+            font-style: italic;
+        }
+
+        &.filled {
+            border-style: solid;
+            background: rgba(201,160,96,0.05);
+            color: var(--cfg-text);
+        }
+
+        &.dragover {
+            border-color: var(--cfg-gold);
+            background: rgba(201,160,96,0.15);
+            box-shadow: 0 0 8px rgba(201,160,96,0.3);
+        }
+    }
+
+    & .dui-craft-arrow {
+        color: var(--cfg-gold);
+        flex-shrink: 0;
+        font-size: 12px;
+    }
+
+    & .dui-craft-remove {
+        background: none;
+        border: none;
+        color: #cc4444;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px 6px;
+        flex-shrink: 0;
+        border-radius: 3px;
+        transition: all 0.15s;
+
+        &:hover {
+            color: #ff6666;
+            background: rgba(255,0,0,0.1);
+        }
+    }
+
+    & .dui-craft-add-btn {
+        width: 100%;
+        padding: 8px;
+        background: rgba(201,160,96,0.08);
+        border: 2px dashed rgba(201,160,96,0.3);
+        border-radius: 6px;
+        color: var(--cfg-gold);
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 6px;
+        transition: all 0.15s;
+
+        &:hover {
+            background: rgba(201,160,96,0.15);
+            border-color: var(--cfg-gold);
+        }
+    }
+
+    /* Footer */
+    & .dui-cfg-footer {
+        padding: 10px 12px;
+        border-top: 1px solid #333;
+        flex-shrink: 0;
+    }
+
+    & .dui-cfg-save-btn {
+        width: 100%;
+        padding: 8px;
+        background: linear-gradient(180deg, #333, #1a1a1a);
+        border: 1px solid var(--cfg-gold);
+        border-radius: 4px;
+        color: var(--cfg-gold);
+        font-weight: bold;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.15s;
+
+        &:hover {
+            text-shadow: 0 0 5px var(--cfg-gold);
+            border-color: #fff;
+        }
+    }
+}
