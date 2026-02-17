@@ -94,6 +94,27 @@ function _getMaxHope(actor) {
     return actor.system.resources.hope.max ?? 0;
 }
 
+function _getRefreshableFeatures(actor, restType) {
+    const isLong = restType === "long";
+    const results = [];
+    for (const item of actor.items) {
+        const actions = item.system?.actions;
+        if (!actions || typeof actions !== "object") continue;
+        // Daggerheart stores actions as a Map, not a plain object
+        const entries = actions instanceof Map ? actions.entries() : Object.entries(actions);
+        for (const [actionId, action] of entries) {
+            const uses = action.uses;
+            if (!uses || !uses.recovery) continue;
+            if (uses.recovery === "shortRest") {
+                results.push({ itemName: item.name, actionId, item, uses });
+            } else if (uses.recovery === "longRest" && isLong) {
+                results.push({ itemName: item.name, actionId, item, uses });
+            }
+        }
+    }
+    return results;
+}
+
 async function _applyDowntimeEffects() {
     const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
     if (!state?.actors) return;
@@ -258,6 +279,21 @@ async function _applyDowntimeEffects() {
                     }
                 }
             }
+        }
+    }
+
+    // Feature refresh (uses recovery)
+    for (const { actor } of includedActors) {
+        const refreshable = _getRefreshableFeatures(actor, restType);
+        if (refreshable.length === 0) continue;
+        const refreshedNames = [];
+        for (const { item, actionId, itemName, uses } of refreshable) {
+            if (uses.value === 0 || uses.value === null) continue;
+            await item.update({ [`system.actions.${actionId}.uses.value`]: 0 });
+            refreshedNames.push(itemName);
+        }
+        if (refreshedNames.length > 0) {
+            eventLines.push(`${actor.name} refreshed: ${refreshedNames.join(", ")}`);
         }
     }
 
@@ -647,6 +683,10 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             const hasPrepare = playerChoices.actions.includes("prepare");
 
+            const refreshFeatures = _getRefreshableFeatures(actor, globalRestType).map(f => f.itemName);
+            // Deduplicate names (same item may have multiple actions)
+            const uniqueRefreshFeatures = [...new Set(refreshFeatures)];
+
             rows.push({
                 userId,
                 userName: user.name,
@@ -663,7 +703,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 canInteract: isOwnRow,
                 selectedCount,
                 atMaxChoices,
-                hasPrepare
+                hasPrepare,
+                refreshFeatures: uniqueRefreshFeatures
             });
         }
 

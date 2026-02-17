@@ -47,6 +47,16 @@
                 <div class="dui-info-text">
                     <span class="dui-actor-name">
                         {{this.actorName}}
+                        {{#if this.refreshFeatures.length}}
+                        <span class="dui-refresh-icon">
+                            <i class="fas fa-sync-alt"></i>
+                            <span class="dui-refresh-tooltip">
+                                {{#each this.refreshFeatures}}
+                                <span class="dui-refresh-feature">{{this}}</span>
+                                {{/each}}
+                            </span>
+                        </span>
+                        {{/if}}
                     </span>
                     <span class="dui-user-name">
                         <span class="dui-user-dot" style="--user-color: {{this.userColor}};"></span>

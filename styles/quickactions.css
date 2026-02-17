@@ -729,6 +729,50 @@
         gap: 6px;
     }
 
+    /* Refresh Feature Tooltip Icon */
+    & .dui-refresh-icon {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+        color: #C9A060;
+        font-size: 12px;
+
+        &:hover .dui-refresh-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+
+    & .dui-refresh-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        bottom: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: #191919;
+        border: 1px solid #C9A060;
+        border-radius: 6px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 100;
+        white-space: nowrap;
+        transition: opacity 0.2s, visibility 0.2s;
+        pointer-events: none;
+    }
+
+    & .dui-refresh-feature {
+        color: #e0e0e0;
+        font-size: 12px;
+        font-weight: normal;
+        border: 1px solid #ffffff;
+        border-radius: 4px;
+        padding: 2px 6px;
+    }
+
     /* Settings Gear Button */
     & .dui-config-btn {
         background: none;
