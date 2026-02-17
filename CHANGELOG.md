@@ -1,3 +1,6 @@
+# 0.1.4
+- New Feature: Advanced Downtime UI
+
 # 0.1.3
 - You can level up players
 

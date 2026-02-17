@@ -4,7 +4,7 @@
  */
 
 // Import all functions from a single consolidated file
-import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt, activateTemplateCreator, activateLevelUp } from "./apps.js";
+import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt, activateTemplateCreator, activateLevelUp, activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } from "./apps.js";
 // Import Features
 import { features } from "./features.js";
 // Import Beastform
@@ -69,6 +69,36 @@ Hooks.once("init", () => {
         }
     });
 
+    // 5. Downtime UI State (player choices, GM config)
+    game.settings.register("daggerheart-quickactions", "downtimeUIState", {
+        name: "Downtime UI State",
+        scope: "world",
+        config: false,
+        default: {},
+        type: Object,
+        onChange: (value) => {
+            if (!value?.timestamp) return;
+            if (Date.now() - value.timestamp > 30000) return;
+            const inst = getDowntimeUIInstance();
+            if (inst?.rendered) inst.render();
+        }
+    });
+
+    // 6. Downtime UI Open Broadcast
+    game.settings.register("daggerheart-quickactions", "downtimeUIOpen", {
+        name: "Downtime UI Open",
+        scope: "world",
+        config: false,
+        default: {},
+        type: Object,
+        onChange: (value) => {
+            if (!value?.timestamp) return;
+            if (Date.now() - value.timestamp > 10000) return;
+            if (game.user.isGM) return;
+            openDowntimeUIForPlayer();
+        }
+    });
+
     globalThis.QuickActions = {
         Downtime: activateDowntime,
         FallingDamage: activateFallingDamage,
@@ -83,7 +113,8 @@ Hooks.once("init", () => {
         Templates: activateTemplateCreator,
         LevelUp: activateLevelUp,
         Features: features,
-        Beastform: beastformAction
+        Beastform: beastformAction,
+        DowntimeUI: activateDowntimeUI
     };
     console.log("Daggerheart Quick Actions | Global API Registered: QuickActions");
 });
@@ -119,6 +150,15 @@ Hooks.on("ready", async () => {
             }
         }
     }
+
+    // Re-render DowntimeUI when any user's flags change (player choices via setFlag)
+    Hooks.on("updateUser", (user, change) => {
+        if (change?.flags?.["daggerheart-quickactions"]?.downtimeChoices !== undefined ||
+            change?.flags?.["daggerheart-quickactions"]?.["-=downtimeChoices"] !== undefined) {
+            const inst = getDowntimeUIInstance();
+            if (inst?.rendered) inst.render();
+        }
+    });
 });
 
 // ==================================================================

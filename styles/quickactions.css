@@ -491,3 +491,305 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
+
+/* --- Downtime UI App --- */
+.dh-downtime-ui {
+    --dui-gold: #C9A060;
+    --dui-gold-bright: #FFD700;
+    --dui-bg: #191919;
+    --dui-surface: #222;
+    --dui-border: #333;
+    --dui-text: #e0e0e0;
+    --dui-text-dim: #999;
+
+    & .window-content {
+        background: var(--dui-bg);
+        padding: 16px;
+    }
+
+    & .dui-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    & .dui-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid var(--dui-gold);
+        padding-bottom: 10px;
+    }
+
+    & .dui-toolbar-left {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    & .dui-rest-header {
+        text-align: center;
+        font-family: "Aleo", "Georgia", serif;
+        font-size: 1.3em;
+        font-weight: 700;
+        color: var(--dui-gold);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+    }
+
+    & .dui-start-btn {
+        flex: 1;
+        padding: 10px;
+        background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
+        border: 2px solid var(--dui-gold);
+        border-radius: 6px;
+        color: var(--dui-gold);
+        font-family: "Aleo", "Georgia", serif;
+        font-size: 1em;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        &:hover {
+            background: linear-gradient(to bottom, var(--dui-gold), #a0783c);
+            color: #000;
+            box-shadow: 0 0 12px rgba(201, 160, 96, 0.6);
+        }
+
+        &:active {
+            transform: scale(0.97);
+        }
+    }
+
+    & .dui-player-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    & .dui-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: linear-gradient(135deg, var(--dui-surface), #1a1a1a);
+        border: 1px solid var(--dui-border);
+        border-radius: 8px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        flex-wrap: wrap;
+
+        &:hover {
+            border-color: var(--dui-gold);
+            box-shadow: 0 0 8px rgba(201, 160, 96, 0.15);
+        }
+    }
+
+    & .dui-row--excluded {
+        & .dui-identity,
+        & .dui-actions {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+    }
+
+    & .dui-config-btn {
+        width: 28px;
+        height: 28px;
+        background: none;
+        border: 1px dashed var(--dui-gold);
+        border-radius: 4px;
+        color: var(--dui-gold);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        flex-shrink: 0;
+        transition: all 0.2s;
+
+        &:hover {
+            background: #333;
+            border-style: solid;
+        }
+    }
+
+    & .dui-checkbox-btn {
+        width: 28px;
+        height: 28px;
+        background: none;
+        border: none;
+        color: var(--dui-gold);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        flex-shrink: 0;
+        font-size: 1.2em;
+        transition: color 0.2s;
+
+        &:hover {
+            color: var(--dui-gold-bright);
+        }
+    }
+
+    & .dui-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid var(--dui-gold);
+        object-fit: cover;
+        flex-shrink: 0;
+        box-shadow: 0 0 6px rgba(201, 160, 96, 0.3);
+    }
+
+    & .dui-identity {
+        flex: 0 0 auto;
+        min-width: 100px;
+        max-width: 150px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    & .dui-actor-name {
+        font-family: "Aleo", "Georgia", serif;
+        font-weight: 700;
+        font-size: 0.95em;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    & .dui-user-name {
+        font-size: 0.8em;
+        color: var(--dui-text-dim);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    & .dui-user-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--user-color);
+    }
+
+    & .dui-rest-btn {
+        padding: 4px 10px;
+        background: var(--dui-bg);
+        border: 1px solid var(--dui-border);
+        color: var(--dui-text-dim);
+        border-radius: 4px;
+        font-size: 0.85em;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+
+        &.active {
+            border-color: var(--dui-gold);
+            color: var(--dui-gold);
+            background: #2a2a2a;
+            box-shadow: 0 0 6px rgba(201, 160, 96, 0.3);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+    }
+
+    & .dui-actions {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    & .dui-choice-counter {
+        font-size: 0.78em;
+        color: var(--dui-text-dim);
+        text-align: right;
+        margin-bottom: 2px;
+    }
+
+    & .dui-action-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+    }
+
+    & .dui-action-btn {
+        flex: 0 0 auto;
+        padding: 4px 10px;
+        background: var(--dui-bg);
+        border: 1px solid var(--dui-border);
+        color: var(--dui-text-dim);
+        border-radius: 4px;
+        font-size: 0.82em;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &.selected {
+            border-color: var(--dui-gold);
+            color: var(--dui-gold);
+            background: #2a2a2a;
+            box-shadow: 0 0 6px rgba(201, 160, 96, 0.35);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+    }
+
+    & .dui-target-select {
+        flex: 1;
+        max-width: 140px;
+        padding: 3px 6px;
+        font-size: 0.82em;
+        background: #ffffff;
+        color: #000000;
+        border: 1px solid var(--dui-border);
+        border-radius: 4px;
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    }
+
+    & .dui-empty {
+        text-align: center;
+        padding: 32px 16px;
+        color: var(--dui-text-dim);
+
+        & i {
+            font-size: 2em;
+            margin-bottom: 8px;
+            display: block;
+            color: #555;
+        }
+
+        & p {
+            margin: 0;
+            font-size: 0.95em;
+        }
+    }
+}

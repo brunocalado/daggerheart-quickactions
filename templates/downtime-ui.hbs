@@ -1,0 +1,73 @@
+<div class="dui-container">
+
+    {{#if isGM}}
+    <div class="dui-toolbar">
+        <div class="dui-toolbar-left">
+            <button type="button" class="dui-rest-btn {{#if isShort}}active{{/if}}" data-action="setRestType" data-rest-type="short">
+                <i class="fas fa-campground"></i> Short
+            </button>
+            <button type="button" class="dui-rest-btn {{#if isLong}}active{{/if}}" data-action="setRestType" data-rest-type="long">
+                <i class="fas fa-bed"></i> Long
+            </button>
+        </div>
+        <button type="button" class="dui-start-btn" data-action="startDowntime">
+            <i class="fas fa-play"></i> Start Downtime
+        </button>
+    </div>
+    {{/if}}
+
+    <div class="dui-rest-header">{{restLabel}}</div>
+
+    <div class="dui-player-list">
+        {{#each rows}}
+        <div class="dui-row {{#unless this.included}}dui-row--excluded{{/unless}}" data-actor-id="{{this.actorId}}">
+
+            {{#if this.isGM}}
+            <button type="button" class="dui-config-btn" data-action="configMaxChoices" data-actor-id="{{this.actorId}}" title="Configure">
+                <i class="fas fa-gear"></i>
+            </button>
+            <button type="button" class="dui-checkbox-btn {{#if this.included}}checked{{/if}}" data-action="toggleIncluded" data-actor-id="{{this.actorId}}" title="Include in Downtime">
+                <i class="{{#if this.included}}fas fa-square-check{{else}}far fa-square{{/if}}"></i>
+            </button>
+            {{/if}}
+
+            <img class="dui-avatar" src="{{this.avatar}}" alt="{{this.actorName}}" />
+
+            <div class="dui-identity">
+                <span class="dui-actor-name">{{this.actorName}}</span>
+                <span class="dui-user-name">
+                    <span class="dui-user-dot" style="--user-color: {{this.userColor}};"></span>
+                    {{this.userName}}
+                </span>
+            </div>
+
+            <div class="dui-actions">
+                <div class="dui-choice-counter">{{this.selectedCount}} / {{this.maxChoices}} Actions</div>
+                {{#each this.actions}}
+                <div class="dui-action-row">
+                    <button type="button" class="dui-action-btn {{#if this.selected}}selected{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
+                        {{this.label}}
+                    </button>
+                    {{#if this.hasTarget}}
+                    {{#if this.selected}}
+                    <select class="dui-target-select" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}}>
+                        {{#each ../targetOptions}}
+                        <option value="{{this.id}}" {{#if (eq this.id ../../targetActorId)}}selected{{/if}}>{{this.name}}</option>
+                        {{/each}}
+                    </select>
+                    {{/if}}
+                    {{/if}}
+                </div>
+                {{/each}}
+            </div>
+
+        </div>
+        {{else}}
+        <div class="dui-empty">
+            <i class="fas fa-users-slash"></i>
+            <p>No players found.</p>
+        </div>
+        {{/each}}
+    </div>
+
+</div>
