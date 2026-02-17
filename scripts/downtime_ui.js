@@ -84,11 +84,14 @@ async function _clearAllArmorMarks(actor) {
     }
 }
 
+/**
+ * Gets the maximum Hope from the actor's derived data.
+ * Updated to use the system's calculated value instead of manual calculation.
+ */
 function _getMaxHope(actor) {
-    const Homebrew = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Homebrew);
-    const maxHope = Homebrew.maxHope ?? 0;
-    const scars = actor.system?.scars ?? 0;
-    return Math.max(0, maxHope - scars);
+    // CORREÇÃO APLICADA: Acessa o dado derivado diretamente.
+    // Isso garante compatibilidade com Active Effects, Scars e configurações do sistema.
+    return actor.system.resources.hope.max ?? 0;
 }
 
 async function _applyDowntimeEffects() {
@@ -207,6 +210,7 @@ async function _applyDowntimeEffects() {
 
             if (action === "prepare") {
                 const currentHope = actor.system.resources?.hope?.value ?? 0;
+                // Updated usage here
                 const maxHope = _getMaxHope(actor);
                 const totalGain = prepareBonus + hopeModifier;
                 const newHope = Math.min(currentHope + totalGain, maxHope);
