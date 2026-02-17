@@ -3,8 +3,9 @@
  * Main module that injects buttons into the menu and exposes the global API.
  */
 
-// Import all functions from a single consolidated file
-import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt, activateTemplateCreator, activateLevelUp, activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } from "./apps.js";
+// Import all functions from consolidated files
+import { activateDowntime, activateFallingDamage, activateRequestRoll, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, showCinematicPrompt, activateTemplateCreator, activateLevelUp } from "./apps.js";
+import { activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } from "./downtime_ui.js";
 // Import Features
 import { features } from "./features.js";
 // Import Beastform
