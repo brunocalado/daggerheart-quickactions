@@ -5,9 +5,8 @@
 /* --- General Application Styles --- */
 .dh-qa-app .window-content {
     padding: 15px;
-    /* Dark solid color background (Image removed to fix console error) */
     background: #191919;
-    color: #C9A060; /* Default Gold color for text */
+    color: #C9A060;
 }
 
 /* Ensures that any loose text or notes are GOLD (#C9A060) */
@@ -17,9 +16,9 @@
     font-size: 1.1em;
     text-align: center;
     margin-bottom: 15px;
-    color: #C9A060 !important; /* Gold */
+    color: #C9A060 !important;
     font-weight: 500;
-    text-shadow: 1px 1px 0 #000; /* Light shadow for contrast on paper or black background */
+    text-shadow: 1px 1px 0 #000;
 }
 
 /* --- Common Inputs --- */
@@ -100,15 +99,12 @@
 
 
 /* --- Loot & Consumable App Specifics --- */
-
-/* Main Container */
 .loot-consumable-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-/* 1. Type Buttons (Loot vs Consumable) */
 .loot-consumable-app .type-selection {
     display: flex;
     justify-content: center;
@@ -162,14 +158,12 @@
     color: #C9A060; 
 }
 
-/* Divider Line */
 .loot-consumable-app .divider {
     border: 0;
     border-top: 1px solid rgba(122, 110, 93, 0.3);
     margin: 5px 0;
 }
 
-/* 2. Dice Grid (Side by Side) */
 .loot-consumable-app .dice-row {
     display: flex;
     flex-direction: row;
@@ -196,7 +190,6 @@
     box-shadow: 0 0 5px rgba(201, 160, 96, 0.3);
 }
 
-/* 3. Formula Row */
 .loot-consumable-app .formula-row {
     display: flex;
     align-items: center;
@@ -212,8 +205,8 @@
     font-weight: bold;
     white-space: nowrap;
     flex: 0 0 auto;
-    color: #C9A060; /* Gold */
-    text-shadow: 0 0 2px #000000; /* Shadow for contrast */
+    color: #C9A060;
+    text-shadow: 0 0 2px #000000;
     font-size: 1.1em;
 }
 
@@ -226,7 +219,6 @@
     border: 1px solid #7a6e5d;
 }
 
-/* 4. Roll Button (Large and Centered) */
 .loot-consumable-app .footer-row {
     margin-top: 15px;
     display: flex;
@@ -497,282 +489,324 @@
     --dui-gold: #C9A060;
     --dui-gold-bright: #FFD700;
     --dui-bg: #191919;
-    --dui-surface: #222;
+    --dui-surface: #191919;
     --dui-border: #333;
     --dui-text: #e0e0e0;
     --dui-text-dim: #999;
+    --dui-input-bg: #fff;
+    --dui-input-text: #000;
 
     & .window-content {
         background: var(--dui-bg);
-        padding: 16px;
+        padding: 12px;
     }
 
     & .dui-container {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 15px;
     }
 
+    /* Toolbar: Rest Toggle & Start Button */
     & .dui-toolbar {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         gap: 10px;
-        border-bottom: 1px solid var(--dui-gold);
-        padding-bottom: 10px;
+        margin-bottom: 5px;
     }
 
-    & .dui-toolbar-left {
+    & .dui-toggle-type {
         display: flex;
-        gap: 4px;
-        flex-shrink: 0;
+        background: #000;
+        border: 1px solid var(--dui-gold);
+        border-radius: 4px;
+        overflow: hidden;
     }
 
-    & .dui-rest-header {
-        text-align: center;
-        font-family: "Aleo", "Georgia", serif;
-        font-size: 1.3em;
-        font-weight: 700;
-        color: var(--dui-gold);
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        text-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+    & .dui-rest-btn {
+        background: transparent;
+        border: none;
+        color: #888;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s;
+        
+        &.active {
+            background: rgba(203, 163, 87, 0.2);
+            color: var(--dui-gold);
+            border-bottom: 2px solid var(--dui-gold);
+        }
+
+        &:hover:not(.active) {
+            color: #ccc;
+        }
     }
 
     & .dui-start-btn {
-        flex: 1;
-        padding: 10px;
-        background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
-        border: 2px solid var(--dui-gold);
-        border-radius: 6px;
+        flex-grow: 1;
+        background: linear-gradient(180deg, #333, #111);
+        border: 1px solid var(--dui-gold);
         color: var(--dui-gold);
-        font-family: "Aleo", "Georgia", serif;
-        font-size: 1em;
+        font-family: "Aleo", serif;
+        font-size: 16px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
         cursor: pointer;
-        transition: all 0.2s ease;
+        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
 
         &:hover {
-            background: linear-gradient(to bottom, var(--dui-gold), #a0783c);
-            color: #000;
-            box-shadow: 0 0 12px rgba(201, 160, 96, 0.6);
-        }
-
-        &:active {
-            transform: scale(0.97);
+            text-shadow: 0 0 5px var(--dui-gold);
+            border-color: #fff;
         }
     }
 
+    /* Player List Container */
     & .dui-player-list {
         display: flex;
         flex-direction: column;
         gap: 8px;
     }
 
+    /* Row Layout: Grid [Check | Info | Actions | Count] */
     & .dui-row {
-        display: flex;
+        background: var(--dui-surface);
+        border: 1px solid var(--dui-border);
+        border-radius: 6px;
+        padding: 8px 12px;
+        display: grid;
+        grid-template-columns: auto 180px 1fr auto; /* Check/Config | Info | Actions | Counter */
         align-items: center;
         gap: 10px;
-        padding: 10px 12px;
-        background: linear-gradient(135deg, var(--dui-surface), #1a1a1a);
-        border: 1px solid var(--dui-border);
-        border-radius: 8px;
-        transition: border-color 0.2s, box-shadow 0.2s;
-        flex-wrap: wrap;
+        transition: border-color 0.2s;
 
         &:hover {
-            border-color: var(--dui-gold);
-            box-shadow: 0 0 8px rgba(201, 160, 96, 0.15);
+            border-color: #555;
         }
     }
 
     & .dui-row--excluded {
-        & .dui-identity,
-        & .dui-actions {
-            opacity: 0.35;
-            pointer-events: none;
-        }
+        opacity: 0.5;
+        border-color: #222;
     }
 
-    & .dui-config-btn {
-        width: 28px;
-        height: 28px;
-        background: none;
-        border: 1px dashed var(--dui-gold);
-        border-radius: 4px;
-        color: var(--dui-gold);
+    /* Checkbox / Config Column */
+    & .dui-controls-col {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* Inclusion Toggle (Styled as Checkbox) */
+    & .dui-checkbox-btn {
+        width: 20px;
+        height: 20px;
+        background: #111;
+        border: 1px solid var(--dui-text-dim);
+        border-radius: 3px;
+        color: transparent;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 0;
-        flex-shrink: 0;
+        font-size: 12px;
         transition: all 0.2s;
 
-        &:hover {
-            background: #333;
-            border-style: solid;
+        &.checked {
+            border-color: var(--dui-gold);
+            color: var(--dui-gold);
+        }
+
+        & i {
+            transform: scale(0.8);
+        }
+        
+        &.checked i {
+             transform: scale(1);
         }
     }
 
-    & .dui-checkbox-btn {
-        width: 28px;
-        height: 28px;
-        background: none;
-        border: none;
-        color: var(--dui-gold);
-        cursor: pointer;
+    /* Identity Column (Info) */
+    & .dui-identity {
         display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 0;
-        flex-shrink: 0;
-        font-size: 1.2em;
-        transition: color 0.2s;
-
-        &:hover {
-            color: var(--dui-gold-bright);
-        }
+        gap: 10px;
     }
 
     & .dui-avatar {
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        border: 2px solid var(--dui-gold);
+        border: 1px solid var(--dui-gold);
         object-fit: cover;
         flex-shrink: 0;
-        box-shadow: 0 0 6px rgba(201, 160, 96, 0.3);
+        background: #000;
     }
 
-    & .dui-identity {
-        flex: 0 0 auto;
-        min-width: 100px;
-        max-width: 150px;
+    & .dui-info-text {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        line-height: 1.2;
     }
 
     & .dui-actor-name {
-        font-family: "Aleo", "Georgia", serif;
-        font-weight: 700;
-        font-size: 0.95em;
-        color: #ffffff;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-weight: bold;
+        color: #fff;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Settings Gear Button */
+    & .dui-config-btn {
+        background: none;
+        border: none;
+        color: var(--dui-text-dim);
+        cursor: pointer;
+        font-size: 12px;
+        padding: 0;
+        
+        &:hover { color: #fff; }
     }
 
     & .dui-user-name {
-        font-size: 0.8em;
+        font-size: 11px;
         color: var(--dui-text-dim);
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
     }
 
     & .dui-user-dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        flex-shrink: 0;
+        display: inline-block;
         background: var(--user-color);
     }
 
-    & .dui-rest-btn {
-        padding: 4px 10px;
-        background: var(--dui-bg);
-        border: 1px solid var(--dui-border);
-        color: var(--dui-text-dim);
-        border-radius: 4px;
-        font-size: 0.85em;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 600;
+    /* Actions Column (Horizontal Grid) */
+    & .dui-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+    }
 
+    /* Group: Button + Select Wrapper */
+    & .dui-action-group {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: rgba(255,255,255,0.03);
+        border-radius: 4px;
+        border: 1px solid #444;
+        transition: 0.2s;
+        height: 28px; /* Fixed height for consistency */
+        
         &.active {
             border-color: var(--dui-gold);
-            color: var(--dui-gold);
-            background: #2a2a2a;
-            box-shadow: 0 0 6px rgba(201, 160, 96, 0.3);
+            background: rgba(203, 163, 87, 0.1);
         }
 
-        &:disabled {
-            cursor: not-allowed;
-            opacity: 0.4;
+        &:hover {
+             border-color: #666;
+        }
+        &.active:hover {
+             border-color: var(--dui-gold);
         }
     }
 
-    & .dui-actions {
-        flex: 1;
-        min-width: 200px;
+    /* Action Button (Pill/Tag Style) */
+    & .dui-action-btn {
+        background: transparent;
+        border: none;
+        color: #aaa;
+        padding: 0 10px;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+        height: 100%;
+        display: flex;
+        align-items: center;
+
+        /* Standalone button style (no group wrapper) */
+        &.standalone {
+            border: 1px solid #444;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+            
+            &:hover {
+                border-color: var(--dui-gold);
+                color: #fff;
+            }
+            &.selected {
+                border-color: var(--dui-gold);
+                color: var(--dui-gold);
+                background: rgba(203, 163, 87, 0.15);
+            }
+        }
+        
+        /* Inside Group */
+        &:not(.standalone) {
+            &:hover { color: #fff; }
+        }
+    }
+    
+    /* Active State for Grouped Buttons */
+    & .dui-action-group.active .dui-action-btn {
+        color: var(--dui-gold);
+        font-weight: bold;
+    }
+
+    /* Inline Select */
+    & .dui-target-select {
+        background-color: var(--dui-input-bg);
+        color: var(--dui-input-text);
+        border: none;
+        border-left: 1px solid #999;
+        height: 100%;
+        padding: 0 5px;
+        font-size: 12px;
+        font-family: inherit;
+        outline: none;
+        border-radius: 0 3px 3px 0;
+        max-width: 100px;
+        cursor: pointer;
+        display: block; /* Ensure it's visible if rendered */
+    }
+
+    /* Counter Column */
+    & .dui-counter {
+        text-align: right;
+        font-size: 12px;
+        color: var(--dui-text-dim);
+        font-family: monospace;
+        border-left: 1px solid #333;
+        padding-left: 10px;
+        height: 30px;
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        justify-content: center;
+        align-items: flex-end;
+        min-width: 80px;
     }
 
-    & .dui-choice-counter {
-        font-size: 0.78em;
-        color: var(--dui-text-dim);
-        text-align: right;
-        margin-bottom: 2px;
-    }
-
-    & .dui-action-row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;
-    }
-
-    & .dui-action-btn {
-        flex: 0 0 auto;
-        padding: 4px 10px;
-        background: var(--dui-bg);
-        border: 1px solid var(--dui-border);
-        color: var(--dui-text-dim);
-        border-radius: 4px;
-        font-size: 0.82em;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &.selected {
-            border-color: var(--dui-gold);
-            color: var(--dui-gold);
-            background: #2a2a2a;
-            box-shadow: 0 0 6px rgba(201, 160, 96, 0.35);
-        }
-
-        &:disabled {
-            cursor: not-allowed;
-            opacity: 0.3;
-            pointer-events: none;
-        }
-    }
-
-    & .dui-target-select {
-        flex: 1;
-        max-width: 140px;
-        padding: 3px 6px;
-        font-size: 0.82em;
-        background: #ffffff;
-        color: #000000;
-        border: 1px solid var(--dui-border);
-        border-radius: 4px;
-
-        &:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
+    & .dui-count-val {
+        color: var(--dui-gold);
+        font-weight: bold;
+        font-size: 14px;
     }
 
     & .dui-empty {
@@ -785,11 +819,6 @@
             margin-bottom: 8px;
             display: block;
             color: #555;
-        }
-
-        & p {
-            margin: 0;
-            font-size: 0.95em;
         }
     }
 }
