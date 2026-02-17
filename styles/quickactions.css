@@ -538,8 +538,7 @@
         &.active {
             background: rgba(203, 163, 87, 0.2);
             color: var(--dui-gold);
-            border-bottom: 2px solid var(--dui-gold);
-            /* CRITICAL: Override Foundry defaults to kill red border */
+            /* border-bottom removed per request */
             box-shadow: none !important;
             outline: none !important;
         }
@@ -551,15 +550,20 @@
 
     /* Header text (Short/Long Rest) */
     & .dui-rest-header {
-        text-align: center;
-        font-family: "Aleo", serif;
-        font-size: 1.3em;
-        font-weight: 700;
+        /* Matches Start Button Styling */
+        background: linear-gradient(180deg, #333, #111);
+        border: 1px solid var(--dui-gold);
         color: var(--dui-gold);
+        font-family: "Aleo", serif;
+        font-size: 16px;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        text-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
-        margin: -5px 0 5px 0; /* Adjust spacing nicely */
+        letter-spacing: 1px;
+        border-radius: 4px;
+        text-align: center;
+        padding: 8px; /* Added padding like button */
+        margin-bottom: 10px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
     }
 
     & .dui-start-btn {

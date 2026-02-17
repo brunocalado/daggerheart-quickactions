@@ -16,8 +16,10 @@
     </div>
     {{/if}}
 
-    <!-- RESTORED: Rest Label Header -->
+    <!-- UPDATED: Rest Label Header (Only visible to non-GMs) -->
+    {{#unless isGM}}
     <div class="dui-rest-header">{{restLabel}}</div>
+    {{/unless}}
 
     <div class="dui-player-list">
         {{#each rows}}
@@ -30,16 +32,12 @@
                     <button type="button" class="dui-checkbox-btn {{#if this.included}}checked{{/if}}" data-action="toggleIncluded" data-actor-id="{{this.actorId}}" title="Include in Downtime">
                         <i class="fas fa-check"></i>
                     </button>
-                    <!-- Config Button (Moved Here) -->
+                    <!-- Config Button -->
                     <button type="button" class="dui-config-btn" data-action="configMaxChoices" data-actor-id="{{this.actorId}}" title="Configure">
                         <i class="fas fa-cog"></i>
                     </button>
-                {{else}}
-                     <!-- Non-GMs see a static check if included, or nothing -->
-                     {{#if this.included}}
-                     <div class="dui-checkbox-btn checked" style="cursor: default;"><i class="fas fa-check"></i></div>
-                     {{/if}}
                 {{/if}}
+                <!-- Non-GMs see nothing here, column collapses or stays empty based on grid -->
             </div>
 
             <!-- Identity Column -->
