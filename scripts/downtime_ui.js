@@ -140,7 +140,7 @@ async function _applyDowntimeEffects() {
                     const newHP = Math.max(0, currentHP - recovery);
                     await targetActor.update({ "system.resources.hitPoints.value": newHP });
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Tend to Wounds${target} (Recover ${recovery} HP)`);
+                    eventLines.push(`${actor.name} chose Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}])`);
                 }
             }
 
@@ -156,7 +156,7 @@ async function _applyDowntimeEffects() {
                     const currentStress = actor.system.resources?.stress?.value ?? 0;
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
-                    eventLines.push(`${actor.name} chose Clear Stress (Recover ${recovery} Stress)`);
+                    eventLines.push(`${actor.name} chose Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}])`);
                 }
             }
 
@@ -172,7 +172,7 @@ async function _applyDowntimeEffects() {
                     const reduction = roll.total + tier;
                     await _reduceArmorMarks(targetActor, reduction);
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Repair Armor${target} (Recover ${reduction} Armor Slots)`);
+                    eventLines.push(`${actor.name} chose Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.total}])`);
                 }
             }
 
@@ -189,10 +189,10 @@ async function _applyDowntimeEffects() {
     const eventsHtml = eventLines.map(e => `<div style="padding: 3px 0; border-bottom: 1px solid rgba(201,160,96,0.15);">${e}</div>`).join("");
     const content = `
     <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden; font-family: 'Aleo', serif;">
-        <header style="background: #000000; padding: 10px; text-align: center; font-size: 1.4em; color: #C9A060; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px #C9A060; border-bottom: 2px solid #C9A060;">
+        <header style="background: #191919; padding: 10px; text-align: center; font-size: 1.4em; color: #C9A060; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px #C9A060; border-bottom: 2px solid #C9A060;">
             ${restLabel}
         </header>
-        <div class="card-content" style="background: #000000; padding: 15px;">
+        <div class="card-content" style="background: #191919; padding: 15px;">
             <div style="text-align: center; font-weight: bold; color: #C9A060; font-size: 1.1em; margin-bottom: 8px;">The GM earns Fear</div>
             <div style="text-align: center; font-size: 2.5em; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #C9A060;">+${addedFear}</div>
             <div style="text-align: center; color: #ccc; font-size: 0.9em; margin-top: 4px;">${calculationText}</div>
