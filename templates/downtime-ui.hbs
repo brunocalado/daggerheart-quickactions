@@ -16,6 +16,9 @@
     </div>
     {{/if}}
 
+    <!-- RESTORED: Rest Label Header -->
+    <div class="dui-rest-header">{{restLabel}}</div>
+
     <div class="dui-player-list">
         {{#each rows}}
         <div class="dui-row {{#unless this.included}}dui-row--excluded{{/unless}}" data-actor-id="{{this.actorId}}">
@@ -23,14 +26,19 @@
             <!-- Checkbox / Config Column -->
             <div class="dui-controls-col">
                 {{#if this.isGM}}
-                <button type="button" class="dui-checkbox-btn {{#if this.included}}checked{{/if}}" data-action="toggleIncluded" data-actor-id="{{this.actorId}}" title="Include in Downtime">
-                    <i class="fas fa-check"></i>
-                </button>
+                    <!-- Include Toggle -->
+                    <button type="button" class="dui-checkbox-btn {{#if this.included}}checked{{/if}}" data-action="toggleIncluded" data-actor-id="{{this.actorId}}" title="Include in Downtime">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <!-- Config Button (Moved Here) -->
+                    <button type="button" class="dui-config-btn" data-action="configMaxChoices" data-actor-id="{{this.actorId}}" title="Configure">
+                        <i class="fas fa-cog"></i>
+                    </button>
                 {{else}}
-                 <!-- Non-GMs see a static check if included, or nothing -->
-                 {{#if this.included}}
-                 <div class="dui-checkbox-btn checked" style="cursor: default;"><i class="fas fa-check"></i></div>
-                 {{/if}}
+                     <!-- Non-GMs see a static check if included, or nothing -->
+                     {{#if this.included}}
+                     <div class="dui-checkbox-btn checked" style="cursor: default;"><i class="fas fa-check"></i></div>
+                     {{/if}}
                 {{/if}}
             </div>
 
@@ -40,11 +48,6 @@
                 <div class="dui-info-text">
                     <span class="dui-actor-name">
                         {{this.actorName}}
-                        {{#if this.isGM}}
-                        <button type="button" class="dui-config-btn" data-action="configMaxChoices" data-actor-id="{{this.actorId}}" title="Configure">
-                            <i class="fas fa-cog"></i>
-                        </button>
-                        {{/if}}
                     </span>
                     <span class="dui-user-name">
                         <span class="dui-user-dot" style="--user-color: {{this.userColor}};"></span>

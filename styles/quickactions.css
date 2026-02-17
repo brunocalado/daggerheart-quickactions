@@ -6,7 +6,7 @@
 .dh-qa-app .window-content {
     padding: 15px;
     background: #191919;
-    color: #C9A060;
+    color: #C9A060; /* Default Gold color for text */
 }
 
 /* Ensures that any loose text or notes are GOLD (#C9A060) */
@@ -16,9 +16,9 @@
     font-size: 1.1em;
     text-align: center;
     margin-bottom: 15px;
-    color: #C9A060 !important;
+    color: #C9A060 !important; /* Gold */
     font-weight: 500;
-    text-shadow: 1px 1px 0 #000;
+    text-shadow: 1px 1px 0 #000; /* Light shadow for contrast on paper or black background */
 }
 
 /* --- Common Inputs --- */
@@ -539,11 +539,27 @@
             background: rgba(203, 163, 87, 0.2);
             color: var(--dui-gold);
             border-bottom: 2px solid var(--dui-gold);
+            /* CRITICAL: Override Foundry defaults to kill red border */
+            box-shadow: none !important;
+            outline: none !important;
         }
 
         &:hover:not(.active) {
             color: #ccc;
         }
+    }
+
+    /* Header text (Short/Long Rest) */
+    & .dui-rest-header {
+        text-align: center;
+        font-family: "Aleo", serif;
+        font-size: 1.3em;
+        font-weight: 700;
+        color: var(--dui-gold);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+        margin: -5px 0 5px 0; /* Adjust spacing nicely */
     }
 
     & .dui-start-btn {
@@ -603,7 +619,8 @@
     & .dui-controls-col {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 8px; /* Increased gap slightly for gear */
+        min-width: 45px;
     }
 
     /* Inclusion Toggle (Styled as Checkbox) */
@@ -674,8 +691,9 @@
         border: none;
         color: var(--dui-text-dim);
         cursor: pointer;
-        font-size: 12px;
+        font-size: 14px; /* Slightly larger for easier clicking */
         padding: 0;
+        transition: color 0.2s;
         
         &:hover { color: #fff; }
     }
