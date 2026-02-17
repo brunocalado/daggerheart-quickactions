@@ -70,7 +70,16 @@ Hooks.once("init", () => {
         }
     });
 
-    // 5. Downtime UI State (player choices, GM config)
+    // 5a. Persistent per-actor downtime configs (modifiers, maxChoices)
+    game.settings.register("daggerheart-quickactions", "downtimeActorConfigs", {
+        name: "Downtime Actor Configs",
+        scope: "world",
+        config: false,
+        default: {},
+        type: Object
+    });
+
+    // 5b. Downtime UI State (player choices, GM config)
     game.settings.register("daggerheart-quickactions", "downtimeUIState", {
         name: "Downtime UI State",
         scope: "world",

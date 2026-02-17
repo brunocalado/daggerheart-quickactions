@@ -75,6 +75,13 @@ async function _clearAllArmorMarks(actor) {
     }
 }
 
+function _getMaxHope(actor) {
+    const Homebrew = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Homebrew);
+    const maxHope = Homebrew.maxHope ?? 0;
+    const scars = actor.system?.scars ?? 0;
+    return Math.max(0, maxHope - scars);
+}
+
 async function _applyDowntimeEffects() {
     const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
     if (!state?.actors) return;
@@ -122,11 +129,20 @@ async function _applyDowntimeEffects() {
         const tier = _getActorTier(actor);
         const targets = actorState.targets ?? {};
 
+        // Read per-actor modifiers from GM state
+        const gmActorState = state.actors?.[actor.id] ?? {};
+        const hpModifier = gmActorState.hpModifier ?? 0;
+        const stressModifier = gmActorState.stressModifier ?? 0;
+        const hopeModifier = gmActorState.hopeModifier ?? 0;
+        const armorSlotModifier = gmActorState.armorSlotModifier ?? 0;
+
         for (const action of actorState.actions) {
             const targetActor = targets[action] ? (game.actors.get(targets[action]) ?? actor) : actor;
             const isSelf = targetActor.id === actor.id;
 
             if (action === "tendWounds") {
+                // Read the target actor's modifier (when healing others, use target's modifier)
+                const targetHpMod = isSelf ? hpModifier : (state.actors?.[targetActor.id]?.hpModifier ?? 0);
                 if (isLong) {
                     await targetActor.update({ "system.resources.hitPoints.value": 0 });
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
@@ -135,12 +151,13 @@ async function _applyDowntimeEffects() {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
                     if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-                    const recovery = roll.total + tier;
+                    const recovery = roll.total + tier + targetHpMod;
                     const currentHP = targetActor.system.resources?.hitPoints?.value ?? 0;
                     const newHP = Math.max(0, currentHP - recovery);
                     await targetActor.update({ "system.resources.hitPoints.value": newHP });
+                    const modText = targetHpMod > 0 ? ` +${targetHpMod} mod` : "";
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}])`);
+                    eventLines.push(`${actor.name} chose Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}${modText}])`);
                 }
             }
 
@@ -152,15 +169,17 @@ async function _applyDowntimeEffects() {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
                     if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-                    const recovery = roll.total + tier;
+                    const recovery = roll.total + tier + stressModifier;
                     const currentStress = actor.system.resources?.stress?.value ?? 0;
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
-                    eventLines.push(`${actor.name} chose Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}])`);
+                    const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
+                    eventLines.push(`${actor.name} chose Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}])`);
                 }
             }
 
             if (action === "repairArmor") {
+                const targetArmorMod = isSelf ? armorSlotModifier : (state.actors?.[targetActor.id]?.armorSlotModifier ?? 0);
                 if (isLong) {
                     await _clearAllArmorMarks(targetActor);
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
@@ -169,17 +188,24 @@ async function _applyDowntimeEffects() {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
                     if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-                    const reduction = roll.total + tier;
+                    const reduction = roll.total + tier + targetArmorMod;
                     await _reduceArmorMarks(targetActor, reduction);
+                    const modText = targetArmorMod > 0 ? ` +${targetArmorMod} mod` : "";
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.total}])`);
+                    eventLines.push(`${actor.name} chose Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.total}${modText}])`);
                 }
             }
 
             if (action === "prepare") {
                 const currentHope = actor.system.resources?.hope?.value ?? 0;
-                await actor.update({ "system.resources.hope.value": currentHope + prepareBonus });
-                eventLines.push(`${actor.name} chose Prepare (+${prepareBonus} Hope${prepareBonus === 2 ? ", paired" : ""})`);
+                const maxHope = _getMaxHope(actor);
+                const totalGain = prepareBonus + hopeModifier;
+                const newHope = Math.min(currentHope + totalGain, maxHope);
+                const actualGain = newHope - currentHope;
+                await actor.update({ "system.resources.hope.value": newHope });
+                const modText = hopeModifier > 0 ? ` +${hopeModifier} mod` : "";
+                const cappedText = actualGain < totalGain ? " [capped]" : "";
+                eventLines.push(`${actor.name} chose Prepare (+${actualGain} Hope${prepareBonus === 2 ? ", paired" : ""}${modText}${cappedText})`);
             }
         }
     }
@@ -355,11 +381,37 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!game.user.isGM) return;
         const actorId = target.dataset.actorId;
         const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
-        const current = state?.actors?.[actorId]?.maxChoices ?? 2;
+        const actorState = state?.actors?.[actorId] ?? {};
+        const current = actorState.maxChoices ?? 2;
+        const hpMod = actorState.hpModifier ?? 0;
+        const stressMod = actorState.stressModifier ?? 0;
+        const hopeMod = actorState.hopeModifier ?? 0;
+        const armorMod = actorState.armorSlotModifier ?? 0;
 
-        const content = `<div style="display:flex;align-items:center;gap:10px;justify-content:center;">
-            <label style="font-weight:bold;">Max Actions:</label>
-            <input type="number" name="maxChoices" value="${current}" min="1" max="6" style="width:60px;text-align:center;">
+        const content = `
+        <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0;">
+            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+                <label style="font-weight:bold;">Max Actions:</label>
+                <input type="number" name="maxChoices" value="${current}" min="1" max="6" style="width:60px;text-align:center;">
+            </div>
+            <hr style="border:1px solid rgba(201,160,96,0.3);margin:4px 0;">
+            <div style="font-weight:bold;text-align:center;color:#C9A060;">Rest Recovery Modifiers</div>
+            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+                <label>HP Modifier:</label>
+                <input type="number" name="hpModifier" value="${hpMod}" min="0" max="10" style="width:60px;text-align:center;">
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+                <label>Stress Modifier:</label>
+                <input type="number" name="stressModifier" value="${stressMod}" min="0" max="10" style="width:60px;text-align:center;">
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+                <label>Hope Modifier:</label>
+                <input type="number" name="hopeModifier" value="${hopeMod}" min="0" max="10" style="width:60px;text-align:center;">
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;">
+                <label>Armor Slot Modifier:</label>
+                <input type="number" name="armorSlotModifier" value="${armorMod}" min="0" max="10" style="width:60px;text-align:center;">
+            </div>
         </div>`;
 
         const result = await foundry.applications.api.DialogV2.prompt({
@@ -368,15 +420,33 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             ok: {
                 label: "Save",
                 callback: (event, button) => {
-                    return parseInt(button.form.elements.maxChoices.value) || 2;
+                    const f = button.form.elements;
+                    return {
+                        maxChoices: Math.max(1, Math.min(6, parseInt(f.maxChoices.value) || 2)),
+                        hpModifier: Math.max(0, Math.min(10, parseInt(f.hpModifier.value) || 0)),
+                        stressModifier: Math.max(0, Math.min(10, parseInt(f.stressModifier.value) || 0)),
+                        hopeModifier: Math.max(0, Math.min(10, parseInt(f.hopeModifier.value) || 0)),
+                        armorSlotModifier: Math.max(0, Math.min(10, parseInt(f.armorSlotModifier.value) || 0))
+                    };
                 }
             }
         });
 
         if (result) {
-            state.actors[actorId].maxChoices = result;
+            Object.assign(state.actors[actorId], result);
             state.timestamp = Date.now();
             await game.settings.set("daggerheart-quickactions", "downtimeUIState", state);
+
+            // Persist configs so they survive across sessions
+            const persistedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
+            persistedConfigs[actorId] = {
+                maxChoices: result.maxChoices,
+                hpModifier: result.hpModifier,
+                stressModifier: result.stressModifier,
+                hopeModifier: result.hopeModifier,
+                armorSlotModifier: result.armorSlotModifier
+            };
+            await game.settings.set("daggerheart-quickactions", "downtimeActorConfigs", persistedConfigs);
         }
     }
 
@@ -470,12 +540,16 @@ export async function activateDowntimeUI() {
     }
 
     // Initialize GM-controlled state with all non-GM character actors
+    // Load persistent configs so modifiers and maxChoices survive across sessions
+    const savedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
+    const defaults = { included: true, maxChoices: 2, hpModifier: 0, stressModifier: 0, hopeModifier: 0, armorSlotModifier: 0 };
     const actors = {};
     for (const user of game.users) {
         if (user.isGM) continue;
         const actor = user.character;
         if (!actor || actor.type !== "character") continue;
-        actors[actor.id] = { included: true, maxChoices: 2 };
+        const saved = savedConfigs[actor.id] ?? {};
+        actors[actor.id] = { ...defaults, ...saved, included: true };
         // Clear any previous player choices
         if (user.getFlag("daggerheart-quickactions", "downtimeChoices")) {
             await user.unsetFlag("daggerheart-quickactions", "downtimeChoices");
