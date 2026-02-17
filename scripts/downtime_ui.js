@@ -189,10 +189,10 @@ async function _applyDowntimeEffects() {
     const eventsHtml = eventLines.map(e => `<div style="padding: 3px 0; border-bottom: 1px solid rgba(201,160,96,0.15);">${e}</div>`).join("");
     const content = `
     <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden; font-family: 'Aleo', serif;">
-        <header style="background: linear-gradient(to right, #2c003e, #1a1a1a); padding: 10px; text-align: center; font-size: 1.4em; color: #C9A060; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px #C9A060;">
-            Downtime - ${restLabel}
+        <header style="background: #000000; padding: 10px; text-align: center; font-size: 1.4em; color: #C9A060; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px #C9A060; border-bottom: 2px solid #C9A060;">
+            ${restLabel}
         </header>
-        <div class="card-content" style="background: linear-gradient(rgba(25,25,25,0.92), rgba(25,25,25,0.92)), url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp') center/cover; padding: 15px;">
+        <div class="card-content" style="background: #000000; padding: 15px;">
             <div style="text-align: center; font-weight: bold; color: #C9A060; font-size: 1.1em; margin-bottom: 8px;">The GM earns Fear</div>
             <div style="text-align: center; font-size: 2.5em; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #C9A060;">+${addedFear}</div>
             <div style="text-align: center; color: #ccc; font-size: 0.9em; margin-top: 4px;">${calculationText}</div>
