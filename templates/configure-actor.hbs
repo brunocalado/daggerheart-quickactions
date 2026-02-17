@@ -1,11 +1,5 @@
 <div class="dui-cfg-container">
 
-    {{!-- Tab Bar --}}
-    <nav class="dui-cfg-tab-bar">
-        <button type="button" class="dui-cfg-tab active" data-tab="general">General</button>
-        <button type="button" class="dui-cfg-tab" data-tab="craft">Craft</button>
-    </nav>
-
     {{!-- General Panel --}}
     <div class="dui-cfg-panel active" data-panel="general">
         <div class="dui-cfg-field">
@@ -30,33 +24,6 @@
             <label>Armor Slot Modifier:</label>
             <input type="number" name="armorSlotModifier" value="{{armorSlotModifier}}" min="0" max="10">
         </div>
-    </div>
-
-    {{!-- Craft Panel --}}
-    <div class="dui-cfg-panel" data-panel="craft">
-        <div class="dui-craft-list" id="dui-craft-list">
-            {{#each craftEntries}}
-            <div class="dui-craft-row" data-index="{{@index}}">
-                <div class="dui-craft-drop {{#if this.recipeName}}filled{{else}}empty{{/if}}" data-slot="recipe" data-index="{{@index}}">
-                    <i class="fas fa-scroll"></i>
-                    <span class="dui-craft-name">{{#if this.recipeName}}{{this.recipeName}}{{else}}Drag Recipe Here{{/if}}</span>
-                </div>
-                <i class="fas fa-arrow-right dui-craft-arrow"></i>
-                <div class="dui-craft-drop {{#if this.craftName}}filled{{else}}empty{{/if}}" data-slot="craft" data-index="{{@index}}">
-                    <i class="fas fa-flask"></i>
-                    <span class="dui-craft-name">{{#if this.craftName}}{{this.craftName}}{{else}}Drag Crafted Item Here{{/if}}</span>
-                </div>
-                <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="{{@index}}" title="Remove">
-                    <i class="fas fa-times"></i>
-                </button>
-                <input type="hidden" name="craftRecipe_{{@index}}" value="{{this.recipeUuid}}">
-                <input type="hidden" name="craftCraft_{{@index}}" value="{{this.craftUuid}}">
-            </div>
-            {{/each}}
-        </div>
-        <button type="button" class="dui-craft-add-btn" data-action="addCraftRow">
-            <i class="fas fa-plus"></i>
-        </button>
     </div>
 
     {{!-- Footer --}}

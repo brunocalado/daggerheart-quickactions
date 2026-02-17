@@ -229,7 +229,8 @@ async function _applyDowntimeEffects() {
                 eventLines.push(`${actor.name} used ${recipeName}`);
 
                 // Find matching craft entry to grant the crafted item
-                const craftEntries = gmActorState.craftEntries ?? DEFAULT_CRAFT_ENTRIES;
+                const savedCraft = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
+                const craftEntries = savedCraft.length > 0 ? savedCraft : DEFAULT_CRAFT_ENTRIES;
                 const entry = craftEntries.find(e => e.recipeUuid === recipeUuid);
                 if (entry?.craftUuid) {
                     try {
@@ -297,11 +298,9 @@ class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "daggerheart-configure-actor",
         classes: ["dh-configure-actor"],
         window: { title: "Configure Actor", resizable: true },
-        position: { width: 480, height: 420 },
+        position: { width: 480, height: 320 },
         actions: {
-            saveConfig: ConfigureActorApp.prototype._onSaveConfig,
-            addCraftRow: ConfigureActorApp.prototype._onAddCraftRow,
-            removeCraftRow: ConfigureActorApp.prototype._onRemoveCraftRow
+            saveConfig: ConfigureActorApp.prototype._onSaveConfig
         }
     };
 
@@ -316,9 +315,69 @@ class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _prepareContext() {
         const s = this._actorState;
-        const craftEntries = s.craftEntries ?? DEFAULT_CRAFT_ENTRIES;
+        return {
+            maxChoices: s.maxChoices ?? 2,
+            hpModifier: s.hpModifier ?? 0,
+            stressModifier: s.stressModifier ?? 0,
+            hopeModifier: s.hopeModifier ?? 0,
+            armorSlotModifier: s.armorSlotModifier ?? 0
+        };
+    }
 
-        // Resolve craft entry names from UUIDs
+    _onSaveConfig() {
+        const el = this.element;
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+        const result = {
+            maxChoices: clamp(parseInt(el.querySelector('[name="maxChoices"]').value) || 2, 1, 6),
+            hpModifier: clamp(parseInt(el.querySelector('[name="hpModifier"]').value) || 0, 0, 10),
+            stressModifier: clamp(parseInt(el.querySelector('[name="stressModifier"]').value) || 0, 0, 10),
+            hopeModifier: clamp(parseInt(el.querySelector('[name="hopeModifier"]').value) || 0, 0, 10),
+            armorSlotModifier: clamp(parseInt(el.querySelector('[name="armorSlotModifier"]').value) || 0, 0, 10)
+        };
+
+        if (this.#resolve) this.#resolve(result);
+        this.close();
+    }
+
+    _onClose(options) {
+        super._onClose(options);
+        if (this.#resolve) {
+            this.#resolve(null);
+            this.#resolve = null;
+        }
+    }
+
+    static open(actorId, actorState) {
+        return new Promise((resolve) => {
+            const app = new ConfigureActorApp(actorId, actorState, resolve);
+            app.render(true);
+        });
+    }
+}
+
+// ==================================================================
+// CONFIGURE MOVES APP (Global craft / extra moves config)
+// ==================================================================
+class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
+    static DEFAULT_OPTIONS = {
+        id: "daggerheart-configure-moves",
+        classes: ["dh-configure-actor"],
+        window: { title: "+Moves", resizable: true },
+        position: { width: 480, height: 420 },
+        actions: {
+            saveMovesConfig: ConfigureMovesApp.prototype._onSaveMovesConfig,
+            addCraftRow: ConfigureMovesApp.prototype._onAddCraftRow,
+            removeCraftRow: ConfigureMovesApp.prototype._onRemoveCraftRow
+        }
+    };
+
+    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/configure-moves.hbs" } };
+
+    async _prepareContext() {
+        const saved = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
+        const craftEntries = saved.length > 0 ? saved : DEFAULT_CRAFT_ENTRIES;
+
         const resolvedEntries = [];
         for (const entry of craftEntries) {
             const recipe = entry.recipeUuid ? await fromUuid(entry.recipeUuid) : null;
@@ -331,14 +390,7 @@ class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        return {
-            maxChoices: s.maxChoices ?? 2,
-            hpModifier: s.hpModifier ?? 0,
-            stressModifier: s.stressModifier ?? 0,
-            hopeModifier: s.hopeModifier ?? 0,
-            armorSlotModifier: s.armorSlotModifier ?? 0,
-            craftEntries: resolvedEntries
-        };
+        return { craftEntries: resolvedEntries };
     }
 
     _onRender(context, options) {
@@ -435,9 +487,8 @@ class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         target.closest('.dui-craft-row').remove();
     }
 
-    _onSaveConfig() {
+    async _onSaveMovesConfig() {
         const el = this.element;
-        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
         // Collect craft entries from hidden inputs
         const craftEntries = [];
@@ -451,32 +502,9 @@ class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
             i++;
         }
 
-        const result = {
-            maxChoices: clamp(parseInt(el.querySelector('[name="maxChoices"]').value) || 2, 1, 6),
-            hpModifier: clamp(parseInt(el.querySelector('[name="hpModifier"]').value) || 0, 0, 10),
-            stressModifier: clamp(parseInt(el.querySelector('[name="stressModifier"]').value) || 0, 0, 10),
-            hopeModifier: clamp(parseInt(el.querySelector('[name="hopeModifier"]').value) || 0, 0, 10),
-            armorSlotModifier: clamp(parseInt(el.querySelector('[name="armorSlotModifier"]').value) || 0, 0, 10),
-            craftEntries
-        };
-
-        if (this.#resolve) this.#resolve(result);
+        await game.settings.set("daggerheart-quickactions", "downtimeCraftEntries", craftEntries);
+        ui.notifications.info("Moves configuration saved.");
         this.close();
-    }
-
-    _onClose(options) {
-        super._onClose(options);
-        if (this.#resolve) {
-            this.#resolve(null);
-            this.#resolve = null;
-        }
-    }
-
-    static open(actorId, actorState) {
-        return new Promise((resolve) => {
-            const app = new ConfigureActorApp(actorId, actorState, resolve);
-            app.render(true);
-        });
     }
 }
 
@@ -496,7 +524,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleIncluded: DowntimeUIApp.prototype._onToggleIncluded,
             configMaxChoices: DowntimeUIApp.prototype._onConfigMaxChoices,
             setRestType: DowntimeUIApp.prototype._onSetRestType,
-            toggleAction: DowntimeUIApp.prototype._onToggleAction
+            toggleAction: DowntimeUIApp.prototype._onToggleAction,
+            openMovesConfig: DowntimeUIApp.prototype._onOpenMovesConfig
         }
     };
 
@@ -540,8 +569,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const selectedCount = playerChoices.actions.length;
             const atMaxChoices = selectedCount >= gmState.maxChoices;
 
-            // Build craft downtime actions from actor items
-            const craftEntries = gmState.craftEntries ?? DEFAULT_CRAFT_ENTRIES;
+            // Build craft downtime actions from global setting
+            const savedCraft = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
+            const craftEntries = savedCraft.length > 0 ? savedCraft : DEFAULT_CRAFT_ENTRIES;
             const extraActions = [];
             for (const entry of craftEntries) {
                 if (!entry.recipeUuid) continue;
@@ -649,10 +679,14 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             hpModifier: result.hpModifier,
             stressModifier: result.stressModifier,
             hopeModifier: result.hopeModifier,
-            armorSlotModifier: result.armorSlotModifier,
-            craftEntries: result.craftEntries
+            armorSlotModifier: result.armorSlotModifier
         };
         await game.settings.set("daggerheart-quickactions", "downtimeActorConfigs", persistedConfigs);
+    }
+
+    _onOpenMovesConfig() {
+        if (!game.user.isGM) return;
+        new ConfigureMovesApp().render(true);
     }
 
     async _onSetRestType(event, target) {
@@ -747,7 +781,7 @@ export async function activateDowntimeUI() {
     // Initialize GM-controlled state with all non-GM character actors
     // Load persistent configs so modifiers and maxChoices survive across sessions
     const savedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
-    const defaults = { included: true, maxChoices: 2, hpModifier: 0, stressModifier: 0, hopeModifier: 0, armorSlotModifier: 0, craftEntries: DEFAULT_CRAFT_ENTRIES };
+    const defaults = { included: true, maxChoices: 2, hpModifier: 0, stressModifier: 0, hopeModifier: 0, armorSlotModifier: 0 };
     const actors = {};
     for (const user of game.users) {
         if (user.isGM) continue;

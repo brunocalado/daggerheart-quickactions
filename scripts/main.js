@@ -70,7 +70,16 @@ Hooks.once("init", () => {
         }
     });
 
-    // 5a. Persistent per-actor downtime configs (modifiers, maxChoices)
+    // 5. Global craft entries (shared across all actors)
+    game.settings.register("daggerheart-quickactions", "downtimeCraftEntries", {
+        name: "Downtime Craft Entries",
+        scope: "world",
+        config: false,
+        default: [],
+        type: Array
+    });
+
+    // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)
     game.settings.register("daggerheart-quickactions", "downtimeActorConfigs", {
         name: "Downtime Actor Configs",
         scope: "world",
@@ -79,7 +88,7 @@ Hooks.once("init", () => {
         type: Object
     });
 
-    // 5b. Downtime UI State (player choices, GM config)
+    // 6b. Downtime UI State (player choices, GM config)
     game.settings.register("daggerheart-quickactions", "downtimeUIState", {
         name: "Downtime UI State",
         scope: "world",
@@ -94,7 +103,7 @@ Hooks.once("init", () => {
         }
     });
 
-    // 6. Downtime UI Open Broadcast
+    // 7. Downtime UI Open Broadcast
     game.settings.register("daggerheart-quickactions", "downtimeUIOpen", {
         name: "Downtime UI Open",
         scope: "world",
