@@ -92,8 +92,8 @@
 
             <!-- Counter Column -->
             <div class="dui-counter">
-                <span class="dui-count-val">{{this.selectedCount}} / {{this.maxChoices}}</span>
-                <span>Actions</span>
+                <span class="dui-count-val" {{#if this.isOverLimit}}style="color: #ff6b6b;"{{/if}}>{{this.selectedCount}} / {{this.maxChoices}}</span>
+                <span>Moves</span>
             </div>
 
         </div>

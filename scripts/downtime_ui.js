@@ -674,7 +674,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const playerChoices = user.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
 
             const selectedCount = playerChoices.actions.length;
-            const atMaxChoices = selectedCount >= gmState.maxChoices;
+            const isOverLimit = selectedCount > gmState.maxChoices;
 
             // Build craft downtime actions from global setting
             const savedCraft = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
@@ -702,7 +702,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 ...a,
                 selected: playerChoices.actions.includes(a.key),
                 targetActorId: playerChoices.targets?.[a.key] ?? "",
-                cannotSelect: !playerChoices.actions.includes(a.key) && atMaxChoices
+                cannotSelect: false
             }));
 
             // Target options: "Yourself" + all other actors
@@ -735,7 +735,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 isGM,
                 canInteract: isOwnRow,
                 selectedCount,
-                atMaxChoices,
+                isOverLimit,
                 hasPrepare,
                 refreshFeatures: uniqueRefreshFeatures
             });
@@ -844,10 +844,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (idx >= 0) {
             actions.splice(idx, 1);
             delete targets[actionKey];
-        } else if (actions.length < maxChoices) {
-            actions.push(actionKey);
         } else {
-            return;
+            actions.push(actionKey);
         }
 
         // Players write their own flag; GM can write any user's flag
