@@ -1151,6 +1151,53 @@
         }
     }
 
+    /* Item Moves Tab */
+    & .dui-itemmove-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    & .dui-itemmove-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(201,160,96,0.15);
+    }
+
+    & .dui-itemmove-drop {
+        flex: 1;
+        padding: 8px 10px;
+        border: 2px dashed rgba(201,160,96,0.4);
+        border-radius: 6px;
+        text-align: center;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        transition: all 0.15s;
+
+        &.empty {
+            color: var(--cfg-text-dim);
+            font-style: italic;
+        }
+
+        &.filled {
+            border-style: solid;
+            background: rgba(201,160,96,0.05);
+            color: var(--cfg-text);
+        }
+
+        &.dragover {
+            border-color: var(--cfg-gold);
+            background: rgba(201,160,96,0.15);
+            box-shadow: 0 0 8px rgba(201,160,96,0.3);
+        }
+    }
+
     /* Footer */
     & .dui-cfg-footer {
         padding: 10px 12px;

@@ -17,6 +17,12 @@ const DEFAULT_CRAFT_ENTRIES = [
 
 const ALLOWED_CRAFT_TYPES = ["loot", "consumable", "weapon", "armor"];
 
+const DEFAULT_ITEM_MOVE_ENTRIES = [
+    { itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" },
+    { itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM" },
+    { itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2" }
+];
+
 // ==================================================================
 // DOWNTIME UI HELPERS
 // ==================================================================
@@ -258,6 +264,14 @@ async function _applyDowntimeEffects() {
                 eventLines.push(`${actor.name}: ${moveLabel}`);
             }
 
+            // Item move actions
+            if (action.startsWith("itemmove_")) {
+                const itemUuid = action.slice("itemmove_".length);
+                const moveItem = await fromUuid(itemUuid);
+                const itemName = moveItem?.name ?? "Unknown Item";
+                eventLines.push(`${actor.name}: ${itemName}`);
+            }
+
             // Craft downtime actions
             if (action.startsWith("craft_")) {
                 const recipeUuid = action.slice("craft_".length);
@@ -445,7 +459,9 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             addCraftRow: ConfigureMovesApp.prototype._onAddCraftRow,
             removeCraftRow: ConfigureMovesApp.prototype._onRemoveCraftRow,
             addCustomRow: ConfigureMovesApp.prototype._onAddCustomRow,
-            removeCustomRow: ConfigureMovesApp.prototype._onRemoveCustomRow
+            removeCustomRow: ConfigureMovesApp.prototype._onRemoveCustomRow,
+            addItemMoveRow: ConfigureMovesApp.prototype._onAddItemMoveRow,
+            removeItemMoveRow: ConfigureMovesApp.prototype._onRemoveItemMoveRow
         }
     };
 
@@ -469,7 +485,19 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const customMoves = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
 
-        return { craftEntries: resolvedEntries, customMoves };
+        const savedItemMoves = game.settings.get("daggerheart-quickactions", "downtimeItemMoveEntries") ?? [];
+        const itemMoveRaw = savedItemMoves.length > 0 ? savedItemMoves : DEFAULT_ITEM_MOVE_ENTRIES;
+
+        const itemMoveEntries = [];
+        for (const entry of itemMoveRaw) {
+            const item = entry.itemUuid ? await fromUuid(entry.itemUuid) : null;
+            itemMoveEntries.push({
+                itemUuid: entry.itemUuid || "",
+                itemName: item?.name || ""
+            });
+        }
+
+        return { craftEntries: resolvedEntries, customMoves, itemMoveEntries };
     }
 
     _onRender(context, options) {
@@ -536,6 +564,53 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             dropZone.classList.remove('empty');
             dropZone.classList.add('filled');
         });
+
+        // Item Moves drag-drop
+        const itemMoveList = this.element.querySelector('#dui-itemmove-list');
+        if (itemMoveList) {
+            itemMoveList.addEventListener('dragover', (e) => {
+                const dropZone = e.target.closest('.dui-itemmove-drop');
+                if (dropZone) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                    dropZone.classList.add('dragover');
+                }
+            });
+
+            itemMoveList.addEventListener('dragleave', (e) => {
+                const dropZone = e.target.closest('.dui-itemmove-drop');
+                if (dropZone) dropZone.classList.remove('dragover');
+            });
+
+            itemMoveList.addEventListener('drop', async (e) => {
+                const dropZone = e.target.closest('.dui-itemmove-drop');
+                if (!dropZone) return;
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+
+                let data;
+                try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
+                if (data.type !== 'Item') {
+                    ui.notifications.warn("Only items can be dropped here.");
+                    return;
+                }
+
+                const item = await fromUuid(data.uuid);
+                if (!item) {
+                    ui.notifications.warn("Could not resolve item.");
+                    return;
+                }
+
+                const row = dropZone.closest('.dui-itemmove-row');
+                const idx = row.dataset.index;
+                const hiddenInput = row.querySelector(`input[name="itemMove_${idx}"]`);
+                if (hiddenInput) hiddenInput.value = data.uuid;
+
+                dropZone.querySelector('.dui-itemmove-name').textContent = item.name;
+                dropZone.classList.remove('empty');
+                dropZone.classList.add('filled');
+            });
+        }
     }
 
     _onAddCraftRow() {
@@ -584,6 +659,28 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         target.closest('.dui-custom-row').remove();
     }
 
+    _onAddItemMoveRow() {
+        const list = this.element.querySelector('#dui-itemmove-list');
+        const nextIndex = list.querySelectorAll('.dui-itemmove-row').length;
+        const newRow = document.createElement('div');
+        newRow.className = 'dui-itemmove-row';
+        newRow.dataset.index = String(nextIndex);
+        newRow.innerHTML = `
+            <div class="dui-itemmove-drop empty" data-index="${nextIndex}">
+                <i class="fas fa-box-open"></i>
+                <span class="dui-itemmove-name">Drag Item Here</span>
+            </div>
+            <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="${nextIndex}" title="Remove">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="hidden" name="itemMove_${nextIndex}" value="">`;
+        list.appendChild(newRow);
+    }
+
+    _onRemoveItemMoveRow(event, target) {
+        target.closest('.dui-itemmove-row').remove();
+    }
+
     async _onSaveMovesConfig() {
         const el = this.element;
 
@@ -608,8 +705,20 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        // Collect item move entries from hidden inputs
+        const itemMoveEntries = [];
+        let j = 0;
+        while (el.querySelector(`input[name="itemMove_${j}"]`)) {
+            const itemUuid = el.querySelector(`input[name="itemMove_${j}"]`).value;
+            if (itemUuid) {
+                itemMoveEntries.push({ itemUuid });
+            }
+            j++;
+        }
+
         await game.settings.set("daggerheart-quickactions", "downtimeCraftEntries", craftEntries);
         await game.settings.set("daggerheart-quickactions", "downtimeCustomMoves", customMoves);
+        await game.settings.set("daggerheart-quickactions", "downtimeItemMoveEntries", itemMoveEntries);
         ui.notifications.info("Moves configuration saved.");
         this.close();
     }
@@ -695,6 +804,19 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             for (const move of customMoves) {
                 if (!move.label) continue;
                 extraActions.push({ key: `custom_${move.label}`, label: move.label, hasTarget: false, isExtra: true });
+            }
+
+            // Build item move actions from global setting
+            const savedItemMoves = game.settings.get("daggerheart-quickactions", "downtimeItemMoveEntries") ?? [];
+            const itemMoveEntries = savedItemMoves.length > 0 ? savedItemMoves : DEFAULT_ITEM_MOVE_ENTRIES;
+            for (const entry of itemMoveEntries) {
+                if (!entry.itemUuid) continue;
+                const moveItem = await fromUuid(entry.itemUuid);
+                if (!moveItem) continue;
+                const owned = actor.items.find(i => i.name === moveItem.name);
+                if (owned) {
+                    extraActions.push({ key: `itemmove_${entry.itemUuid}`, label: moveItem.name, hasTarget: false, isExtra: true });
+                }
             }
 
             const allActions = [...availableActions, ...extraActions];

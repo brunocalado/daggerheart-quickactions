@@ -4,6 +4,7 @@
     <nav class="dui-cfg-tab-bar">
         <button type="button" class="dui-cfg-tab active" data-tab="craft">Craft</button>
         <button type="button" class="dui-cfg-tab" data-tab="custom">Custom</button>
+        <button type="button" class="dui-cfg-tab" data-tab="itemmoves">Item Moves</button>
     </nav>
 
     {{!-- Craft Panel --}}
@@ -46,6 +47,27 @@
             {{/each}}
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addCustomRow">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    {{!-- Item Moves Panel --}}
+    <div class="dui-cfg-panel" data-panel="itemmoves">
+        <div class="dui-itemmove-list" id="dui-itemmove-list">
+            {{#each itemMoveEntries}}
+            <div class="dui-itemmove-row" data-index="{{@index}}">
+                <div class="dui-itemmove-drop {{#if this.itemName}}filled{{else}}empty{{/if}}" data-index="{{@index}}">
+                    <i class="fas fa-box-open"></i>
+                    <span class="dui-itemmove-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
+                </div>
+                <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="{{@index}}" title="Remove">
+                    <i class="fas fa-times"></i>
+                </button>
+                <input type="hidden" name="itemMove_{{@index}}" value="{{this.itemUuid}}">
+            </div>
+            {{/each}}
+        </div>
+        <button type="button" class="dui-craft-add-btn" data-action="addItemMoveRow">
             <i class="fas fa-plus"></i>
         </button>
     </div>

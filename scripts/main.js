@@ -88,6 +88,15 @@ Hooks.once("init", () => {
         type: Array
     });
 
+    // 5c. Global item move entries (shared across all actors)
+    game.settings.register("daggerheart-quickactions", "downtimeItemMoveEntries", {
+        name: "Downtime Item Move Entries",
+        scope: "world",
+        config: false,
+        default: [],
+        type: Array
+    });
+
     // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)
     game.settings.register("daggerheart-quickactions", "downtimeActorConfigs", {
         name: "Downtime Actor Configs",
