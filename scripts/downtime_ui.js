@@ -98,17 +98,27 @@ function _getRefreshableFeatures(actor, restType) {
     const isLong = restType === "long";
     const results = [];
     for (const item of actor.items) {
+        // Check system.actions (Map or object) for action-level uses
         const actions = item.system?.actions;
-        if (!actions || typeof actions !== "object") continue;
-        // Daggerheart stores actions as a Map, not a plain object
-        const entries = actions instanceof Map ? actions.entries() : Object.entries(actions);
-        for (const [actionId, action] of entries) {
-            const uses = action.uses;
-            if (!uses || !uses.recovery) continue;
-            if (uses.recovery === "shortRest") {
-                results.push({ itemName: item.name, actionId, item, uses });
-            } else if (uses.recovery === "longRest" && isLong) {
-                results.push({ itemName: item.name, actionId, item, uses });
+        if (actions && typeof actions === "object") {
+            const entries = actions instanceof Map ? actions.entries() : Object.entries(actions);
+            for (const [actionId, action] of entries) {
+                const uses = action.uses;
+                if (!uses || !uses.recovery) continue;
+                if (uses.recovery === "shortRest") {
+                    results.push({ type: "action", itemName: item.name, actionId, item, uses });
+                } else if (uses.recovery === "longRest" && isLong) {
+                    results.push({ type: "action", itemName: item.name, actionId, item, uses });
+                }
+            }
+        }
+
+        // Check system.resource for item-level resource
+        const res = item.system?.resource;
+        if (res?.type === "simple" && res.recovery) {
+            const matches = res.recovery === "shortRest" || (res.recovery === "longRest" && isLong);
+            if (matches) {
+                results.push({ type: "resource", itemName: item.name, item, resource: res });
             }
         }
     }
@@ -282,15 +292,38 @@ async function _applyDowntimeEffects() {
         }
     }
 
-    // Feature refresh (uses recovery)
+    // Feature refresh (uses recovery + resource recovery)
+    // Group updates by item to avoid conflicts when an item has both action uses and resource
     for (const { actor } of includedActors) {
         const refreshable = _getRefreshableFeatures(actor, restType);
         if (refreshable.length === 0) continue;
+
+        const itemUpdates = new Map();
+        for (const entry of refreshable) {
+            const itemId = entry.item.id;
+            if (!itemUpdates.has(itemId)) {
+                itemUpdates.set(itemId, { item: entry.item, name: entry.itemName, updateData: {}, changed: false });
+            }
+            const record = itemUpdates.get(itemId);
+
+            if (entry.type === "action") {
+                if (entry.uses.value === 0 || entry.uses.value === null) continue;
+                record.updateData[`system.actions.${entry.actionId}.uses.value`] = 0;
+                record.changed = true;
+            } else if (entry.type === "resource") {
+                const res = entry.resource;
+                const resetValue = res.progression === "increasing" ? 0 : parseInt(res.max) || 0;
+                if (res.value === resetValue) continue;
+                record.updateData["system.resource.value"] = resetValue;
+                record.changed = true;
+            }
+        }
+
         const refreshedNames = [];
-        for (const { item, actionId, itemName, uses } of refreshable) {
-            if (uses.value === 0 || uses.value === null) continue;
-            await item.update({ [`system.actions.${actionId}.uses.value`]: 0 });
-            refreshedNames.push(itemName);
+        for (const [, record] of itemUpdates) {
+            if (!record.changed) continue;
+            await record.item.update(record.updateData);
+            refreshedNames.push(record.name);
         }
         if (refreshedNames.length > 0) {
             eventLines.push(`${actor.name} refreshed: ${refreshedNames.join(", ")}`);
