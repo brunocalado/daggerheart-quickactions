@@ -1,5 +1,11 @@
 <div class="dui-container">
 
+    <style>
+        .dui-rest-btn.active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+    </style>
     {{#if isGM}}
     <div class="dui-toolbar">
         <div class="dui-toggle-type">
@@ -15,6 +21,9 @@
         </button>
         <button type="button" class="dui-start-btn" data-action="startDowntime">
             <i class="fas fa-play" style="font-size: 10px;"></i> Start Downtime
+        </button>
+        <button type="button" class="dui-resend-btn" data-action="resendDowntime" title="Re-open Downtime UI for all players">
+            <i class="fas fa-share-square"></i>
         </button>
     </div>
     {{/if}}

@@ -614,6 +614,24 @@
         }
     }
 
+    & .dui-resend-btn {
+        background: linear-gradient(180deg, #333, #111);
+        border: 1px solid var(--dui-gold);
+        color: var(--dui-gold);
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+
+        &:hover {
+            text-shadow: 0 0 5px var(--dui-gold);
+            border-color: #fff;
+        }
+    }
+
     /* Player List Container */
     & .dui-player-list {
         display: flex;

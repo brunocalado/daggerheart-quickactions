@@ -741,7 +741,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             configMaxChoices: DowntimeUIApp.prototype._onConfigMaxChoices,
             setRestType: DowntimeUIApp.prototype._onSetRestType,
             toggleAction: DowntimeUIApp.prototype._onToggleAction,
-            openMovesConfig: DowntimeUIApp.prototype._onOpenMovesConfig
+            openMovesConfig: DowntimeUIApp.prototype._onOpenMovesConfig,
+            resendDowntime: DowntimeUIApp.prototype._onResendDowntime
         }
     };
 
@@ -928,6 +929,12 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     _onOpenMovesConfig() {
         if (!game.user.isGM) return;
         new ConfigureMovesApp().render(true);
+    }
+
+    async _onResendDowntime() {
+        if (!game.user.isGM) return;
+        await game.settings.set("daggerheart-quickactions", "downtimeUIOpen", { timestamp: Date.now() });
+        ui.notifications.info("Downtime UI re-sent to all players.");
     }
 
     async _onSetRestType(event, target) {
