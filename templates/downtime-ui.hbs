@@ -71,55 +71,69 @@
             </div>
 
             <!-- Actions Column -->
-            <div class="dui-actions">
-                {{#each this.actions}}
-                    {{#if this.hasTarget}}
-                         <div class="dui-action-group {{#if this.selected}}active{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}">
-                            <button type="button" class="dui-action-btn" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
+            <div class="dui-actions-wrapper">
+                <div class="dui-actions">
+                    {{#each this.actions}}
+                        {{#if this.hasTarget}}
+                             <div class="dui-action-group {{#if this.selected}}active{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}">
+                                <button type="button" class="dui-action-btn" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
+                                    {{this.label}}
+                                </button>
+
+                                {{#if this.selected}}
+                                <select class="dui-target-select" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}}>
+                                    {{#each ../targetOptions}}
+                                    <option value="{{this.id}}" {{#if (eq this.id ../targetActorId)}}selected{{/if}}>{{this.name}}</option>
+                                    {{/each}}
+                                </select>
+                                {{/if}}
+                                {{#if this.canBeEfficientSlot}}
+                                <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                                {{/if}}
+                            </div>
+                        {{else}}
+                            {{#if this.isBonusMove}}
+                            <div class="dui-action-group dui-bonus-move {{#if this.selected}}active{{/if}}">
+                                <button type="button" class="dui-action-btn" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}}>
+                                    <i class="fas fa-leaf"></i> {{this.label}}
+                                </button>
+                                {{#if this.selected}}
+                                <select class="dui-forager-select" data-actor-id="{{../actorId}}" {{#unless ../canInteract}}disabled{{/unless}} title="Your choice if you roll a 6">
+                                    {{#each ../../foragerOptions}}
+                                    <option value="{{this.value}}" {{#if (eq this.value ../../foragerChoice)}}selected{{/if}}>{{this.label}}</option>
+                                    {{/each}}
+                                </select>
+                                {{/if}}
+                            </div>
+                            {{else}}
+                            <div class="dui-action-wrapper">
+                            <button type="button" class="dui-action-btn standalone {{#if this.selected}}selected{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
                                 {{this.label}}
                             </button>
-
-                            {{#if this.selected}}
-                            <select class="dui-target-select" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}}>
-                                {{#each ../targetOptions}}
-                                <option value="{{this.id}}" {{#if (eq this.id ../targetActorId)}}selected{{/if}}>{{this.name}}</option>
-                                {{/each}}
-                            </select>
-                            {{/if}}
                             {{#if this.canBeEfficientSlot}}
                             <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
                                 <i class="fas fa-star"></i>
                             </button>
                             {{/if}}
-                        </div>
-                    {{else}}
-                        {{#if this.isBonusMove}}
-                        <div class="dui-action-group dui-bonus-move {{#if this.selected}}active{{/if}}">
-                            <button type="button" class="dui-action-btn" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}}>
-                                <i class="fas fa-leaf"></i> {{this.label}}
-                            </button>
-                            {{#if this.selected}}
-                            <select class="dui-forager-select" data-actor-id="{{../actorId}}" {{#unless ../canInteract}}disabled{{/unless}} title="Your choice if you roll a 6">
-                                {{#each ../../foragerOptions}}
-                                <option value="{{this.value}}" {{#if (eq this.value ../../foragerChoice)}}selected{{/if}}>{{this.label}}</option>
-                                {{/each}}
-                            </select>
+                            </div>
                             {{/if}}
-                        </div>
-                        {{else}}
-                        <div class="dui-action-wrapper">
-                        <button type="button" class="dui-action-btn standalone {{#if this.selected}}selected{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
-                            {{this.label}}
-                        </button>
-                        {{#if this.canBeEfficientSlot}}
-                        <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
-                            <i class="fas fa-star"></i>
-                        </button>
                         {{/if}}
-                        </div>
+                    {{/each}}
+                </div>
+                {{#if this.hasEloquent}}
+                <div class="dui-eloquent-selector">
+                    <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
+                        <option value="">Eloquent</option>
+                        {{#each this.eloquentOptions}}
+                        {{#if this.id}}
+                        <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
                         {{/if}}
-                    {{/if}}
-                {{/each}}
+                        {{/each}}
+                    </select>
+                </div>
+                {{/if}}
             </div>
 
             <!-- Counter Column -->

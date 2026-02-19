@@ -1,10 +1,11 @@
 # 0.1.8
-- DowntimeUI scroll
-- DowntimeUI disable offline users
+- Added scrollbar to DowntimeUI
+- DowntimeUI: Automatically disable offline users
 - Automated: Efficient
-- Automated: Forage
+- Automated: Forage: Items will be added to the actor sheet
 - Automated: Celestial Trance
 - Automated: Premium Bedroll
+- Automated: Eloquent
 
 # 0.1.7
 - removed timeDiff to prevent Downtime fail

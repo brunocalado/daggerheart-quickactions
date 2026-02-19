@@ -128,6 +128,10 @@ function _hasCelestialTranceFeature(actor) {
     return _hasCoreFeature(actor, "celestialTrance", "Celestial Trance");
 }
 
+function _hasEloquentFeature(actor) {
+    return _hasCoreFeature(actor, "eloquent", "Eloquent");
+}
+
 function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
     const isLong = restType === "long" || forceEffectiveLong;
     const results = [];
@@ -603,7 +607,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" },
             { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" },
             { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC" },
-            { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK" }
+            { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK" },
+            { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM" }
         ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
         const coreRaw = defaultCore.map(d => savedByKey.get(d.key) ?? d);
@@ -983,8 +988,13 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (_hasCelestialTranceFeature(actor)) {
                 maxChoices += 1;
             }
-            // Player choices from user flags
-            const playerChoices = user.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
+            // Eloquent bonus: +1 move if chosen by another party member
+            const playerChoices = user.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
+            const eloquentGiver = allActors.find(a => a.id !== actorId && _hasEloquentFeature(a.actor));
+            const eloquentGiverChoices = eloquentGiver ? game.users.find(u => u.character?.id === eloquentGiver.id)?.getFlag("daggerheart-quickactions", "downtimeChoices") : null;
+            if (eloquentGiverChoices?.eloquentBeneficiary === actorId) {
+                maxChoices += 1;
+            }
 
             // Exclude bonus moves (e.g. Forager) from the move count
             const selectedCount = playerChoices.actions.filter(a => a !== "core_forager").length;
@@ -1018,6 +1028,10 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (!entry.itemUuid) continue;
                 const moveItem = await fromUuid(entry.itemUuid);
                 if (!moveItem) continue;
+                // Skip Eloquent if it's configured as a Core Feature
+                if (moveItem.name === "Eloquent" && _hasEloquentFeature(actor)) {
+                    continue;
+                }
                 const owned = actor.items.find(i => i.name === moveItem.name);
                 if (owned) {
                     extraActions.push({ key: `itemmove_${entry.itemUuid}`, label: moveItem.name, hasTarget: false, isExtra: true });
@@ -1063,6 +1077,17 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Deduplicate names (same item may have multiple actions)
             const uniqueRefreshFeatures = [...new Set(refreshFeatures)];
 
+            // Eloquent feature: prepare options for beneficiary selection
+            const hasEloquent = _hasEloquentFeature(actor);
+            const eloquentOptions = [];
+            if (hasEloquent) {
+                eloquentOptions.push({ id: "", name: "Choose beneficiary..." });
+                for (const other of allActors) {
+                    if (other.id === actorId) continue;
+                    eloquentOptions.push({ id: other.id, name: other.name });
+                }
+            }
+
             rows.push({
                 userId,
                 userName: user.name,
@@ -1084,6 +1109,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 efficientSlot,
                 hasForager,
                 foragerChoice: playerChoices.foragerChoice ?? null,
+                hasEloquent,
+                eloquentBeneficiary: playerChoices.eloquentBeneficiary ?? "",
+                eloquentOptions,
                 refreshFeatures: uniqueRefreshFeatures
             });
         }
@@ -1106,12 +1134,15 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (event.target.classList.contains("dui-forager-select")) {
                 this._onSetForagerChoice(event);
             }
+            if (event.target.classList.contains("dui-eloquent-select")) {
+                this._onSetEloquentBeneficiary(event);
+            }
         });
     }
 
     // Player writes own choices to user flag
-    async _savePlayerChoices(actions, targets, efficientSlot = null, foragerChoice = null) {
-        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice });
+    async _savePlayerChoices(actions, targets, efficientSlot = null, foragerChoice = null, eloquentBeneficiary = null) {
+        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary });
     }
 
     async _onStartDowntime() {
@@ -1197,8 +1228,21 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (actor && _hasCelestialTranceFeature(actor)) {
             maxChoices += 1;
         }
+        // Eloquent bonus: +1 move if chosen by another party member
+        if (actor) {
+            const eloquentGiver = game.users.find(u => {
+                if (u.isGM || u.id === ownerUser.id) return false;
+                return _hasEloquentFeature(u.character);
+            });
+            if (eloquentGiver) {
+                const eloquentGiverChoices = eloquentGiver.getFlag("daggerheart-quickactions", "downtimeChoices");
+                if (eloquentGiverChoices?.eloquentBeneficiary === actorId) {
+                    maxChoices += 1;
+                }
+            }
+        }
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
+        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
         const actions = [...currentChoices.actions];
         const targets = { ...(currentChoices.targets ?? {}) };
         const idx = actions.indexOf(actionKey);
@@ -1314,6 +1358,28 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             this.render();
         } else {
             await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, efficientSlot, choiceValue);
+        }
+    }
+
+    async _onSetEloquentBeneficiary(event) {
+        const select = event.target;
+        const actorId = select.dataset.actorId;
+        const beneficiaryId = select.value || null;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
+        const actions = currentChoices.actions ?? [];
+        const targets = currentChoices.targets ?? {};
+        const efficientSlot = currentChoices.efficientSlot ?? null;
+        const foragerChoice = currentChoices.foragerChoice ?? null;
+
+        if (game.user.isGM) {
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId });
+            this.render();
+        } else {
+            await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId });
         }
     }
 
