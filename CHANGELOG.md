@@ -3,6 +3,8 @@
 - DowntimeUI disable offline users
 - Automated: Efficient
 - Automated: Forage
+- Automated: Celestial Trance
+- Automated: Premium Bedroll
 
 # 0.1.7
 - removed timeDiff to prevent Downtime fail

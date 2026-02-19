@@ -120,6 +120,14 @@ function _hasForagerFeature(actor) {
     return _hasCoreFeature(actor, "forager", "Forager");
 }
 
+function _hasPremiumBedrollFeature(actor) {
+    return _hasCoreFeature(actor, "premiumBedroll", "Premium Bedroll");
+}
+
+function _hasCelestialTranceFeature(actor) {
+    return _hasCoreFeature(actor, "celestialTrance", "Celestial Trance");
+}
+
 function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
     const isLong = restType === "long" || forceEffectiveLong;
     const results = [];
@@ -239,19 +247,24 @@ async function _applyDowntimeEffects() {
             }
 
             if (action === "clearStress") {
+                // Premium Bedroll bonus: +1 stress recovery
+                const premiumBedrollBonus = _hasPremiumBedrollFeature(actor) ? 1 : 0;
+
                 if (effectiveLong) {
                     await actor.update({ "system.resources.stress.value": 0 });
-                    actorEvents.push(`Clear Stress (Recover All Stress)`);
+                    const bonusText = premiumBedrollBonus > 0 ? " (+1 Premium Bedroll)" : "";
+                    actorEvents.push(`Clear Stress (Recover All Stress)${bonusText}`);
                 } else {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
                     if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-                    const recovery = roll.total + tier + stressModifier;
+                    const recovery = roll.total + tier + stressModifier + premiumBedrollBonus;
                     const currentStress = actor.system.resources?.stress?.value ?? 0;
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
                     const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
-                    actorEvents.push(`Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}])`);
+                    const bonusText = premiumBedrollBonus > 0 ? " +1 Premium Bedroll" : "";
+                    actorEvents.push(`Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}${bonusText}])`);
                 }
             }
 
@@ -360,6 +373,17 @@ async function _applyDowntimeEffects() {
                     }
                 }
             }
+        }
+    }
+
+    // Apply automatic stress recovery from Premium Bedroll
+    for (const { actor } of includedActors) {
+        if (_hasPremiumBedrollFeature(actor)) {
+            const currentStress = actor.system.resources?.stress?.value ?? 0;
+            const newStress = Math.max(0, currentStress - 1);
+            await actor.update({ "system.resources.stress.value": newStress });
+            if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
+            resultsByActor.get(actor.id).events.push(`Premium Bedroll (Automatic +1 Stress Recovery)`);
         }
     }
 
@@ -577,7 +601,9 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const savedCore = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
         const defaultCore = [
             { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" },
-            { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" }
+            { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" },
+            { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC" },
+            { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK" }
         ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
         const coreRaw = defaultCore.map(d => savedByKey.get(d.key) ?? d);
@@ -952,12 +978,17 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const { id: actorId, name: actorName, userId, user, actor } of allActors) {
             // GM-controlled data from world setting
             const gmState = savedState?.actors?.[actorId] ?? { included: true, maxChoices: 2 };
+            // Celestial Trance bonus: +1 move
+            let maxChoices = gmState.maxChoices ?? 2;
+            if (_hasCelestialTranceFeature(actor)) {
+                maxChoices += 1;
+            }
             // Player choices from user flags
             const playerChoices = user.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
 
             // Exclude bonus moves (e.g. Forager) from the move count
             const selectedCount = playerChoices.actions.filter(a => a !== "core_forager").length;
-            const isOverLimit = selectedCount > gmState.maxChoices;
+            const isOverLimit = selectedCount > maxChoices;
 
             // Build craft downtime actions from global setting
             const savedCraft = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
@@ -1040,7 +1071,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 actorName,
                 avatar: actor.img || "icons/svg/mystery-man.svg",
                 included: gmState.included,
-                maxChoices: gmState.maxChoices,
+                maxChoices,
                 actions: annotatedActions,
                 targetOptions,
                 isOwnRow,
@@ -1159,8 +1190,13 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
+        const actor = ownerUser.character;
         const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
-        const maxChoices = state?.actors?.[actorId]?.maxChoices ?? 2;
+        let maxChoices = state?.actors?.[actorId]?.maxChoices ?? 2;
+        // Celestial Trance bonus: +1 move
+        if (actor && _hasCelestialTranceFeature(actor)) {
+            maxChoices += 1;
+        }
 
         const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
         const actions = [...currentChoices.actions];
