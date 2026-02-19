@@ -122,19 +122,21 @@
                         {{/if}}
                     {{/each}}
                 </div>
-                {{#if this.hasEloquent}}
-                <div class="dui-eloquent-selector">
-                    <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
-                        <option value="">Eloquent</option>
-                        {{#each this.eloquentOptions}}
-                        {{#if this.id}}
-                        <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
-                        {{/if}}
-                        {{/each}}
-                    </select>
-                </div>
-                {{/if}}
             </div>
+
+            <!-- Eloquent Selector - Below moves list -->
+            {{#if this.hasEloquent}}
+            <div class="dui-eloquent-selector-below">
+                <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
+                    <option value="">Eloquent</option>
+                    {{#each this.eloquentOptions}}
+                    {{#if this.id}}
+                    <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
+                    {{/if}}
+                    {{/each}}
+                </select>
+            </div>
+            {{/if}}
 
             <!-- Counter Column -->
             <div class="dui-counter">
