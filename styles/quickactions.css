@@ -656,8 +656,8 @@
         grid-template-rows: auto auto auto;
         grid-template-areas:
             "controls identity counter"
-            ". actions ."
-            ". eloquent .";
+            "actions actions actions"
+            "eloquent eloquent eloquent";
         align-items: center;
         gap: 6px 10px;
         transition: border-color 0.2s;
@@ -672,8 +672,8 @@
         grid-template-columns: 1fr auto;
         grid-template-areas:
             "identity counter"
-            "actions ."
-            "eloquent .";
+            "actions actions"
+            "eloquent eloquent";
     }
 
     & .dui-row--excluded {
@@ -1078,6 +1078,8 @@
         align-items: center;
         font-family: inherit;
         transition: 0.2s;
+        max-width: 220px;
+        text-overflow: ellipsis;
 
         &:hover {
             border-color: var(--dui-gold);

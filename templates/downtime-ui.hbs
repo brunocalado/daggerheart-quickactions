@@ -128,7 +128,7 @@
             {{#if this.hasEloquent}}
             <div class="dui-eloquent-selector-below">
                 <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
-                    <option value="">Eloquent</option>
+                    <option value="">Eloquent: Choose a friend...</option>
                     {{#each this.eloquentOptions}}
                     {{#if this.id}}
                     <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
