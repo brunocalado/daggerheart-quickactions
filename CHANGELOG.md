@@ -6,6 +6,7 @@
 - Automated: Celestial Trance
 - Automated: Premium Bedroll
 - Automated: Eloquent
+- Better visual
 
 # 0.1.7
 - removed timeDiff to prevent Downtime fail

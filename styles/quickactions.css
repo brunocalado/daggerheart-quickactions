@@ -652,12 +652,12 @@
         border-radius: 6px;
         padding: 8px 12px;
         display: grid;
-        grid-template-columns: auto 1fr auto;
+        grid-template-columns: auto 1fr auto auto;
         grid-template-rows: auto auto auto;
         grid-template-areas:
-            "controls identity counter"
-            "actions actions actions"
-            "eloquent eloquent eloquent";
+            "controls identity refresh counter"
+            "actions actions actions actions"
+            "eloquent eloquent eloquent eloquent";
         align-items: center;
         gap: 6px 10px;
         transition: border-color 0.2s;
@@ -669,11 +669,11 @@
 
     /* Player View Grid: Removes the first column entirely */
     & .dui-row.player-view {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: 1fr auto auto;
         grid-template-areas:
-            "identity counter"
-            "actions actions"
-            "eloquent eloquent";
+            "identity refresh counter"
+            "actions actions actions"
+            "eloquent eloquent eloquent";
     }
 
     & .dui-row--excluded {
@@ -751,7 +751,9 @@
 
     & .dui-info-text {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
         line-height: 1.2;
     }
 
@@ -759,19 +761,18 @@
         font-weight: bold;
         color: #fff;
         font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
     }
 
     /* Refresh Feature Tooltip Icon */
     & .dui-refresh-icon {
+        grid-area: refresh;
         position: relative;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         cursor: pointer;
         color: #C9A060;
-        font-size: 12px;
+        font-size: 18px;
 
         &:hover .dui-refresh-tooltip {
             visibility: visible;
@@ -822,11 +823,11 @@
     }
 
     & .dui-user-name {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--dui-text-dim);
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
     }
 
     & .dui-user-dot {
