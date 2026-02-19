@@ -56,9 +56,8 @@ Hooks.once("init", () => {
             // This function runs on ALL connected clients when the value changes
             if (!value || !value.timestamp) return;
 
-            // Ignores old requests (over 60s) to avoid opening on page reload (F5)
-            const timeDiff = Date.now() - value.timestamp;
-            if (timeDiff > 60000) return;
+            // Verificação de tempo removida para evitar problemas com relógios dessincronizados.
+            // O evento onChange nativo do Foundry já previne execução no carregamento (F5).
 
             // Checks the target
             // If targetId is empty, it is for everyone. If it has an ID, checks if it is me.
