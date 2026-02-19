@@ -1,3 +1,7 @@
+# 0.1.7
+- removed timeDiff to prevent Downtime fail
+- DowntimeUI chat message looks nice now
+
 # 0.1.6
 - removed timeDiff to prevent RequestRoll fail
 

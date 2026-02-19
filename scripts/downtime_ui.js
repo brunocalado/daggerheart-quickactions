@@ -171,8 +171,11 @@ async function _applyDowntimeEffects() {
     const prepareBonus = preparers.length >= 2 ? 2 : 1;
 
     // Per-actor effects
-    const eventLines = [];
+    const resultsByActor = new Map();
+
     for (const { actor, actorState } of includedActors) {
+        if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
+        const actorEvents = resultsByActor.get(actor.id).events;
         const tier = _getActorTier(actor);
         const targets = actorState.targets ?? {};
 
@@ -193,7 +196,7 @@ async function _applyDowntimeEffects() {
                 if (isLong) {
                     await targetActor.update({ "system.resources.hitPoints.value": 0 });
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Tend to Wounds${target} (Recover All HP)`);
+                    actorEvents.push(`Tend to Wounds${target} (Recover All HP)`);
                 } else {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
@@ -204,14 +207,14 @@ async function _applyDowntimeEffects() {
                     await targetActor.update({ "system.resources.hitPoints.value": newHP });
                     const modText = targetHpMod > 0 ? ` +${targetHpMod} mod` : "";
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}${modText}])`);
+                    actorEvents.push(`Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}${modText}])`);
                 }
             }
 
             if (action === "clearStress") {
                 if (isLong) {
                     await actor.update({ "system.resources.stress.value": 0 });
-                    eventLines.push(`${actor.name} chose Clear Stress (Recover All Stress)`);
+                    actorEvents.push(`Clear Stress (Recover All Stress)`);
                 } else {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
@@ -221,7 +224,7 @@ async function _applyDowntimeEffects() {
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
                     const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
-                    eventLines.push(`${actor.name} chose Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}])`);
+                    actorEvents.push(`Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}])`);
                 }
             }
 
@@ -230,7 +233,7 @@ async function _applyDowntimeEffects() {
                 if (isLong) {
                     await _clearAllArmorMarks(targetActor);
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Repair Armor${target} (Recover All Armor Slots)`);
+                    actorEvents.push(`Repair Armor${target} (Recover All Armor Slots)`);
                 } else {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
@@ -239,7 +242,7 @@ async function _applyDowntimeEffects() {
                     await _reduceArmorMarks(targetActor, reduction);
                     const modText = targetArmorMod > 0 ? ` +${targetArmorMod} mod` : "";
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    eventLines.push(`${actor.name} chose Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.total}${modText}])`);
+                    actorEvents.push(`Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.total}${modText}])`);
                 }
             }
 
@@ -252,13 +255,13 @@ async function _applyDowntimeEffects() {
                 await actor.update({ "system.resources.hope.value": newHope });
                 const modText = hopeModifier > 0 ? ` +${hopeModifier} mod` : "";
                 const cappedText = actualGain < totalGain ? " [capped]" : "";
-                eventLines.push(`${actor.name} chose Prepare (+${actualGain} Hope${prepareBonus === 2 ? ", paired" : ""}${modText}${cappedText})`);
+                actorEvents.push(`Prepare (+${actualGain} Hope${prepareBonus === 2 ? ", paired" : ""}${modText}${cappedText})`);
             }
 
             // Custom move actions
             if (action.startsWith("custom_")) {
                 const moveLabel = action.slice("custom_".length);
-                eventLines.push(`${actor.name}: ${moveLabel}`);
+                actorEvents.push(`${moveLabel}`);
             }
 
             // Item move actions
@@ -266,7 +269,7 @@ async function _applyDowntimeEffects() {
                 const itemUuid = action.slice("itemmove_".length);
                 const moveItem = await fromUuid(itemUuid);
                 const itemName = moveItem?.name ?? "Unknown Item";
-                eventLines.push(`${actor.name}: ${itemName}`);
+                actorEvents.push(`${itemName}`);
             }
 
             // Craft downtime actions
@@ -274,7 +277,7 @@ async function _applyDowntimeEffects() {
                 const recipeUuid = action.slice("craft_".length);
                 const recipeItem = await fromUuid(recipeUuid);
                 const recipeName = recipeItem?.name ?? "Unknown Recipe";
-                eventLines.push(`${actor.name} used ${recipeName}`);
+                actorEvents.push(`Used ${recipeName}`);
 
                 // Find matching craft entry to grant the crafted item
                 const savedCraft = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
@@ -337,13 +340,28 @@ async function _applyDowntimeEffects() {
             refreshedNames.push(record.name);
         }
         if (refreshedNames.length > 0) {
-            eventLines.push(`${actor.name} refreshed: ${refreshedNames.join(", ")}`);
+            if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
+            resultsByActor.get(actor.id).events.push(`Refreshed: ${refreshedNames.join(", ")}`);
         }
     }
 
     // Chat card
     const restLabel = isLong ? "Long Rest" : "Short Rest";
-    const eventsHtml = eventLines.map(e => `<div style="padding: 3px 0; border-bottom: 1px solid rgba(201,160,96,0.15);">${e}</div>`).join("");
+    
+    let eventsHtml = "";
+    for (const [actorId, data] of resultsByActor) {
+        if (data.events.length === 0) continue;
+        eventsHtml += `
+        <div style="margin-bottom: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; padding: 6px;">
+            <div style="font-weight: bold; color: #C9A060; border-bottom: 1px solid rgba(201,160,96,0.3); margin-bottom: 4px; padding-bottom: 2px; font-size: 1.05em;">
+                ${data.name}
+            </div>
+            <div style="padding-left: 4px; font-size: 0.9em; color: #e0e0e0; line-height: 1.4;">
+                ${data.events.map(e => `<div style="margin-bottom: 2px;">• ${e}</div>`).join("")}
+            </div>
+        </div>`;
+    }
+
     const content = `
     <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden; font-family: 'Aleo', serif;">
         <header style="background: #191919; padding: 10px; text-align: center; font-size: 1.4em; color: #C9A060; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px #C9A060; border-bottom: 2px solid #C9A060;">

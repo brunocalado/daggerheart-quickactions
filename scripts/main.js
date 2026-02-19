@@ -115,7 +115,7 @@ Hooks.once("init", () => {
         type: Object,
         onChange: (value) => {
             if (!value?.timestamp) return;
-            if (Date.now() - value.timestamp > 30000) return;
+            // Removed timestamp check to avoid clock sync issues
             const inst = getDowntimeUIInstance();
             if (inst?.rendered) inst.render();
         }
@@ -130,7 +130,7 @@ Hooks.once("init", () => {
         type: Object,
         onChange: (value) => {
             if (!value?.timestamp) return;
-            if (Date.now() - value.timestamp > 10000) return;
+            // Removed timestamp check to avoid clock sync issues
             if (game.user.isGM) return;
             openDowntimeUIForPlayer();
         }
