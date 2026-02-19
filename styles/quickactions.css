@@ -645,16 +645,21 @@
         gap: 8px;
     }
 
-    /* Row Layout: Grid [Check | Info | Actions | Count] */
+    /* Row Layout: Grid with actions below identity */
     & .dui-row {
         background: var(--dui-surface);
         border: 1px solid var(--dui-border);
         border-radius: 6px;
         padding: 8px 12px;
         display: grid;
-        grid-template-columns: auto 180px 1fr auto; /* GM View (4 cols) */
+        grid-template-columns: auto 1fr auto;
+        grid-template-rows: auto auto auto;
+        grid-template-areas:
+            "controls identity counter"
+            ". actions ."
+            ". eloquent .";
         align-items: center;
-        gap: 10px;
+        gap: 6px 10px;
         transition: border-color 0.2s;
 
         &:hover {
@@ -664,7 +669,11 @@
 
     /* Player View Grid: Removes the first column entirely */
     & .dui-row.player-view {
-        grid-template-columns: 180px 1fr auto; /* Player View (3 cols) */
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+            "identity counter"
+            "actions ."
+            "eloquent .";
     }
 
     & .dui-row--excluded {
@@ -685,6 +694,7 @@
 
     /* Checkbox / Config Column */
     & .dui-controls-col {
+        grid-area: controls;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -723,6 +733,7 @@
 
     /* Identity Column (Info) */
     & .dui-identity {
+        grid-area: identity;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -828,6 +839,7 @@
 
     /* Actions Wrapper (Contains actions + Eloquent selector) */
     & .dui-actions-wrapper {
+        grid-area: actions;
         display: flex;
         flex-wrap: wrap;
         gap: 6px;
@@ -1016,6 +1028,7 @@
 
     /* Counter Column */
     & .dui-counter {
+        grid-area: counter;
         text-align: right;
         font-size: 12px;
         color: var(--dui-text-dim);
@@ -1045,10 +1058,9 @@
     }
 
     & .dui-eloquent-selector-below {
-        grid-column: 2 / -2;
+        grid-area: eloquent;
         display: flex;
         align-items: center;
-        margin-top: 8px;
         padding: 0;
     }
 
