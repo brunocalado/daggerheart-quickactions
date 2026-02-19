@@ -1,13 +1,32 @@
 <div class="dui-cfg-container">
     {{!-- Tab Bar --}}
     <nav class="dui-cfg-tab-bar">
-        <button type="button" class="dui-cfg-tab active" data-tab="craft">Craft</button>
+        <button type="button" class="dui-cfg-tab active" data-tab="core">Core</button>
+        <button type="button" class="dui-cfg-tab" data-tab="craft">Craft</button>
         <button type="button" class="dui-cfg-tab" data-tab="custom">Custom</button>
         <button type="button" class="dui-cfg-tab" data-tab="itemmoves">Item Moves</button>
     </nav>
 
+    {{!-- Core Features Panel --}}
+    <div class="dui-cfg-panel active" data-panel="core">
+        <div class="dui-core-list" id="dui-core-list">
+            {{#each coreFeatures}}
+            <div class="dui-core-row" data-index="{{@index}}" data-key="{{this.key}}">
+                <span class="dui-core-label">{{this.label}}</span>
+                <div class="dui-core-drop {{#if this.itemName}}filled{{else}}empty{{/if}}" data-index="{{@index}}">
+                    <i class="fas fa-star"></i>
+                    <span class="dui-core-item-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
+                </div>
+                <input type="hidden" name="coreItem_{{@index}}" value="{{this.itemUuid}}">
+                <input type="hidden" name="coreKey_{{@index}}" value="{{this.key}}">
+                <input type="hidden" name="coreLabel_{{@index}}" value="{{this.label}}">
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
     {{!-- Craft Panel --}}
-    <div class="dui-cfg-panel active" data-panel="craft">
+    <div class="dui-cfg-panel" data-panel="craft">
         <div class="dui-craft-list" id="dui-craft-list">
             {{#each craftEntries}}
             <div class="dui-craft-row" data-index="{{@index}}">

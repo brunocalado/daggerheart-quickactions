@@ -926,6 +926,60 @@
         display: block; /* Ensure it's visible if rendered */
     }
 
+    /* Efficient Feature Badge (star button per action) */
+    & .dui-efficient-badge {
+        background: none;
+        border: none;
+        color: #555;
+        cursor: pointer;
+        font-size: 10px;
+        padding: 0 4px;
+        line-height: 1;
+        height: 100%;
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.15s;
+
+        &.active {
+            color: var(--dui-gold-bright, #ffd700);
+            text-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
+        }
+
+        &:hover:not(:disabled) {
+            color: var(--dui-gold, #C9A060);
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.4;
+        }
+    }
+
+    /* Efficient slot glow on action group/standalone button */
+    & .dui-action-group.efficient {
+        border-color: var(--dui-gold-bright, #ffd700);
+        box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
+    }
+
+    & .dui-action-btn.standalone.efficient {
+        border-color: var(--dui-gold-bright, #ffd700);
+        box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
+    }
+
+    /* Wrapper for action + badge (for standalone buttons) */
+    & .dui-action-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+    }
+
+    /* Actor name badge indicating Efficient presence */
+    & .dui-efficient-label {
+        font-size: 10px;
+        color: var(--dui-gold-bright, #ffd700);
+        margin-left: 4px;
+    }
+
     /* Counter Column */
     & .dui-counter {
         text-align: right;
@@ -1238,6 +1292,62 @@
         padding: 10px 12px;
         border-top: 1px solid #333;
         flex-shrink: 0;
+    }
+
+    /* Core Features Tab */
+    & .dui-core-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    & .dui-core-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+    }
+
+    & .dui-core-label {
+        font-size: 13px;
+        font-weight: bold;
+        color: var(--cfg-gold);
+        min-width: 80px;
+        white-space: nowrap;
+    }
+
+    & .dui-core-drop {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border: 1px dashed #555;
+        border-radius: 4px;
+        font-size: 12px;
+        color: var(--cfg-text-dim);
+        cursor: pointer;
+        transition: all 0.15s;
+        min-height: 32px;
+
+        & i { font-size: 11px; }
+
+        &.empty {
+            opacity: 0.6;
+        }
+
+        &.filled {
+            border-style: solid;
+            border-color: var(--cfg-gold);
+            color: var(--cfg-text);
+            background: rgba(201, 160, 96, 0.08);
+        }
+
+        &.dragover {
+            border-color: var(--cfg-gold);
+            background: rgba(201, 160, 96, 0.15);
+            box-shadow: 0 0 6px rgba(201, 160, 96, 0.3);
+        }
     }
 
     & .dui-cfg-save-btn {

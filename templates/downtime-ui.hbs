@@ -49,6 +49,9 @@
                 <div class="dui-info-text">
                     <span class="dui-actor-name">
                         {{this.actorName}}
+                        {{#if this.hasEfficient}}{{#if ../isShort}}
+                        <span class="dui-efficient-label" title="Efficient: can upgrade one action to Long Rest quality"><i class="fas fa-star"></i></span>
+                        {{/if}}{{/if}}
                         {{#if this.refreshFeatures.length}}
                         <span class="dui-refresh-icon">
                             <i class="fas fa-sync-alt"></i>
@@ -71,11 +74,11 @@
             <div class="dui-actions">
                 {{#each this.actions}}
                     {{#if this.hasTarget}}
-                         <div class="dui-action-group {{#if this.selected}}active{{/if}}">
+                         <div class="dui-action-group {{#if this.selected}}active{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}">
                             <button type="button" class="dui-action-btn" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
                                 {{this.label}}
                             </button>
-                            
+
                             {{#if this.selected}}
                             <select class="dui-target-select" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}}>
                                 {{#each ../targetOptions}}
@@ -83,11 +86,23 @@
                                 {{/each}}
                             </select>
                             {{/if}}
+                            {{#if this.canBeEfficientSlot}}
+                            <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
+                                <i class="fas fa-star"></i>
+                            </button>
+                            {{/if}}
                         </div>
                     {{else}}
-                        <button type="button" class="dui-action-btn standalone {{#if this.selected}}selected{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
+                        <div class="dui-action-wrapper">
+                        <button type="button" class="dui-action-btn standalone {{#if this.selected}}selected{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
                             {{this.label}}
                         </button>
+                        {{#if this.canBeEfficientSlot}}
+                        <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        {{/if}}
+                        </div>
                     {{/if}}
                 {{/each}}
             </div>

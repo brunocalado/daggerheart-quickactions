@@ -97,6 +97,17 @@ Hooks.once("init", () => {
         type: Array
     });
 
+    // 5d. Core feature entries (e.g. Efficient)
+    game.settings.register("daggerheart-quickactions", "downtimeCoreFeatures", {
+        name: "Downtime Core Features",
+        scope: "world",
+        config: false,
+        default: [
+            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" }
+        ],
+        type: Array
+    });
+
     // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)
     game.settings.register("daggerheart-quickactions", "downtimeActorConfigs", {
         name: "Downtime Actor Configs",

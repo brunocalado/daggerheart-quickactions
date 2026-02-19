@@ -98,8 +98,17 @@ function _getMaxHope(actor) {
     return actor.system.resources.hope.max ?? 0;
 }
 
-function _getRefreshableFeatures(actor, restType) {
-    const isLong = restType === "long";
+function _hasEfficientFeature(actor) {
+    const coreFeatures = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
+    const efficient = coreFeatures.find(f => f.key === "efficient");
+    if (!efficient?.itemUuid) return actor.items.some(i => i.name === "Efficient");
+    // Look up the item by UUID to get its real name, then match by name
+    const name = efficient.label || "Efficient";
+    return actor.items.some(i => i.name === name);
+}
+
+function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
+    const isLong = restType === "long" || forceEffectiveLong;
     const results = [];
     for (const item of actor.items) {
         // Check system.actions (Map or object) for action-level uses
@@ -186,14 +195,19 @@ async function _applyDowntimeEffects() {
         const hopeModifier = gmActorState.hopeModifier ?? 0;
         const armorSlotModifier = gmActorState.armorSlotModifier ?? 0;
 
+        // Efficient feature: one action can use long rest behavior during short rest
+        const hasEfficient = _hasEfficientFeature(actor);
+        const efficientSlot = actorState.efficientSlot ?? null;
+
         for (const action of actorState.actions) {
             const targetActor = targets[action] ? (game.actors.get(targets[action]) ?? actor) : actor;
             const isSelf = targetActor.id === actor.id;
+            const effectiveLong = isLong || (hasEfficient && action === efficientSlot);
 
             if (action === "tendWounds") {
                 // Read the target actor's modifier (when healing others, use target's modifier)
                 const targetHpMod = isSelf ? hpModifier : (state.actors?.[targetActor.id]?.hpModifier ?? 0);
-                if (isLong) {
+                if (effectiveLong) {
                     await targetActor.update({ "system.resources.hitPoints.value": 0 });
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
                     actorEvents.push(`Tend to Wounds${target} (Recover All HP)`);
@@ -212,7 +226,7 @@ async function _applyDowntimeEffects() {
             }
 
             if (action === "clearStress") {
-                if (isLong) {
+                if (effectiveLong) {
                     await actor.update({ "system.resources.stress.value": 0 });
                     actorEvents.push(`Clear Stress (Recover All Stress)`);
                 } else {
@@ -230,7 +244,7 @@ async function _applyDowntimeEffects() {
 
             if (action === "repairArmor") {
                 const targetArmorMod = isSelf ? armorSlotModifier : (state.actors?.[targetActor.id]?.armorSlotModifier ?? 0);
-                if (isLong) {
+                if (effectiveLong) {
                     await _clearAllArmorMarks(targetActor);
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
                     actorEvents.push(`Repair Armor${target} (Recover All Armor Slots)`);
@@ -308,8 +322,11 @@ async function _applyDowntimeEffects() {
 
     // Feature refresh (uses recovery + resource recovery)
     // Group updates by item to avoid conflicts when an item has both action uses and resource
-    for (const { actor } of includedActors) {
-        const refreshable = _getRefreshableFeatures(actor, restType);
+    for (const { actor, actorState } of includedActors) {
+        const hasEff = _hasEfficientFeature(actor);
+        const effSlot = actorState.efficientSlot ?? null;
+        const forceEffLong = hasEff && effSlot !== null && !isLong;
+        const refreshable = _getRefreshableFeatures(actor, restType, forceEffLong);
         if (refreshable.length === 0) continue;
 
         const itemUpdates = new Map();
@@ -512,7 +529,24 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        return { craftEntries: resolvedEntries, customMoves, itemMoveEntries };
+        // Core features
+        const savedCore = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
+        const defaultCore = [
+            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" }
+        ];
+        const coreRaw = savedCore.length > 0 ? savedCore : defaultCore;
+        const coreFeatures = [];
+        for (const entry of coreRaw) {
+            const item = entry.itemUuid ? await fromUuid(entry.itemUuid) : null;
+            coreFeatures.push({
+                key: entry.key || "",
+                label: entry.label || "",
+                itemUuid: entry.itemUuid || "",
+                itemName: item?.name || ""
+            });
+        }
+
+        return { craftEntries: resolvedEntries, customMoves, itemMoveEntries, coreFeatures };
     }
 
     _onRender(context, options) {
@@ -626,6 +660,53 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 dropZone.classList.add('filled');
             });
         }
+
+        // Core features drag-drop
+        const coreList = this.element.querySelector('#dui-core-list');
+        if (coreList) {
+            coreList.addEventListener('dragover', (e) => {
+                const dropZone = e.target.closest('.dui-core-drop');
+                if (dropZone) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                    dropZone.classList.add('dragover');
+                }
+            });
+
+            coreList.addEventListener('dragleave', (e) => {
+                const dropZone = e.target.closest('.dui-core-drop');
+                if (dropZone) dropZone.classList.remove('dragover');
+            });
+
+            coreList.addEventListener('drop', async (e) => {
+                const dropZone = e.target.closest('.dui-core-drop');
+                if (!dropZone) return;
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+
+                let data;
+                try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
+                if (data.type !== 'Item') {
+                    ui.notifications.warn("Only items can be dropped here.");
+                    return;
+                }
+
+                const item = await fromUuid(data.uuid);
+                if (!item) {
+                    ui.notifications.warn("Could not resolve item.");
+                    return;
+                }
+
+                const row = dropZone.closest('.dui-core-row');
+                const idx = row.dataset.index;
+                const hiddenInput = row.querySelector(`input[name="coreItem_${idx}"]`);
+                if (hiddenInput) hiddenInput.value = data.uuid;
+
+                dropZone.querySelector('.dui-core-item-name').textContent = item.name;
+                dropZone.classList.remove('empty');
+                dropZone.classList.add('filled');
+            });
+        }
     }
 
     _onAddCraftRow() {
@@ -731,9 +812,21 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             j++;
         }
 
+        // Collect core feature entries from hidden inputs
+        const coreFeatures = [];
+        let k = 0;
+        while (el.querySelector(`input[name="coreKey_${k}"]`)) {
+            const key = el.querySelector(`input[name="coreKey_${k}"]`).value;
+            const label = el.querySelector(`input[name="coreLabel_${k}"]`).value;
+            const itemUuid = el.querySelector(`input[name="coreItem_${k}"]`).value;
+            coreFeatures.push({ key, label, itemUuid });
+            k++;
+        }
+
         await game.settings.set("daggerheart-quickactions", "downtimeCraftEntries", craftEntries);
         await game.settings.set("daggerheart-quickactions", "downtimeCustomMoves", customMoves);
         await game.settings.set("daggerheart-quickactions", "downtimeItemMoveEntries", itemMoveEntries);
+        await game.settings.set("daggerheart-quickactions", "downtimeCoreFeatures", coreFeatures);
         ui.notifications.info("Moves configuration saved.");
         this.close();
     }
@@ -756,6 +849,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             configMaxChoices: DowntimeUIApp.prototype._onConfigMaxChoices,
             setRestType: DowntimeUIApp.prototype._onSetRestType,
             toggleAction: DowntimeUIApp.prototype._onToggleAction,
+            toggleEfficientSlot: DowntimeUIApp.prototype._onToggleEfficientSlot,
             openMovesConfig: DowntimeUIApp.prototype._onOpenMovesConfig,
             resendDowntime: DowntimeUIApp.prototype._onResendDowntime
         }
@@ -835,12 +929,19 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 }
             }
 
-            const allActions = [...availableActions, ...extraActions];
+            // Efficient feature: actor sees long rest actions during short rest
+            const hasEfficient = _hasEfficientFeature(actor);
+            const efficientSlot = playerChoices.efficientSlot ?? null;
+            const actorAvailableActions = (hasEfficient && !isLong) ? longActions : availableActions;
+
+            const allActions = [...actorAvailableActions, ...extraActions];
             const annotatedActions = allActions.map(a => ({
                 ...a,
                 selected: playerChoices.actions.includes(a.key),
                 targetActorId: playerChoices.targets?.[a.key] ?? "",
-                cannotSelect: false
+                cannotSelect: false,
+                isEfficientSlot: a.key === efficientSlot,
+                canBeEfficientSlot: hasEfficient && !isLong && playerChoices.actions.includes(a.key)
             }));
 
             // Target options: "Yourself" + all other actors
@@ -854,7 +955,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             const hasPrepare = playerChoices.actions.includes("prepare");
 
-            const refreshFeatures = _getRefreshableFeatures(actor, globalRestType).map(f => f.itemName);
+            const forceEffectiveLong = hasEfficient && efficientSlot !== null && !isLong;
+            const refreshFeatures = _getRefreshableFeatures(actor, globalRestType, forceEffectiveLong).map(f => f.itemName);
             // Deduplicate names (same item may have multiple actions)
             const uniqueRefreshFeatures = [...new Set(refreshFeatures)];
 
@@ -875,6 +977,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 selectedCount,
                 isOverLimit,
                 hasPrepare,
+                hasEfficient,
+                efficientSlot,
                 refreshFeatures: uniqueRefreshFeatures
             });
         }
@@ -897,8 +1001,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // Player writes own choices to user flag
-    async _savePlayerChoices(actions, targets) {
-        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets });
+    async _savePlayerChoices(actions, targets, efficientSlot = null) {
+        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot });
     }
 
     async _onStartDowntime() {
@@ -992,11 +1096,37 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             actions.push(actionKey);
         }
 
+        // If deselecting the action that was the efficient slot, clear it
+        const currentEfficientSlot = currentChoices.efficientSlot ?? null;
+        const efficientSlot = (idx >= 0 && currentEfficientSlot === actionKey) ? null : currentEfficientSlot;
+
         // Players write their own flag; GM can write any user's flag
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets });
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot });
         } else {
-            await this._savePlayerChoices(actions, targets);
+            await this._savePlayerChoices(actions, targets, efficientSlot);
+        }
+    }
+
+    async _onToggleEfficientSlot(event, target) {
+        const actorId = target.dataset.actorId;
+        const actionKey = target.dataset.actionKey;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null };
+        // Toggle: if already this slot, clear it; otherwise set it
+        const newEfficientSlot = currentChoices.efficientSlot === actionKey ? null : actionKey;
+
+        if (game.user.isGM) {
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+                actions: currentChoices.actions,
+                targets: currentChoices.targets ?? {},
+                efficientSlot: newEfficientSlot
+            });
+        } else {
+            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, newEfficientSlot);
         }
     }
 
@@ -1011,11 +1141,12 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
         const targets = { ...(currentChoices.targets ?? {}), [actionKey]: targetId || null };
+        const efficientSlot = currentChoices.efficientSlot ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets });
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot });
         } else {
-            await this._savePlayerChoices(currentChoices.actions, targets);
+            await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot);
         }
     }
 

@@ -1,6 +1,7 @@
 # 0.1.8
 - DowntimeUI scroll
 - DowntimeUI disable offline users
+- Efficient support
 
 # 0.1.7
 - removed timeDiff to prevent Downtime fail
