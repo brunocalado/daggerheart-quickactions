@@ -22,11 +22,11 @@ const DEFAULT_ITEM_MOVE_ENTRIES = [
 ];
 
 const FORAGER_OPTIONS = [
-    { value: 1, label: "A unique food", effect: "Clear 2 Stress" },
-    { value: 2, label: "A beautiful relic", effect: "Gain 2 Hope" },
-    { value: 3, label: "An arcane rune", effect: "+2 to a Spellcast Roll" },
-    { value: 4, label: "A healing vial", effect: "Clear 2 Hit Points" },
-    { value: 5, label: "A luck charm", effect: "Reroll any die" }
+    { value: 1, label: "A unique food", effect: "Clear 2 Stress", itemUuid: "Compendium.daggerheart-quickactions.items.Item.1tnzi64VuC8kTQKn" },
+    { value: 2, label: "A beautiful relic", effect: "Gain 2 Hope", itemUuid: "Compendium.daggerheart-quickactions.items.Item.q1VJh3YHE1peFgpP" },
+    { value: 3, label: "An arcane rune", effect: "+2 to a Spellcast Roll", itemUuid: "Compendium.daggerheart-quickactions.items.Item.vPGhnT1C84fwNiYf" },
+    { value: 4, label: "A healing vial", effect: "Clear 2 Hit Points", itemUuid: "Compendium.daggerheart-quickactions.items.Item.C1lOuQ5TGYVCIOqB" },
+    { value: 5, label: "A luck charm", effect: "Reroll any die", itemUuid: "Compendium.daggerheart-quickactions.items.Item.Fm6XzoBkT7G4a9La" }
 ];
 
 // ==================================================================
@@ -313,6 +313,19 @@ async function _applyDowntimeEffects() {
                     }
                     const chosenText = foragerRoll === 6 ? " (Chose)" : "";
                     actorEvents.push(`Forage [Roll: ${foragerRoll}${chosenText}] — ${resultOption.label} (${resultOption.effect})`);
+
+                    // Grant the foraged item to the actor's inventory
+                    if (resultOption.itemUuid) {
+                        try {
+                            const foragedItem = await fromUuid(resultOption.itemUuid);
+                            if (foragedItem) {
+                                const itemData = foragedItem.toObject();
+                                await actor.createEmbeddedDocuments("Item", [itemData]);
+                            }
+                        } catch (err) {
+                            console.error(`daggerheart-quickactions | Failed to grant foraged item "${resultOption.label}":`, err);
+                        }
+                    }
                 }
             }
 
@@ -523,7 +536,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             addCustomRow: ConfigureMovesApp.prototype._onAddCustomRow,
             removeCustomRow: ConfigureMovesApp.prototype._onRemoveCustomRow,
             addItemMoveRow: ConfigureMovesApp.prototype._onAddItemMoveRow,
-            removeItemMoveRow: ConfigureMovesApp.prototype._onRemoveItemMoveRow
+            removeItemMoveRow: ConfigureMovesApp.prototype._onRemoveItemMoveRow,
+            removeCoreItem: ConfigureMovesApp.prototype._onRemoveCoreItem
         }
     };
 
@@ -807,6 +821,23 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     _onRemoveItemMoveRow(event, target) {
         target.closest('.dui-itemmove-row').remove();
+    }
+
+    _onRemoveCoreItem(event, target) {
+        const row = target.closest('.dui-core-row');
+        const idx = row.dataset.index;
+        // Clear the hidden input UUID
+        const hiddenInput = row.querySelector(`input[name="coreItem_${idx}"]`);
+        if (hiddenInput) hiddenInput.value = "";
+        // Reset the drop zone visual
+        const dropZone = row.querySelector('.dui-core-drop');
+        if (dropZone) {
+            dropZone.classList.remove('filled');
+            dropZone.classList.add('empty');
+            dropZone.querySelector('.dui-core-item-name').textContent = "Drag Item Here";
+        }
+        // Hide the remove button
+        target.style.display = "none";
     }
 
     async _onSaveMovesConfig() {
@@ -1145,12 +1176,22 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // If deselecting the action that was the efficient slot, clear it
         const currentEfficientSlot = currentChoices.efficientSlot ?? null;
-        const efficientSlot = (idx >= 0 && currentEfficientSlot === actionKey) ? null : currentEfficientSlot;
+        let efficientSlot = (idx >= 0 && currentEfficientSlot === actionKey) ? null : currentEfficientSlot;
+
+        // workOnProject is long-rest-only: auto-set as efficient slot when selected during short rest
+        const restType = state?.restType || "short";
+        if (actionKey === "workOnProject" && restType === "short") {
+            if (idx < 0) {
+                // Selecting workOnProject → auto-mark as efficient slot
+                efficientSlot = "workOnProject";
+            }
+        }
 
         // Players write their own flag; GM can write any user's flag
         const foragerChoice = currentChoices.foragerChoice ?? null;
         if (game.user.isGM) {
             await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice });
+            this.render();
         } else {
             await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice);
         }
@@ -1168,15 +1209,29 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const newEfficientSlot = currentChoices.efficientSlot === actionKey ? null : actionKey;
         const foragerChoice = currentChoices.foragerChoice ?? null;
 
+        // If un-starring workOnProject during short rest, also deselect the action
+        let actions = currentChoices.actions;
+        let targets = currentChoices.targets ?? {};
+        if (actionKey === "workOnProject" && newEfficientSlot === null) {
+            const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+            const restType = state?.restType || "short";
+            if (restType === "short") {
+                actions = actions.filter(a => a !== "workOnProject");
+                const { workOnProject: _, ...rest } = targets;
+                targets = rest;
+            }
+        }
+
         if (game.user.isGM) {
             await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
-                actions: currentChoices.actions,
-                targets: currentChoices.targets ?? {},
+                actions,
+                targets,
                 efficientSlot: newEfficientSlot,
                 foragerChoice
             });
+            this.render();
         } else {
-            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, newEfficientSlot, foragerChoice);
+            await this._savePlayerChoices(actions, targets, newEfficientSlot, foragerChoice);
         }
     }
 
@@ -1196,6 +1251,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         if (game.user.isGM) {
             await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot, foragerChoice });
+            this.render();
         } else {
             await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot, foragerChoice);
         }
@@ -1219,6 +1275,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 efficientSlot,
                 foragerChoice: choiceValue
             });
+            this.render();
         } else {
             await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, efficientSlot, choiceValue);
         }

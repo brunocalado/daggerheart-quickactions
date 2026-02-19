@@ -17,6 +17,11 @@
                     <i class="fas fa-star"></i>
                     <span class="dui-core-item-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
                 </div>
+                {{#if this.itemName}}
+                <button type="button" class="dui-craft-remove" data-action="removeCoreItem" data-index="{{@index}}" title="Remove item">
+                    <i class="fas fa-times"></i>
+                </button>
+                {{/if}}
                 <input type="hidden" name="coreItem_{{@index}}" value="{{this.itemUuid}}">
                 <input type="hidden" name="coreKey_{{@index}}" value="{{this.key}}">
                 <input type="hidden" name="coreLabel_{{@index}}" value="{{this.label}}">
