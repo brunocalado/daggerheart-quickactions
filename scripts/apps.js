@@ -25,6 +25,21 @@ export async function rollD4WithDiceSoNice() {
     }
 }
 
+export async function rollD6WithDiceSoNice() {
+    try {
+        const roll = new Roll("1d6");
+        await roll.evaluate();
+        if (game.dice3d) {
+            await game.dice3d.showForRoll(roll, game.user, true);
+        }
+        return roll.total;
+    } catch (error) {
+        console.error("Error rolling 1d6:", error);
+        ui.notifications.error("Error rolling the die!");
+        return null;
+    }
+}
+
 /**
  * Executes the visual fate roll logic (Cards, Colors, Dice So Nice settings)
  */

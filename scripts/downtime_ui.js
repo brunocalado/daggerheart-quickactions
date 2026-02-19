@@ -3,7 +3,7 @@
  * Contains the full Downtime UI system (DowntimeUIApp, helpers, and exported activation functions).
  */
 
-import { rollD4WithDiceSoNice } from "./apps.js";
+import { rollD4WithDiceSoNice, rollD6WithDiceSoNice } from "./apps.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -17,9 +17,16 @@ const DEFAULT_CRAFT_ENTRIES = [
 const ALLOWED_CRAFT_TYPES = ["loot", "consumable", "weapon", "armor"];
 
 const DEFAULT_ITEM_MOVE_ENTRIES = [
-    { itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" },
     { itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM" },
     { itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2" }
+];
+
+const FORAGER_OPTIONS = [
+    { value: 1, label: "A unique food", effect: "Clear 2 Stress" },
+    { value: 2, label: "A beautiful relic", effect: "Gain 2 Hope" },
+    { value: 3, label: "An arcane rune", effect: "+2 to a Spellcast Roll" },
+    { value: 4, label: "A healing vial", effect: "Clear 2 Hit Points" },
+    { value: 5, label: "A luck charm", effect: "Reroll any die" }
 ];
 
 // ==================================================================
@@ -98,13 +105,19 @@ function _getMaxHope(actor) {
     return actor.system.resources.hope.max ?? 0;
 }
 
-function _hasEfficientFeature(actor) {
+function _hasCoreFeature(actor, featureKey, fallbackName) {
     const coreFeatures = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
-    const efficient = coreFeatures.find(f => f.key === "efficient");
-    if (!efficient?.itemUuid) return actor.items.some(i => i.name === "Efficient");
-    // Look up the item by UUID to get its real name, then match by name
-    const name = efficient.label || "Efficient";
+    const feature = coreFeatures.find(f => f.key === featureKey);
+    const name = feature?.label || fallbackName;
     return actor.items.some(i => i.name === name);
+}
+
+function _hasEfficientFeature(actor) {
+    return _hasCoreFeature(actor, "efficient", "Efficient");
+}
+
+function _hasForagerFeature(actor) {
+    return _hasCoreFeature(actor, "forager", "Forager");
 }
 
 function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
@@ -284,6 +297,23 @@ async function _applyDowntimeEffects() {
                 const moveItem = await fromUuid(itemUuid);
                 const itemName = moveItem?.name ?? "Unknown Item";
                 actorEvents.push(`${itemName}`);
+            }
+
+            // Forager core feature action
+            if (action === "core_forager") {
+                const foragerRoll = await rollD6WithDiceSoNice();
+                if (foragerRoll !== null) {
+                    let resultOption;
+                    if (foragerRoll <= 5) {
+                        resultOption = FORAGER_OPTIONS[foragerRoll - 1];
+                    } else {
+                        // Roll 6 = choose: use player's pre-selected choice, fallback to option 1
+                        const choice = actorState.foragerChoice ?? 1;
+                        resultOption = FORAGER_OPTIONS[choice - 1] ?? FORAGER_OPTIONS[0];
+                    }
+                    const chosenText = foragerRoll === 6 ? " (Chose)" : "";
+                    actorEvents.push(`Forage [Roll: ${foragerRoll}${chosenText}] — ${resultOption.label} (${resultOption.effect})`);
+                }
             }
 
             // Craft downtime actions
@@ -529,12 +559,14 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        // Core features
+        // Core features — merge saved with defaults so new features always appear
         const savedCore = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
         const defaultCore = [
-            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" }
+            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" },
+            { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" }
         ];
-        const coreRaw = savedCore.length > 0 ? savedCore : defaultCore;
+        const savedByKey = new Map(savedCore.map(e => [e.key, e]));
+        const coreRaw = defaultCore.map(d => savedByKey.get(d.key) ?? d);
         const coreFeatures = [];
         for (const entry of coreRaw) {
             const item = entry.itemUuid ? await fromUuid(entry.itemUuid) : null;
@@ -892,7 +924,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Player choices from user flags
             const playerChoices = user.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
 
-            const selectedCount = playerChoices.actions.length;
+            // Exclude bonus moves (e.g. Forager) from the move count
+            const selectedCount = playerChoices.actions.filter(a => a !== "core_forager").length;
             const isOverLimit = selectedCount > gmState.maxChoices;
 
             // Build craft downtime actions from global setting
@@ -934,7 +967,15 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const efficientSlot = playerChoices.efficientSlot ?? null;
             const actorAvailableActions = (hasEfficient && !isLong) ? longActions : availableActions;
 
+            // Forager feature: bonus action that doesn't count towards move limit
+            const hasForager = _hasForagerFeature(actor);
+
             const allActions = [...actorAvailableActions, ...extraActions];
+            // Add Forager as a bonus action if the actor has it
+            if (hasForager) {
+                allActions.push({ key: "core_forager", label: "Forage", hasTarget: false, isBonusMove: true });
+            }
+
             const annotatedActions = allActions.map(a => ({
                 ...a,
                 selected: playerChoices.actions.includes(a.key),
@@ -979,6 +1020,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasPrepare,
                 hasEfficient,
                 efficientSlot,
+                hasForager,
+                foragerChoice: playerChoices.foragerChoice ?? null,
                 refreshFeatures: uniqueRefreshFeatures
             });
         }
@@ -986,7 +1029,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             rows, isGM, hasAnyActor: rows.length > 0,
             restType: globalRestType, isLong, isShort: !isLong,
-            restLabel: isLong ? "Long Rest" : "Short Rest"
+            restLabel: isLong ? "Long Rest" : "Short Rest",
+            foragerOptions: FORAGER_OPTIONS
         };
     }
 
@@ -997,12 +1041,15 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (event.target.classList.contains("dui-target-select")) {
                 this._onSetTarget(event);
             }
+            if (event.target.classList.contains("dui-forager-select")) {
+                this._onSetForagerChoice(event);
+            }
         });
     }
 
     // Player writes own choices to user flag
-    async _savePlayerChoices(actions, targets, efficientSlot = null) {
-        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot });
+    async _savePlayerChoices(actions, targets, efficientSlot = null, foragerChoice = null) {
+        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice });
     }
 
     async _onStartDowntime() {
@@ -1101,10 +1148,11 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const efficientSlot = (idx >= 0 && currentEfficientSlot === actionKey) ? null : currentEfficientSlot;
 
         // Players write their own flag; GM can write any user's flag
+        const foragerChoice = currentChoices.foragerChoice ?? null;
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot });
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice });
         } else {
-            await this._savePlayerChoices(actions, targets, efficientSlot);
+            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice);
         }
     }
 
@@ -1118,15 +1166,17 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null };
         // Toggle: if already this slot, clear it; otherwise set it
         const newEfficientSlot = currentChoices.efficientSlot === actionKey ? null : actionKey;
+        const foragerChoice = currentChoices.foragerChoice ?? null;
 
         if (game.user.isGM) {
             await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
                 actions: currentChoices.actions,
                 targets: currentChoices.targets ?? {},
-                efficientSlot: newEfficientSlot
+                efficientSlot: newEfficientSlot,
+                foragerChoice
             });
         } else {
-            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, newEfficientSlot);
+            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, newEfficientSlot, foragerChoice);
         }
     }
 
@@ -1142,11 +1192,35 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
         const targets = { ...(currentChoices.targets ?? {}), [actionKey]: targetId || null };
         const efficientSlot = currentChoices.efficientSlot ?? null;
+        const foragerChoice = currentChoices.foragerChoice ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot });
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot, foragerChoice });
         } else {
-            await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot);
+            await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot, foragerChoice);
+        }
+    }
+
+    async _onSetForagerChoice(event) {
+        const select = event.target;
+        const actorId = select.dataset.actorId;
+        const choiceValue = parseInt(select.value) || null;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
+        const efficientSlot = currentChoices.efficientSlot ?? null;
+
+        if (game.user.isGM) {
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+                actions: currentChoices.actions,
+                targets: currentChoices.targets ?? {},
+                efficientSlot,
+                foragerChoice: choiceValue
+            });
+        } else {
+            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, efficientSlot, choiceValue);
         }
     }
 

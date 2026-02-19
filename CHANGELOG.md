@@ -2,6 +2,7 @@
 - DowntimeUI scroll
 - DowntimeUI disable offline users
 - Efficient support
+- Forager support
 
 # 0.1.7
 - removed timeDiff to prevent Downtime fail

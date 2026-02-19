@@ -93,6 +93,20 @@
                             {{/if}}
                         </div>
                     {{else}}
+                        {{#if this.isBonusMove}}
+                        <div class="dui-action-group dui-bonus-move {{#if this.selected}}active{{/if}}">
+                            <button type="button" class="dui-action-btn" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}}>
+                                <i class="fas fa-leaf"></i> {{this.label}}
+                            </button>
+                            {{#if this.selected}}
+                            <select class="dui-forager-select" data-actor-id="{{../actorId}}" {{#unless ../canInteract}}disabled{{/unless}} title="Your choice if you roll a 6">
+                                {{#each ../../foragerOptions}}
+                                <option value="{{this.value}}" {{#if (eq this.value ../../foragerChoice)}}selected{{/if}}>{{this.label}}</option>
+                                {{/each}}
+                            </select>
+                            {{/if}}
+                        </div>
+                        {{else}}
                         <div class="dui-action-wrapper">
                         <button type="button" class="dui-action-btn standalone {{#if this.selected}}selected{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
                             {{this.label}}
@@ -103,6 +117,7 @@
                         </button>
                         {{/if}}
                         </div>
+                        {{/if}}
                     {{/if}}
                 {{/each}}
             </div>

@@ -980,6 +980,31 @@
         margin-left: 4px;
     }
 
+    /* Bonus Move (Forager, etc.) */
+    & .dui-bonus-move {
+        border-style: dashed;
+
+        & .dui-action-btn i {
+            font-size: 10px;
+            margin-right: 2px;
+        }
+    }
+
+    & .dui-forager-select {
+        background-color: var(--dui-input-bg);
+        color: var(--dui-input-text);
+        border: none;
+        border-left: 1px solid #999;
+        height: 100%;
+        padding: 0 5px;
+        font-size: 11px;
+        font-family: inherit;
+        outline: none;
+        border-radius: 0 3px 3px 0;
+        max-width: 120px;
+        cursor: pointer;
+    }
+
     /* Counter Column */
     & .dui-counter {
         text-align: right;
