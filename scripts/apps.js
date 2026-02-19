@@ -201,7 +201,7 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
 class RequestRollApp extends ApplicationV2 {
     constructor(options = {}) {
         super(options);
-        // Recebe a opção showImages (default true se não for passado)
+        // Receives the showImages option (defaults to true if not passed)
         this.showImages = options.showImages ?? true;
     }
 
@@ -215,7 +215,7 @@ class RequestRollApp extends ApplicationV2 {
     };
 
     async _renderHTML(context, options) {
-        // Filtrar usuários para remover GMs e manter apenas usuários ativos
+        // Filter users to remove GMs and keep only active users
         const connectedUsers = game.users.filter(u => u.active && !u.isGM);
         
         // Build User Buttons HTML
@@ -224,7 +224,7 @@ class RequestRollApp extends ApplicationV2 {
             userButtonsHtml += `<button type="button" class="dh-user-btn" data-action="roll" data-target="${u.id}" style="color:${u.color.css}">${u.name}</button>`;
         });
 
-        // Recuperar flag do modo cinematic
+        // Retrieve cinematic mode flag
         const savedCinematic = game.user.getFlag("daggerheart-quickactions", "cinematicMode") ?? false;
         const checkedAttr = savedCinematic ? "checked" : "";
 
@@ -450,7 +450,7 @@ class RequestRollApp extends ApplicationV2 {
         const labelInput = (container.querySelector('[name="label"]').value || "").trim();
         const targetUser = target.dataset.target || "";
 
-        // Persistir a escolha do Cinematic Mode
+        // Persist Cinematic Mode choice
         await game.user.setFlag("daggerheart-quickactions", "cinematicMode", cinematicMode);
 
         let rawCommand = "";
@@ -462,10 +462,10 @@ class RequestRollApp extends ApplicationV2 {
         if (specialRoll) {
             const capSpecial = specialRoll.toLowerCase(); // hope or fear
 
-            // NEW LOGIC: Non-Cinematic Hope/Fear sends direct command
+            // Non-Cinematic Hope/Fear sends direct command
             if (!cinematicMode) {
-                // Comando simples: [[/fr type=hope]] ou [[/fr type=fear]]
-                // Adiciona {label} se houver
+                // Simple command: [[/fr type=hope]] or [[/fr type=fear]]
+                // Adds {label} if present
                 let textCommand = `[[/fr type=${capSpecial}]]`;
                 if (labelInput) {
                     textCommand += `{${labelInput}}`;
@@ -474,7 +474,7 @@ class RequestRollApp extends ApplicationV2 {
                 await ChatMessage.create({
                     user: game.user.id,
                     content: textCommand
-                    // speaker não é estritamente necessário para este comando, pois o Foundry resolve
+                    // Speaker is not strictly necessary for this command as Foundry resolves it
                 });
                 
                 this.close();
@@ -514,8 +514,8 @@ class RequestRollApp extends ApplicationV2 {
                 label: labelInput || "GM Requests a Roll",
                 difficulty: cinematicDifficulty,
                 trait: cinematicTraitLabel,
-                rawTrait: specialRoll ? "" : trait, // Se for especial, não manda rawTrait para não buscar imagem de atributo
-                showImages: this.showImages // Passa a configuração de imagem para o cliente
+                rawTrait: specialRoll ? "" : trait, // If special, do not send rawTrait to avoid fetching attribute image
+                showImages: this.showImages // Passes image configuration to client
             };
             
             await game.settings.set("daggerheart-quickactions", "cinematicRequest", {
@@ -558,7 +558,7 @@ class RequestRollApp extends ApplicationV2 {
 }
 
 // ==================================================================
-// 4. NEW: CINEMATIC ROLL PROMPT APP (UPDATED V13)
+// 4. CINEMATIC ROLL PROMPT APP
 // ==================================================================
 class CinematicRollPrompt extends ApplicationV2 {
     constructor(data, options = {}) {
@@ -578,24 +578,24 @@ class CinematicRollPrompt extends ApplicationV2 {
     };
 
     async _renderHTML(context, options) {
-        // Lógica de Texto do Check (Trait ou Duality Roll ou Hope/Fear)
+        // Check Text Logic (Trait or Duality Roll or Hope/Fear)
         let checkLabel = this.data.trait;
         if (!checkLabel || checkLabel === "Roll") {
             checkLabel = "Duality Roll";
         }
 
-        // Lógica de Imagem (Atualizada)
+        // Image Logic
         let imageHtml = "";
         
-        // Verifica se imagens devem ser exibidas (default é true se undefined)
+        // Checks if images should be displayed (default is true if undefined)
         if (this.data.showImages !== false) {
             let imageName = "";
             
             if (this.data.rawTrait) {
-                // Se tem rawTrait, é um atributo normal (agility, strength, etc)
+                // If rawTrait exists, it is a normal attribute (agility, strength, etc)
                 imageName = this.data.rawTrait.toLowerCase();
             } else {
-                // Se não tem rawTrait, verificamos o label tratado
+                // If no rawTrait, check the processed label
                 if (checkLabel === "Hope") imageName = "hope";
                 else if (checkLabel === "Fear") imageName = "fear";
                 else if (checkLabel === "Duality Roll") imageName = "none";
@@ -607,7 +607,7 @@ class CinematicRollPrompt extends ApplicationV2 {
             }
         }
 
-        // Lógica de Dificuldade (Não exibir se vazia)
+        // Difficulty Logic (Do not display if empty)
         let difficultyHtml = "";
         if (this.data.difficulty) {
             difficultyHtml = `Difficulty: <span style="color: #C9A060; font-weight: bold;">${this.data.difficulty}</span><br>`;
@@ -686,8 +686,8 @@ class CinematicRollPrompt extends ApplicationV2 {
     }
 
     _onResolveRoll(event, target) {
-        // Recupera o comando armazenado (ex: "/dr trait=strength difficulty=15")
-        // Preferência pelo data-command do botão se existir (garante que é o que está no HTML)
+        // Retrieves stored command (e.g., "/dr trait=strength difficulty=15")
+        // Preference for button data-command if it exists (ensures it matches HTML)
         const commandToExecute = target.dataset.command || this.data.command;
 
         if (commandToExecute) {
@@ -934,7 +934,7 @@ class HopeSpenderApp extends ApplicationV2 {
 }
 
 // ==================================================================
-// 12. TEMPLATE CREATOR APP (PORTED FROM MACRO)
+// 12. TEMPLATE CREATOR APP
 // ==================================================================
 class TemplateCreatorApp extends ApplicationV2 {
     constructor(options = {}) {
@@ -1179,8 +1179,8 @@ class TemplateCreatorApp extends ApplicationV2 {
 
             let distText = "m";
             if (this.localState.range === "m") distText = "m";
-            else if (this.localState.range === "vc") distText = "c"; // Mapped per user instruction
-            else if (this.localState.range === "c") distText = "vc"; // Mapped per user instruction
+            else if (this.localState.range === "vc") distText = "c"; // Mapped value
+            else if (this.localState.range === "c") distText = "vc"; // Mapped value
             else if (this.localState.range === "f") distText = "f";
 
             const code = `@Template[type:${shapeText}|range:${distText}]`;
@@ -1628,7 +1628,7 @@ class TemplateCreatorApp extends ApplicationV2 {
 
             if (isTMFXActive && safeEffect && safeEffect !== 'none') {
                 try {
-                    // Conversão de cor robusta
+                    // Robust color conversion
                     let colorInt;
                     if (foundry.utils.Color) {
                         colorInt = foundry.utils.Color.from(finalFillColor || 0xC9A060).valueOf();
@@ -1656,7 +1656,7 @@ class TemplateCreatorApp extends ApplicationV2 {
                 fillColor: data.fillColor,
                 angle: data.angle,
                 width: data.width,
-                hidden: data.hidden, // Passa o estado de ocultação
+                hidden: data.hidden, // Passes hidden state
                 flags: templateFlags
             };
             
@@ -1777,11 +1777,11 @@ export async function activateDowntime() { new DowntimeApp().render(true); }
 export async function activateFallingDamage() { new FallingDamageApp().render(true); }
 
 /**
- * Atualizado: Aceita argumento para controlar se imagens são exibidas no prompt cinemático
- * @param {boolean|object} arg - Se false, suprime imagens. Se evento/undefined, trata como true.
+ * Updated: Accepts argument to control if images are displayed in the cinematic prompt
+ * @param {boolean|object} arg - If false, suppresses images. If event/undefined, treats as true.
  */
 export async function activateRequestRoll(arg) {
-    // Se arg for booleano false, usa false. Caso contrário (undefined ou evento), usa true.
+    // If arg is boolean false, use false. Otherwise (undefined or event), use true.
     const showImages = (typeof arg === "boolean") ? arg : true;
     new RequestRollApp({ showImages }).render(true);
 }
@@ -1805,13 +1805,13 @@ export async function activateLevelUp() {
 
 export async function showCinematicPrompt(data) { 
     // Force true ensures it pops up even if recently closed or minimized
-    // Adicionado bloqueio para GM não ver a tela se ele mesmo iniciou (normalmente)
+    // Block GM from seeing the screen if they initiated it
     if (game.user.isGM) return;
 
-    // Calcular o centro da janela do navegador
+    // Calculate browser window center
     const width = 500; // Largura definida no DEFAULT_OPTIONS
     const left = (window.innerWidth - width) / 2;
-    const top = (window.innerHeight - 500) / 2; // Estimativa de altura
+    const top = (window.innerHeight - 500) / 2; // Height estimate
 
     new CinematicRollPrompt(data, {
         position: {
@@ -1826,4 +1826,3 @@ export async function showMacros(...args) {
     if (macros.length === 0) return ui.notifications.warn("QuickActions: No valid macros provided.");
     new ShowMacrosApp(macros).render(true);
 }
-

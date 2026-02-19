@@ -1,7 +1,6 @@
 /**
  * Downtime UI App and related helpers.
- * Extracted from apps.js — contains the full Downtime UI system
- * (DowntimeUIApp, helpers, and exported activation functions).
+ * Contains the full Downtime UI system (DowntimeUIApp, helpers, and exported activation functions).
  */
 
 import { rollD4WithDiceSoNice } from "./apps.js";
@@ -92,11 +91,10 @@ async function _clearAllArmorMarks(actor) {
 
 /**
  * Gets the maximum Hope from the actor's derived data.
- * Updated to use the system's calculated value instead of manual calculation.
  */
 function _getMaxHope(actor) {
-    // CORREÇÃO APLICADA: Acessa o dado derivado diretamente.
-    // Isso garante compatibilidade com Active Effects, Scars e configurações do sistema.
+    // Accesses derived data directly.
+    // Ensures compatibility with Active Effects, Scars, and system settings.
     return actor.system.resources.hope.max ?? 0;
 }
 
@@ -247,7 +245,6 @@ async function _applyDowntimeEffects() {
 
             if (action === "prepare") {
                 const currentHope = actor.system.resources?.hope?.value ?? 0;
-                // Updated usage here
                 const maxHope = _getMaxHope(actor);
                 const totalGain = prepareBonus + hopeModifier;
                 const newHope = Math.min(currentHope + totalGain, maxHope);
@@ -881,7 +878,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
     }
 
-    // --- Player writes own choices to user flag ---
+    // Player writes own choices to user flag
     async _savePlayerChoices(actions, targets) {
         await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets });
     }

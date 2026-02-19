@@ -21,17 +21,17 @@
     </div>
     {{/if}}
 
-    <!-- Header visível apenas para jogadores -->
+    <!-- Header visible only to players -->
     {{#unless isGM}}
     <div class="dui-rest-header">{{restLabel}}</div>
     {{/unless}}
 
     <div class="dui-player-list">
         {{#each rows}}
-        <!-- Adicionei a classe 'player-view' se não for GM para ajustar o Grid no CSS -->
+        <!-- Added 'player-view' class if not GM to adjust Grid in CSS -->
         <div class="dui-row {{#unless this.included}}dui-row--excluded{{/unless}} {{#unless this.isGM}}player-view{{/unless}} {{#if this.hasPrepare}}dui-row--preparing{{/if}}" data-actor-id="{{this.actorId}}">
 
-            <!-- Esta coluna só existe para o GM agora -->
+            <!-- This column exists only for the GM -->
             {{#if this.isGM}}
             <div class="dui-controls-col">
                 <button type="button" class="dui-checkbox-btn {{#if this.included}}checked{{/if}}" data-action="toggleIncluded" data-actor-id="{{this.actorId}}" title="Include in Downtime">

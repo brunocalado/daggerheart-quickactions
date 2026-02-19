@@ -47,24 +47,24 @@ Hooks.once("init", () => {
     // 4. Cinematic Request Synchronization (Force Open Logic)
     game.settings.register("daggerheart-quickactions", "cinematicRequest", {
         name: "Cinematic Roll Request",
-        scope: "world",     // Sincroniza entre todos os clientes
-        config: false,      // Invisível no menu
+        scope: "world",     // Synchronizes between all clients
+        config: false,      // Invisible in menu
         default: {},
         type: Object,
         onChange: (value) => {
-            // Essa função roda em TODOS os clientes conectados quando o valor muda
+            // This function runs on ALL connected clients when the value changes
             if (!value || !value.timestamp) return;
 
-            // Ignora requisições antigas (mais de 10s) para evitar abrir ao recarregar a página (F5)
+            // Ignores old requests (over 60s) to avoid opening on page reload (F5)
             const timeDiff = Date.now() - value.timestamp;
-            if (timeDiff > 10000) return;
+            if (timeDiff > 60000) return;
 
-            // Verifica o alvo
-            // Se targetId for vazio, é para todos. Se tiver ID, verifica se sou eu.
+            // Checks the target
+            // If targetId is empty, it is for everyone. If it has an ID, checks if it is me.
             const isTarget = !value.targetId || value.targetId === game.user.id;
 
             if (isTarget) {
-                // Chama a função exportada do apps.js para abrir a janela
+                // Calls the function exported from apps.js to open the window
                 showCinematicPrompt(value.data);
             }
         }
