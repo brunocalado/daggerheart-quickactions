@@ -499,6 +499,8 @@
     & .window-content {
         background: var(--dui-bg);
         padding: 12px;
+        max-height: 720px;
+        overflow-y: auto;
     }
 
     & .dui-container {

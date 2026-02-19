@@ -1049,7 +1049,7 @@ export async function activateDowntimeUI() {
         const actor = user.character;
         if (!actor || actor.type !== "character") continue;
         const saved = savedConfigs[actor.id] ?? {};
-        actors[actor.id] = { ...defaults, ...saved, included: true };
+        actors[actor.id] = { ...defaults, ...saved, included: user.active };
         // Clear any previous player choices
         if (user.getFlag("daggerheart-quickactions", "downtimeChoices")) {
             await user.unsetFlag("daggerheart-quickactions", "downtimeChoices");

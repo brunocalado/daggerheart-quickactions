@@ -1,3 +1,7 @@
+# 0.1.8
+- DowntimeUI scroll
+- DowntimeUI disable offline users
+
 # 0.1.7
 - removed timeDiff to prevent Downtime fail
 - DowntimeUI chat message looks nice now
