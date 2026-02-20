@@ -491,8 +491,8 @@
     --dui-bg: #191919;
     --dui-surface: #191919;
     --dui-border: #333;
-    --dui-text: #e0e0e0;
-    --dui-text-dim: #999;
+    --dui-text: #ffffff;
+    --dui-text-dim: #cccccc;
     --dui-input-bg: #fff;
     --dui-input-text: #000;
 
@@ -705,9 +705,10 @@
     & .dui-checkbox-btn {
         width: 20px;
         height: 20px;
+        flex-shrink: 0;
         background: #111;
         border: 1px solid var(--dui-text-dim);
-        border-radius: 3px;
+        border-radius: 0;
         color: transparent;
         cursor: pointer;
         display: flex;
@@ -801,7 +802,7 @@
     }
 
     & .dui-refresh-feature {
-        color: #e0e0e0;
+        color: #ffffff;
         font-size: 12px;
         font-weight: normal;
         border: 1px solid #ffffff;
@@ -888,7 +889,7 @@
     & .dui-action-btn {
         background: transparent;
         border: 1px solid #555;
-        color: #aaa;
+        color: #ffffff;
         padding: 0 10px;
         font-size: 12px;
         cursor: pointer;
@@ -1086,7 +1087,7 @@
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid #555;
         border-radius: 3px;
-        color: #e0e0e0;
+        color: #ffffff;
         cursor: pointer;
         outline: none;
         height: 24px;
@@ -1100,7 +1101,7 @@
 
     & .dui-eloquent-select:hover {
         border-color: var(--dui-gold);
-        color: #fff;
+        color: #ffffff;
     }
 
     & .dui-eloquent-select:focus {
@@ -1110,7 +1111,7 @@
 
     & .dui-eloquent-select option {
         background: #191919;
-        color: #e0e0e0;
+        color: #ffffff;
         padding: 4px;
     }
 
