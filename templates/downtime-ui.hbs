@@ -51,9 +51,6 @@
                     <span class="dui-user-name">
                         (<span class="dui-user-dot" style="--user-color: {{this.userColor}};"></span>{{this.userName}})
                     </span>
-                    {{#if this.hasEfficient}}{{#if ../isShort}}
-                    <span class="dui-efficient-label" title="Efficient: can upgrade one action to Long Rest quality"><i class="fas fa-star"></i></span>
-                    {{/if}}{{/if}}
                 </div>
             </div>
 
@@ -123,18 +120,30 @@
                 </div>
             </div>
 
-            <!-- Eloquent Selector - Below moves list -->
-            {{#if this.hasEloquent}}
-            <div class="dui-eloquent-selector-below">
-                <span class="dui-eloquent-label">Eloquent:</span>
-                <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
-                    <option value="">Choose a friend...</option>
-                    {{#each this.eloquentOptions}}
-                    {{#if this.id}}
-                    <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
-                    {{/if}}
-                    {{/each}}
-                </select>
+            <!-- Feature rows below moves list -->
+            {{#if this.showFeaturesRow}}
+            <div class="dui-features-row">
+                {{#if this.hasEloquent}}
+                <div class="dui-eloquent-selector-below">
+                    <span class="dui-eloquent-label">Eloquent:</span>
+                    <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
+                        <option value="">Choose a friend...</option>
+                        {{#each this.eloquentOptions}}
+                        {{#if this.id}}
+                        <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
+                        {{/if}}
+                        {{/each}}
+                    </select>
+                </div>
+                {{/if}}
+
+                {{#if this.hasEfficient}}{{#if ../isShort}}
+                <div class="dui-efficient-indicator">
+                    <i class="fas fa-star"></i>
+                    <span class="dui-efficient-text">Efficient</span>
+                    <span class="dui-efficient-tooltip">Can upgrade one action to Long Rest quality</span>
+                </div>
+                {{/if}}{{/if}}
             </div>
             {{/if}}
 

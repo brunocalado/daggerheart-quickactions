@@ -1058,7 +1058,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 targetActorId: playerChoices.targets?.[a.key] ?? "",
                 cannotSelect: false,
                 isEfficientSlot: a.key === efficientSlot,
-                canBeEfficientSlot: hasEfficient && !isLong && playerChoices.actions.includes(a.key)
+                canBeEfficientSlot: hasEfficient && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key)
             }));
 
             // Target options: "Yourself" + all other actors
@@ -1112,7 +1112,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasEloquent,
                 eloquentBeneficiary: playerChoices.eloquentBeneficiary ?? "",
                 eloquentOptions,
-                refreshFeatures: uniqueRefreshFeatures
+                refreshFeatures: uniqueRefreshFeatures,
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong)
             });
         }
 
@@ -1138,6 +1139,48 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 this._onSetEloquentBeneficiary(event);
             }
         });
+
+        // Smart tooltip: position first, then show (prevents scroll glitch)
+        this.element.addEventListener("mouseenter", (event) => {
+            const badge = event.target.closest?.(".dui-refresh-badge");
+            if (!badge) return;
+            const tooltip = badge.querySelector(".dui-refresh-tooltip");
+            if (!tooltip) return;
+
+            // 1. Reset position and keep hidden for measurement
+            tooltip.classList.remove("dui-refresh-tooltip--above");
+            tooltip.style.display = "flex";
+            const tooltipHeight = tooltip.offsetHeight;
+            tooltip.style.removeProperty("display");
+
+            // 2. Decide direction based on available space
+            const container = badge.closest(".window-content") || badge.closest(".dui-container");
+            if (container) {
+                const containerRect = container.getBoundingClientRect();
+                const badgeRect = badge.getBoundingClientRect();
+                const spaceBelow = containerRect.bottom - badgeRect.bottom - 8;
+                const spaceAbove = badgeRect.top - containerRect.top - 8;
+                if (tooltipHeight > spaceBelow && spaceAbove > spaceBelow) {
+                    tooltip.classList.add("dui-refresh-tooltip--above");
+                }
+            }
+
+            // 3. Now reveal (position is already correct, no scroll flash)
+            tooltip.style.visibility = "visible";
+            tooltip.style.opacity = "1";
+        }, true);
+
+        this.element.addEventListener("mouseleave", (event) => {
+            const badge = event.target.closest?.(".dui-refresh-badge");
+            if (!badge) return;
+            // Don't hide if mouse moved into the tooltip itself
+            const related = event.relatedTarget;
+            if (related && badge.contains(related)) return;
+            const tooltip = badge.querySelector(".dui-refresh-tooltip");
+            if (!tooltip) return;
+            tooltip.style.visibility = "";
+            tooltip.style.opacity = "";
+        }, true);
     }
 
     // Player writes own choices to user flag
@@ -1289,16 +1332,17 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const newEfficientSlot = currentChoices.efficientSlot === actionKey ? null : actionKey;
         const foragerChoice = currentChoices.foragerChoice ?? null;
 
-        // If un-starring workOnProject during short rest, also deselect the action
-        let actions = currentChoices.actions;
-        let targets = currentChoices.targets ?? {};
-        if (actionKey === "workOnProject" && newEfficientSlot === null) {
+        // If workOnProject loses the efficient slot during short rest, deselect it
+        // (either by un-starring it directly or by switching the star to another action)
+        let actions = [...currentChoices.actions];
+        let targets = { ...(currentChoices.targets ?? {}) };
+        const oldSlot = currentChoices.efficientSlot;
+        if (oldSlot === "workOnProject" && newEfficientSlot !== "workOnProject") {
             const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
             const restType = state?.restType || "short";
             if (restType === "short") {
                 actions = actions.filter(a => a !== "workOnProject");
-                const { workOnProject: _, ...rest } = targets;
-                targets = rest;
+                delete targets.workOnProject;
             }
         }
 
