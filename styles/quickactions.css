@@ -845,6 +845,7 @@
         flex-wrap: wrap;
         gap: 6px;
         align-items: center;
+        justify-content: center;
     }
 
     /* Actions Column (Horizontal Grid) */
@@ -853,6 +854,7 @@
         flex-wrap: wrap;
         gap: 6px;
         align-items: center;
+        justify-content: center;
         flex: 1;
     }
 
