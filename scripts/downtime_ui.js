@@ -1232,7 +1232,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (actor) {
             const eloquentGiver = game.users.find(u => {
                 if (u.isGM || u.id === ownerUser.id) return false;
-                return _hasEloquentFeature(u.character);
+                return u.character != null && _hasEloquentFeature(u.character);
             });
             if (eloquentGiver) {
                 const eloquentGiverChoices = eloquentGiver.getFlag("daggerheart-quickactions", "downtimeChoices");

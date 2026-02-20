@@ -1,3 +1,6 @@
+# 0.1.9
+- Bug fix: Automated: Eloquent
+
 # 0.1.8
 - Added scrollbar to DowntimeUI
 - DowntimeUI: Automatically disable offline users
