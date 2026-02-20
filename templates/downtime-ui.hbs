@@ -125,8 +125,9 @@
             <!-- Eloquent Selector - Below moves list -->
             {{#if this.hasEloquent}}
             <div class="dui-eloquent-selector-below">
+                <span class="dui-eloquent-label">Eloquent:</span>
                 <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
-                    <option value="">Eloquent: Choose a friend...</option>
+                    <option value="">Choose a friend...</option>
                     {{#each this.eloquentOptions}}
                     {{#if this.id}}
                     <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
@@ -138,8 +139,8 @@
 
             <!-- Counter Column -->
             <div class="dui-counter">
-                <span class="dui-count-val" {{#if this.isOverLimit}}style="color: #ff6b6b;"{{/if}}>{{this.selectedCount}} / {{this.maxChoices}}</span>
-                <span>Moves</span>
+                <span class="dui-count-label">Moves</span>
+                <span class="dui-count-val" {{#if this.isOverLimit}}style="color: #ff6b6b;"{{/if}}>{{this.selectedCount}}/{{this.maxChoices}}</span>
             </div>
 
         </div>
