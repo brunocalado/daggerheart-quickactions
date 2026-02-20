@@ -136,6 +136,10 @@ function _hasSoothingSpeechFeature(actor) {
     return _hasCoreFeature(actor, "soothingSpeech", "Soothing Speech");
 }
 
+function _hasArmorerFeature(actor) {
+    return _hasCoreFeature(actor, "armorer", "Armorer");
+}
+
 function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
     const isLong = restType === "long" || forceEffectiveLong;
     const results = [];
@@ -406,6 +410,18 @@ async function _applyDowntimeEffects() {
         }
     }
 
+    // Armorer bonus: when an actor with Armorer uses Repair Armor, all other included actors clear 1 Armor Slot
+    for (const { actor, actorState } of includedActors) {
+        if (!_hasArmorerFeature(actor)) continue;
+        if (!actorState.actions.includes("repairArmor")) continue;
+        for (const { actor: ally } of includedActors) {
+            if (ally.id === actor.id) continue;
+            await _reduceArmorMarks(ally, 1);
+            if (!resultsByActor.has(ally.id)) resultsByActor.set(ally.id, { name: ally.name, events: [] });
+            resultsByActor.get(ally.id).events.push(`Armorer (${actor.name} cleared 1 Armor Slot)`);
+        }
+    }
+
     // Feature refresh (uses recovery + resource recovery)
     // Group updates by item to avoid conflicts when an item has both action uses and resource
     for (const { actor, actorState } of includedActors) {
@@ -629,7 +645,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "Refreshes additional resources during rest, as if it were a Long Rest." },
             { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "Grants +1 extra move during downtime." },
             { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
-            { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." }
+            { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
+            { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." }
         ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
         const coreRaw = defaultCore.map(d => {
@@ -1146,8 +1163,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Deduplicate names (same item may have multiple actions)
             const uniqueRefreshFeatures = [...new Set(refreshFeatures)];
 
-            // Soothing Speech feature
+            // Soothing Speech & Armorer features
             const hasSoothingSpeech = _hasSoothingSpeechFeature(actor);
+            const hasArmorer = _hasArmorerFeature(actor);
 
             // Eloquent feature: prepare options for beneficiary selection
             const hasEloquent = _hasEloquentFeature(actor);
@@ -1186,7 +1204,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 eloquentOptions,
                 refreshFeatures: uniqueRefreshFeatures,
                 hasSoothingSpeech,
-                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech
+                hasArmorer,
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer
             });
         }
 

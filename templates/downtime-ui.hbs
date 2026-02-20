@@ -152,6 +152,14 @@
                     <span class="dui-efficient-tooltip">Tend to Wounds on another: +1 HP on target, +2 HP on yourself</span>
                 </div>
                 {{/if}}
+
+                {{#if this.hasArmorer}}
+                <div class="dui-efficient-indicator">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="dui-efficient-text">Armorer</span>
+                    <span class="dui-efficient-tooltip">When you Repair Armor, all allies also clear an Armor Slot</span>
+                </div>
+                {{/if}}
             </div>
             {{/if}}
 
