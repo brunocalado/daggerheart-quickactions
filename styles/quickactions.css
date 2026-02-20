@@ -1538,6 +1538,28 @@
         }
     }
 
+    /* Rest Type Select (Custom & Item Moves) */
+    & .dui-rest-type-select {
+        padding: 4px 6px;
+        font-size: 11px;
+        background: #2a2a2a;
+        color: var(--cfg-text);
+        border: 1px solid #555;
+        border-radius: 4px;
+        cursor: pointer;
+        outline: none;
+        flex-shrink: 0;
+        width: 65px;
+
+        &:hover { border-color: var(--cfg-gold); }
+        &:focus { border-color: var(--cfg-gold); box-shadow: 0 0 4px rgba(201, 160, 96, 0.3); }
+
+        & option {
+            background: #191919;
+            color: #fff;
+        }
+    }
+
     /* Footer */
     & .dui-cfg-footer {
         padding: 10px 12px;
@@ -1546,6 +1568,26 @@
     }
 
     /* Core Features Tab */
+    & .dui-core-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 8px 10px;
+        background: rgba(201, 160, 96, 0.08);
+        border: 1px solid rgba(201, 160, 96, 0.25);
+        border-radius: 4px;
+        margin-bottom: 6px;
+        font-size: 11px;
+        color: #ffffff;
+        line-height: 1.4;
+
+        & > i {
+            color: var(--cfg-gold);
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+    }
+
     & .dui-core-list {
         display: flex;
         flex-direction: column;
@@ -1559,16 +1601,36 @@
         padding: 6px 0;
     }
 
+    & .dui-core-label-group {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 130px;
+        width: 130px;
+        flex-shrink: 0;
+    }
+
     & .dui-core-label {
         font-size: 13px;
         font-weight: bold;
         color: var(--cfg-gold);
-        min-width: 80px;
         white-space: nowrap;
+    }
+
+    & .dui-core-help {
+        color: #777;
+        cursor: help;
+        font-size: 12px;
+        line-height: 1;
+
+        &:hover {
+            color: var(--cfg-gold);
+        }
     }
 
     & .dui-core-drop {
         flex: 1;
+        max-width: 260px;
         display: flex;
         align-items: center;
         gap: 6px;
@@ -1621,5 +1683,28 @@
             text-shadow: 0 0 5px var(--cfg-gold);
             border-color: #fff;
         }
+    }
+}
+
+/* Fixed tooltip for Core features (appended to document.body) */
+.dui-fixed-tooltip {
+    position: fixed;
+    background: #191919;
+    border: 1px solid #C9A060;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #fff;
+    white-space: normal;
+    width: 220px;
+    z-index: 999999;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    line-height: 1.4;
+    opacity: 0;
+    transition: opacity 0.15s;
+
+    &.visible {
+        opacity: 1;
     }
 }

@@ -132,6 +132,10 @@ function _hasEloquentFeature(actor) {
     return _hasCoreFeature(actor, "eloquent", "Eloquent");
 }
 
+function _hasSoothingSpeechFeature(actor) {
+    return _hasCoreFeature(actor, "soothingSpeech", "Soothing Speech");
+}
+
 function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
     const isLong = restType === "long" || forceEffectiveLong;
     const results = [];
@@ -232,6 +236,9 @@ async function _applyDowntimeEffects() {
             if (action === "tendWounds") {
                 // Read the target actor's modifier (when healing others, use target's modifier)
                 const targetHpMod = isSelf ? hpModifier : (state.actors?.[targetActor.id]?.hpModifier ?? 0);
+                // Soothing Speech: +1 HP on target when tending another character
+                const hasSoothing = _hasSoothingSpeechFeature(actor);
+                const soothingBonus = (hasSoothing && !isSelf) ? 1 : 0;
                 if (effectiveLong) {
                     await targetActor.update({ "system.resources.hitPoints.value": 0 });
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
@@ -240,13 +247,21 @@ async function _applyDowntimeEffects() {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
                     if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-                    const recovery = roll.total + tier + targetHpMod;
+                    const recovery = roll.total + tier + targetHpMod + soothingBonus;
                     const currentHP = targetActor.system.resources?.hitPoints?.value ?? 0;
                     const newHP = Math.max(0, currentHP - recovery);
                     await targetActor.update({ "system.resources.hitPoints.value": newHP });
                     const modText = targetHpMod > 0 ? ` +${targetHpMod} mod` : "";
+                    const soothText = soothingBonus > 0 ? " +1 Soothing Speech" : "";
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    actorEvents.push(`Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}${modText}])`);
+                    actorEvents.push(`Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}${modText}${soothText}])`);
+                }
+                // Soothing Speech self-heal: clear 2 HP on the caster when tending another
+                if (hasSoothing && !isSelf) {
+                    const selfHP = actor.system.resources?.hitPoints?.value ?? 0;
+                    const newSelfHP = Math.max(0, selfHP - 2);
+                    await actor.update({ "system.resources.hitPoints.value": newSelfHP });
+                    actorEvents.push(`Soothing Speech (Self-heal 2 HP)`);
                 }
             }
 
@@ -556,7 +571,7 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "daggerheart-configure-moves",
         classes: ["dh-configure-actor"],
         window: { title: "+Moves", resizable: true },
-        position: { width: 480, height: 420 },
+        position: { width: 480, height: 500 },
         actions: {
             saveMovesConfig: ConfigureMovesApp.prototype._onSaveMovesConfig,
             addCraftRow: ConfigureMovesApp.prototype._onAddCraftRow,
@@ -587,7 +602,11 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        const customMoves = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
+        const customMovesRaw = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
+        const customMoves = customMovesRaw.map(m => ({
+            label: m.label || "",
+            restType: m.restType || "any"
+        }));
 
         const savedItemMoves = game.settings.get("daggerheart-quickactions", "downtimeItemMoveEntries") ?? [];
         const itemMoveRaw = savedItemMoves.length > 0 ? savedItemMoves : DEFAULT_ITEM_MOVE_ENTRIES;
@@ -597,21 +616,26 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const item = entry.itemUuid ? await fromUuid(entry.itemUuid) : null;
             itemMoveEntries.push({
                 itemUuid: entry.itemUuid || "",
-                itemName: item?.name || ""
+                itemName: item?.name || "",
+                restType: entry.restType || "any"
             });
         }
 
         // Core features — merge saved with defaults so new features always appear
         const savedCore = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
         const defaultCore = [
-            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" },
-            { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" },
-            { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC" },
-            { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK" },
-            { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM" }
+            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t", description: "During Short Rest, one selected action can be upgraded to Long Rest quality." },
+            { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl", description: "Grants a bonus Forage action that does not count towards the move limit." },
+            { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "Refreshes additional resources during rest, as if it were a Long Rest." },
+            { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "Grants +1 extra move during downtime." },
+            { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
+            { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." }
         ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
-        const coreRaw = defaultCore.map(d => savedByKey.get(d.key) ?? d);
+        const coreRaw = defaultCore.map(d => {
+            const saved = savedByKey.get(d.key);
+            return saved ? { ...d, ...saved, description: d.description } : d;
+        });
         const coreFeatures = [];
         for (const entry of coreRaw) {
             const item = entry.itemUuid ? await fromUuid(entry.itemUuid) : null;
@@ -619,7 +643,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 key: entry.key || "",
                 label: entry.label || "",
                 itemUuid: entry.itemUuid || "",
-                itemName: item?.name || ""
+                itemName: item?.name || "",
+                description: entry.description || ""
             });
         }
 
@@ -627,6 +652,30 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onRender(context, options) {
+        // Core help tooltips (fixed position, not clipped by overflow)
+        let fixedTip = document.querySelector('.dui-fixed-tooltip');
+        if (!fixedTip) {
+            fixedTip = document.createElement('div');
+            fixedTip.className = 'dui-fixed-tooltip';
+            document.body.appendChild(fixedTip);
+        }
+        this.element.addEventListener('mouseenter', (e) => {
+            const help = e.target.closest?.('.dui-core-help');
+            if (!help) return;
+            const text = help.dataset.tip;
+            if (!text) return;
+            fixedTip.textContent = text;
+            const rect = help.getBoundingClientRect();
+            fixedTip.style.top = `${rect.bottom + 6}px`;
+            fixedTip.style.left = `${rect.left + rect.width / 2 - 110}px`;
+            fixedTip.classList.add('visible');
+        }, true);
+        this.element.addEventListener('mouseleave', (e) => {
+            const help = e.target.closest?.('.dui-core-help');
+            if (!help) return;
+            fixedTip.classList.remove('visible');
+        }, true);
+
         // Tab switching
         this.element.querySelectorAll('.dui-cfg-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -822,6 +871,11 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         newRow.dataset.index = String(nextIndex);
         newRow.innerHTML = `
             <input type="text" class="dui-custom-input" name="customMove_${nextIndex}" value="" maxlength="27" placeholder="Move name...">
+            <select class="dui-rest-type-select">
+                <option value="any" selected>Any</option>
+                <option value="short">Short</option>
+                <option value="long">Long</option>
+            </select>
             <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="${nextIndex}" title="Remove">
                 <i class="fas fa-times"></i>
             </button>`;
@@ -843,6 +897,11 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 <i class="fas fa-box-open"></i>
                 <span class="dui-itemmove-name">Drag Item Here</span>
             </div>
+            <select class="dui-rest-type-select">
+                <option value="any" selected>Any</option>
+                <option value="short">Short</option>
+                <option value="long">Long</option>
+            </select>
             <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="${nextIndex}" title="Remove">
                 <i class="fas fa-times"></i>
             </button>
@@ -888,10 +947,11 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Collect custom moves from text inputs
         const customMoves = [];
-        for (const input of el.querySelectorAll('.dui-custom-input')) {
-            const label = input.value.trim();
+        for (const row of el.querySelectorAll('.dui-custom-row')) {
+            const label = row.querySelector('.dui-custom-input')?.value.trim();
+            const restType = row.querySelector('.dui-rest-type-select')?.value || "any";
             if (label) {
-                customMoves.push({ label });
+                customMoves.push({ label, restType });
             }
         }
 
@@ -900,8 +960,9 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let j = 0;
         while (el.querySelector(`input[name="itemMove_${j}"]`)) {
             const itemUuid = el.querySelector(`input[name="itemMove_${j}"]`).value;
+            const restType = el.querySelector(`.dui-itemmove-row[data-index="${j}"] .dui-rest-type-select`)?.value || "any";
             if (itemUuid) {
-                itemMoveEntries.push({ itemUuid });
+                itemMoveEntries.push({ itemUuid, restType });
             }
             j++;
         }
@@ -923,6 +984,10 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.settings.set("daggerheart-quickactions", "downtimeCoreFeatures", coreFeatures);
         ui.notifications.info("Moves configuration saved.");
         this.close();
+    }
+
+    _onClose() {
+        document.querySelector('.dui-fixed-tooltip')?.remove();
     }
 }
 
@@ -1018,6 +1083,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const customMoves = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
             for (const move of customMoves) {
                 if (!move.label) continue;
+                const rt = move.restType || "any";
+                if (rt !== "any" && rt !== globalRestType) continue;
                 extraActions.push({ key: `custom_${move.label}`, label: move.label, hasTarget: false, isExtra: true });
             }
 
@@ -1026,6 +1093,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const itemMoveEntries = savedItemMoves.length > 0 ? savedItemMoves : DEFAULT_ITEM_MOVE_ENTRIES;
             for (const entry of itemMoveEntries) {
                 if (!entry.itemUuid) continue;
+                const rt = entry.restType || "any";
+                if (rt !== "any" && rt !== globalRestType) continue;
                 const moveItem = await fromUuid(entry.itemUuid);
                 if (!moveItem) continue;
                 // Skip Eloquent if it's configured as a Core Feature
@@ -1077,6 +1146,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Deduplicate names (same item may have multiple actions)
             const uniqueRefreshFeatures = [...new Set(refreshFeatures)];
 
+            // Soothing Speech feature
+            const hasSoothingSpeech = _hasSoothingSpeechFeature(actor);
+
             // Eloquent feature: prepare options for beneficiary selection
             const hasEloquent = _hasEloquentFeature(actor);
             const eloquentOptions = [];
@@ -1113,7 +1185,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 eloquentBeneficiary: playerChoices.eloquentBeneficiary ?? "",
                 eloquentOptions,
                 refreshFeatures: uniqueRefreshFeatures,
-                showFeaturesRow: hasEloquent || (hasEfficient && !isLong)
+                hasSoothingSpeech,
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech
             });
         }
 

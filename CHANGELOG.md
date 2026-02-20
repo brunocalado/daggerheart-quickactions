@@ -1,5 +1,7 @@
 # 0.1.9
 - Bug fix: Automated: Eloquent
+- DowntimeUI: visual improvement and informative text
+- Automated: Soothing Speech
 
 # 0.1.8
 - Added scrollbar to DowntimeUI

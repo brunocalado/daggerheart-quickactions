@@ -9,10 +9,21 @@
 
     {{!-- Core Features Panel --}}
     <div class="dui-cfg-panel active" data-panel="core">
+        <div class="dui-core-info">
+            <i class="fas fa-info-circle"></i>
+            <span>These are the default core features used during downtime. You can replace the linked item if needed — the mechanical effect will remain the same, but the system will search for the move by the new item's name.</span>
+        </div>
         <div class="dui-core-list" id="dui-core-list">
             {{#each coreFeatures}}
             <div class="dui-core-row" data-index="{{@index}}" data-key="{{this.key}}">
-                <span class="dui-core-label">{{this.label}}</span>
+                <div class="dui-core-label-group">
+                    <span class="dui-core-label">{{this.label}}</span>
+                    {{#if this.description}}
+                    <span class="dui-core-help" data-tip="{{this.description}}">
+                        <i class="fas fa-question-circle"></i>
+                    </span>
+                    {{/if}}
+                </div>
                 <div class="dui-core-drop {{#if this.itemName}}filled{{else}}empty{{/if}}" data-index="{{@index}}">
                     <i class="fas fa-star"></i>
                     <span class="dui-core-item-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
@@ -32,6 +43,10 @@
 
     {{!-- Craft Panel --}}
     <div class="dui-cfg-panel" data-panel="craft">
+        <div class="dui-core-info">
+            <i class="fas fa-info-circle"></i>
+            <span>If an actor owns the recipe item (matched by name), the crafted item will be added to their sheet when the downtime move is executed. Items are matched by name.</span>
+        </div>
         <div class="dui-craft-list" id="dui-craft-list">
             {{#each craftEntries}}
             <div class="dui-craft-row" data-index="{{@index}}">
@@ -59,10 +74,19 @@
 
     {{!-- Custom Panel --}}
     <div class="dui-cfg-panel" data-panel="custom">
+        <div class="dui-core-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Add custom move names that will appear as selectable actions during downtime. These are freeform labels — no item link required. Use the rest type selector to restrict when each move is available.</span>
+        </div>
         <div class="dui-custom-list" id="dui-custom-list">
             {{#each customMoves}}
             <div class="dui-custom-row" data-index="{{@index}}">
                 <input type="text" class="dui-custom-input" name="customMove_{{@index}}" value="{{this.label}}" maxlength="27" placeholder="Move name...">
+                <select class="dui-rest-type-select">
+                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>Any</option>
+                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>Short</option>
+                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>Long</option>
+                </select>
                 <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="{{@index}}" title="Remove">
                     <i class="fas fa-times"></i>
                 </button>
@@ -76,6 +100,10 @@
 
     {{!-- Item Moves Panel --}}
     <div class="dui-cfg-panel" data-panel="itemmoves">
+        <div class="dui-core-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Drag items here to create moves linked to specific items. The move will only appear for actors who own the item (matched by name). Use the rest type selector to restrict when each move is available.</span>
+        </div>
         <div class="dui-itemmove-list" id="dui-itemmove-list">
             {{#each itemMoveEntries}}
             <div class="dui-itemmove-row" data-index="{{@index}}">
@@ -83,6 +111,11 @@
                     <i class="fas fa-box-open"></i>
                     <span class="dui-itemmove-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
                 </div>
+                <select class="dui-rest-type-select">
+                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>Any</option>
+                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>Short</option>
+                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>Long</option>
+                </select>
                 <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="{{@index}}" title="Remove">
                     <i class="fas fa-times"></i>
                 </button>
