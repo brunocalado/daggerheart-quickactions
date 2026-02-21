@@ -54,17 +54,27 @@
                 </div>
             </div>
 
-            {{#if this.refreshFeatures.length}}
-            <div class="dui-refresh-badge">
-                <span class="dui-refresh-label">Refreshing Resources</span>
-                <i class="fas fa-sync-alt"></i>
-                <span class="dui-refresh-tooltip">
-                    {{#each this.refreshFeatures}}
-                    <span class="dui-refresh-feature">{{this}}</span>
-                    {{/each}}
-                </span>
+            <div class="dui-badges-container">
+                {{#if this.domainCardStatus}}
+                <div class="dui-domain-card-badge {{this.domainCardStatus.type}}">
+                    <span class="dui-domain-card-label">{{this.domainCardStatus.count}}</span>
+                    <i class="fas fa-clone"></i>
+                    <span class="dui-domain-card-tooltip">{{this.domainCardStatus.message}}</span>
+                </div>
+                {{/if}}
+
+                {{#if this.refreshFeatures.length}}
+                <div class="dui-refresh-badge">
+                    <span class="dui-refresh-label">Refreshing Resources</span>
+                    <i class="fas fa-sync-alt"></i>
+                    <span class="dui-refresh-tooltip">
+                        {{#each this.refreshFeatures}}
+                        <span class="dui-refresh-feature">{{this}}</span>
+                        {{/each}}
+                    </span>
+                </div>
+                {{/if}}
             </div>
-            {{/if}}
 
             <!-- Actions Column -->
             <div class="dui-actions-wrapper">

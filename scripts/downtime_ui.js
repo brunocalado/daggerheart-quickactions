@@ -140,6 +140,20 @@ function _hasArmorerFeature(actor) {
     return _hasCoreFeature(actor, "armorer", "Armorer");
 }
 
+function _getDomainCardCounts(actor) {
+    const domainCards = actor.items.filter(i => i.type === "domainCard");
+    let loadout = 0;
+    let vault = 0;
+    for (const card of domainCards) {
+        if (card.system?.inVault === true) {
+            vault++;
+        } else {
+            loadout++;
+        }
+    }
+    return { loadout, vault };
+}
+
 function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
     const isLong = restType === "long" || forceEffectiveLong;
     const results = [];
@@ -1178,6 +1192,23 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 }
             }
 
+            // Domain Cards information
+            const { loadout: domainLoadout, vault: domainVault } = _getDomainCardCounts(actor);
+            let domainCardStatus = null;
+            if (domainLoadout < 5 && domainVault > 0) {
+                domainCardStatus = {
+                    type: "warning",
+                    message: "Move cards from vault to loadout",
+                    count: `${domainLoadout}/5`
+                };
+            } else if (domainLoadout >= 5 && domainVault > 0) {
+                domainCardStatus = {
+                    type: "info",
+                    message: "You can swap cards between vault and loadout",
+                    count: `${domainLoadout}/5`
+                };
+            }
+
             rows.push({
                 userId,
                 userName: user.name,
@@ -1205,7 +1236,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 refreshFeatures: uniqueRefreshFeatures,
                 hasSoothingSpeech,
                 hasArmorer,
-                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer,
+                domainCardStatus
             });
         }
 
@@ -1234,13 +1266,13 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Smart tooltip: position first, then show (prevents scroll glitch)
         this.element.addEventListener("mouseenter", (event) => {
-            const badge = event.target.closest?.(".dui-refresh-badge");
+            const badge = event.target.closest?.(".dui-refresh-badge") || event.target.closest?.(".dui-domain-card-badge");
             if (!badge) return;
-            const tooltip = badge.querySelector(".dui-refresh-tooltip");
+            const tooltip = badge.querySelector(".dui-refresh-tooltip") || badge.querySelector(".dui-domain-card-tooltip");
             if (!tooltip) return;
 
             // 1. Reset position and keep hidden for measurement
-            tooltip.classList.remove("dui-refresh-tooltip--above");
+            tooltip.classList.remove("dui-refresh-tooltip--above", "dui-domain-card-tooltip--above");
             tooltip.style.display = "flex";
             const tooltipHeight = tooltip.offsetHeight;
             tooltip.style.removeProperty("display");
@@ -1253,7 +1285,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 const spaceBelow = containerRect.bottom - badgeRect.bottom - 8;
                 const spaceAbove = badgeRect.top - containerRect.top - 8;
                 if (tooltipHeight > spaceBelow && spaceAbove > spaceBelow) {
-                    tooltip.classList.add("dui-refresh-tooltip--above");
+                    tooltip.classList.add(tooltip.classList.contains("dui-refresh-tooltip") ? "dui-refresh-tooltip--above" : "dui-domain-card-tooltip--above");
                 }
             }
 
@@ -1263,12 +1295,12 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }, true);
 
         this.element.addEventListener("mouseleave", (event) => {
-            const badge = event.target.closest?.(".dui-refresh-badge");
+            const badge = event.target.closest?.(".dui-refresh-badge") || event.target.closest?.(".dui-domain-card-badge");
             if (!badge) return;
             // Don't hide if mouse moved into the tooltip itself
             const related = event.relatedTarget;
             if (related && badge.contains(related)) return;
-            const tooltip = badge.querySelector(".dui-refresh-tooltip");
+            const tooltip = badge.querySelector(".dui-refresh-tooltip") || badge.querySelector(".dui-domain-card-tooltip");
             if (!tooltip) return;
             tooltip.style.visibility = "";
             tooltip.style.opacity = "";

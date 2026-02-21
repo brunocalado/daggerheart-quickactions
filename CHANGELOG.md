@@ -1,3 +1,6 @@
+# 0.2.0
+- Warn about Domain Cards
+
 # 0.1.9
 - Bug fix: Automated: Eloquent
 - DowntimeUI: visual improvement and informative text
