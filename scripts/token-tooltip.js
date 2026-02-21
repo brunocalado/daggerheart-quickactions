@@ -94,10 +94,10 @@ function _buildData(token) {
         majorDT:  dt.severe ?? 0,
         showMassive,
         massiveDT,
-        hpPct:     pct(hp.value, hp.max),
-        stressPct: pct(stress.value, stress.max),
+        hpPct:     pct(hp.max - hp.value, hp.max),
+        stressPct: pct(stress.max - stress.value, stress.max),
         hopePct:   pct(hope.value, hope.max),
-        armorPct:  pct(armor.value, armor.max)
+        armorPct:  pct(armor.max - armor.value, armor.max)
     };
 }
 
