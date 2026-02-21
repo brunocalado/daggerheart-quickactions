@@ -1,5 +1,6 @@
 # 0.2.0
 - Warn about Domain Cards
+- DowntimeUI: visual improvement
 
 # 0.1.9
 - Bug fix: Automated: Eloquent

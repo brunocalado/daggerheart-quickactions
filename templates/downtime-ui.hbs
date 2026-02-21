@@ -170,6 +170,22 @@
                     <span class="dui-efficient-tooltip">When you Repair Armor, all allies also clear an Armor Slot</span>
                 </div>
                 {{/if}}
+
+                {{#if this.hasPremiumBedroll}}
+                <div class="dui-efficient-indicator">
+                    <i class="fas fa-bed"></i>
+                    <span class="dui-efficient-text">Premium Bedroll</span>
+                    <span class="dui-efficient-tooltip">Refreshes resources as if Long Rest, +1 stress recovery</span>
+                </div>
+                {{/if}}
+
+                {{#if this.hasCelestialTrance}}
+                <div class="dui-efficient-indicator">
+                    <i class="fas fa-moon"></i>
+                    <span class="dui-efficient-text">Celestial Trance</span>
+                    <span class="dui-efficient-tooltip">Grants +1 extra move during downtime</span>
+                </div>
+                {{/if}}
             </div>
             {{/if}}
 

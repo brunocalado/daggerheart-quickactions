@@ -1180,6 +1180,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Soothing Speech & Armorer features
             const hasSoothingSpeech = _hasSoothingSpeechFeature(actor);
             const hasArmorer = _hasArmorerFeature(actor);
+            const hasPremiumBedroll = _hasPremiumBedrollFeature(actor);
+            const hasCelestialTrance = _hasCelestialTranceFeature(actor);
 
             // Eloquent feature: prepare options for beneficiary selection
             const hasEloquent = _hasEloquentFeature(actor);
@@ -1236,7 +1238,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 refreshFeatures: uniqueRefreshFeatures,
                 hasSoothingSpeech,
                 hasArmorer,
-                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer,
+                hasPremiumBedroll,
+                hasCelestialTrance,
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasCelestialTrance,
                 domainCardStatus
             });
         }
