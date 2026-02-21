@@ -1816,3 +1816,127 @@
         opacity: 1;
     }
 }
+
+/* ================================================================
+   TOKEN HOVER TOOLTIP  (#dh-qa-token-tooltip)
+================================================================ */
+
+#dh-qa-token-tooltip {
+    position: fixed;
+    z-index: 999999;
+    display: none;
+    pointer-events: none;
+    min-width: 190px;
+    max-width: 240px;
+    background: #191919;
+    border: 1px solid #C9A060;
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75), 0 0 6px rgba(201, 160, 96, 0.15);
+    font-size: 12px;
+    color: #e0e0e0;
+    line-height: 1.4;
+
+    .dh-qa-tt-header {
+        font-weight: 700;
+        font-size: 13px;
+        color: #C9A060;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 7px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid rgba(201, 160, 96, 0.35);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dh-qa-tt-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .dh-qa-tt-row {
+        display: grid;
+        grid-template-columns: 62px 1fr 38px;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .dh-qa-tt-label {
+        font-size: 11px;
+        font-weight: bold;
+        color: #C9A060;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .fa-heart      { color: #e74c3c; }
+        .fa-bolt       { color: #9b59b6; }
+        .fa-sun        { color: #FFD700; }
+        .fa-shield-alt { color: #2980b9; }
+    }
+
+    .dh-qa-tt-bar-wrap {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .dh-qa-tt-bar {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.2s ease;
+        width: var(--progress);
+
+        &.dh-qa-tt-bar--hp     { background: linear-gradient(to right, #c0392b, #e74c3c); }
+        &.dh-qa-tt-bar--stress { background: linear-gradient(to right, #7f3fbf, #9b59b6); }
+        &.dh-qa-tt-bar--hope   { background: linear-gradient(to right, #b8860b, #FFD700); }
+        &.dh-qa-tt-bar--armor  { background: linear-gradient(to right, #1a6e8e, #2980b9); }
+    }
+
+    .dh-qa-tt-value {
+        font-size: 11px;
+        color: #ffffff;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .dh-qa-tt-divider {
+        border: none;
+        border-top: 1px solid rgba(201, 160, 96, 0.2);
+        margin: 3px 0;
+    }
+
+    .dh-qa-tt-thresholds {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 11px;
+        color: #e0e0e0;
+        padding-top: 2px;
+    }
+
+    .dh-qa-tt-dt-item {
+        white-space: nowrap;
+        font-size: 11px;
+        line-height: 1;
+
+        strong {
+            color: #ffffff;
+        }
+    }
+
+    .dh-qa-tt-dt-massive {
+        color: #f5836e;
+
+        strong { color: #f5836e; }
+    }
+}

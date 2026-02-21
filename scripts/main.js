@@ -11,6 +11,8 @@ import { activateRequestRoll, showCinematicPrompt } from "./request_roll.js";
 import { features } from "./features.js";
 // Import Beastform
 import { beastformAction } from "./beastform.js";
+// Import Token Tooltip
+import { initTokenTooltip } from "./token-tooltip.js";
 
 // ==================================================================
 // GLOBAL API
@@ -147,6 +149,18 @@ Hooks.once("init", () => {
             openDowntimeUIForPlayer();
         }
     });
+
+    // 8. Token Hover Tooltip
+    game.settings.register("daggerheart-quickactions", "tokenTooltip", {
+        name: "Token Hover Tooltip",
+        hint: "Show a stat summary tooltip when hovering over character tokens on the canvas.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    initTokenTooltip();
 
     globalThis.QuickActions = {
         Downtime: activateDowntime,

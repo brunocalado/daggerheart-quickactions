@@ -1,0 +1,48 @@
+<div class="dh-qa-tt-header">{{name}}</div>
+
+<div class="dh-qa-tt-body">
+
+    <div class="dh-qa-tt-row">
+        <span class="dh-qa-tt-label"><i class="fas fa-heart"></i> HP</span>
+        <div class="dh-qa-tt-bar-wrap">
+            <div class="dh-qa-tt-bar dh-qa-tt-bar--hp" style="--progress: {{hpPct}}%"></div>
+        </div>
+        <span class="dh-qa-tt-value">{{hp.value}}/{{hp.max}}</span>
+    </div>
+
+    <div class="dh-qa-tt-row">
+        <span class="dh-qa-tt-label"><i class="fas fa-bolt"></i> Stress</span>
+        <div class="dh-qa-tt-bar-wrap">
+            <div class="dh-qa-tt-bar dh-qa-tt-bar--stress" style="--progress: {{stressPct}}%"></div>
+        </div>
+        <span class="dh-qa-tt-value">{{stress.value}}/{{stress.max}}</span>
+    </div>
+
+    <div class="dh-qa-tt-row">
+        <span class="dh-qa-tt-label"><i class="fas fa-sun"></i> Hope</span>
+        <div class="dh-qa-tt-bar-wrap">
+            <div class="dh-qa-tt-bar dh-qa-tt-bar--hope" style="--progress: {{hopePct}}%"></div>
+        </div>
+        <span class="dh-qa-tt-value">{{hope.value}}/{{hope.max}}</span>
+    </div>
+
+    <div class="dh-qa-tt-row">
+        <span class="dh-qa-tt-label"><i class="fas fa-shield-alt"></i> Armor</span>
+        <div class="dh-qa-tt-bar-wrap">
+            <div class="dh-qa-tt-bar dh-qa-tt-bar--armor" style="--progress: {{armorPct}}%"></div>
+        </div>
+        <span class="dh-qa-tt-value">{{armor.value}}/{{armor.max}}</span>
+    </div>
+
+    <div class="dh-qa-tt-divider"></div>
+
+    <div class="dh-qa-tt-thresholds">
+        <span class="dh-qa-tt-dt-item">Minor <strong>{{minorDT}}</strong></span>
+        <span class="dh-qa-tt-dt-item">Major <strong>{{majorDT}}</strong></span>
+        <span class="dh-qa-tt-dt-item">Severe</span>
+        {{#if showMassive}}
+        <span class="dh-qa-tt-dt-item dh-qa-tt-dt-massive"><strong>{{massiveDT}}</strong> Massive</span>
+        {{/if}}
+    </div>
+
+</div>

@@ -1,3 +1,6 @@
+# 0.2.1
+- Tooltip for Players
+
 # 0.2.0
 - Warn about Domain Cards
 - DowntimeUI: visual improvement
