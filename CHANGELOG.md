@@ -1,3 +1,7 @@
+# 0.2.2
+- Tooltip for Adversaries
+- Tooltip for Companion
+
 # 0.2.1
 - Tooltip for Players
 

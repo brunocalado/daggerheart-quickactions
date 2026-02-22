@@ -1,6 +1,87 @@
-<div class="dh-qa-tt-header">{{name}}</div>
+{{#if isAdversary}}
+
+<div class="dh-qa-tt-header">
+    <span class="dh-qa-tt-name">{{name}}</span>
+    <span class="dh-qa-tt-tier dh-qa-tt-tier--{{tier}}">{{tierRoman}}</span>
+</div>
+<div class="dh-qa-tt-adv-meta">
+    <span>Difficulty: <strong>{{difficulty}}</strong></span>
+    <span>Bonus: <strong>{{bonusSign}}</strong></span>
+</div>
 
 <div class="dh-qa-tt-body">
+
+    <div class="dh-qa-tt-row">
+        <span class="dh-qa-tt-label"><i class="fas fa-heart"></i> HP</span>
+        <div class="dh-qa-tt-bar-wrap">
+            <div class="dh-qa-tt-bar dh-qa-tt-bar--hp" style="--progress: {{hpPct}}%"></div>
+        </div>
+        <span class="dh-qa-tt-value">{{hp.value}}/{{hp.max}}</span>
+    </div>
+
+    <div class="dh-qa-tt-row">
+        <span class="dh-qa-tt-label"><i class="fas fa-bolt"></i> Stress</span>
+        <div class="dh-qa-tt-bar-wrap">
+            <div class="dh-qa-tt-bar dh-qa-tt-bar--stress" style="--progress: {{stressPct}}%"></div>
+        </div>
+        <span class="dh-qa-tt-value">{{stress.value}}/{{stress.max}}</span>
+    </div>
+
+    <div class="dh-qa-tt-divider"></div>
+
+    <div class="dh-qa-tt-thresholds">
+        <span class="dh-qa-tt-dt-item">Minor <strong>{{minorDT}}</strong></span>
+        <span class="dh-qa-tt-dt-item">Major <strong>{{majorDT}}</strong></span>
+        <span class="dh-qa-tt-dt-item">Severe</span>
+        {{#if showMassive}}
+        <span class="dh-qa-tt-dt-item dh-qa-tt-dt-massive"><strong>{{massiveDT}}</strong> Massive</span>
+        {{/if}}
+    </div>
+
+</div>
+
+{{else if isCompanion}}
+
+<div class="dh-qa-tt-header">
+    <span class="dh-qa-tt-name">{{name}}</span>
+</div>
+
+<div class="dh-qa-tt-body">
+
+    {{#if partnerName}}
+    <div class="dh-qa-tt-row dh-qa-tt-row--meta">
+        <span class="dh-qa-tt-label"><i class="fas fa-link"></i> Partner</span>
+        <span class="dh-qa-tt-value">{{partnerName}}</span>
+    </div>
+    {{/if}}
+
+    <div class="dh-qa-tt-row dh-qa-tt-row--meta">
+        <span class="dh-qa-tt-label"><i class="fas fa-person-running"></i> Evasion</span>
+        <span class="dh-qa-tt-value">{{evasion}}</span>
+    </div>
+
+    <div class="dh-qa-tt-row">
+        <span class="dh-qa-tt-label"><i class="fas fa-bolt"></i> Stress</span>
+        <div class="dh-qa-tt-bar-wrap">
+            <div class="dh-qa-tt-bar dh-qa-tt-bar--stress" style="--progress: {{stressPct}}%"></div>
+        </div>
+        <span class="dh-qa-tt-value">{{stress.value}}/{{stress.max}}</span>
+    </div>
+
+</div>
+
+{{else}}
+
+<div class="dh-qa-tt-header">
+    <span class="dh-qa-tt-name">{{name}}</span>
+</div>
+
+<div class="dh-qa-tt-body">
+
+    <div class="dh-qa-tt-row dh-qa-tt-row--meta">
+        <span class="dh-qa-tt-label"><i class="fas fa-person-running"></i> Evasion</span>
+        <span class="dh-qa-tt-value">{{evasion}}</span>
+    </div>
 
     <div class="dh-qa-tt-row">
         <span class="dh-qa-tt-label"><i class="fas fa-heart"></i> HP</span>
@@ -46,3 +127,5 @@
     </div>
 
 </div>
+
+{{/if}}

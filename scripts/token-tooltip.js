@@ -29,7 +29,12 @@ async function _onHoverToken(token, hovered) {
         return;
     }
 
-    if (!token.actor || token.actor.type !== "character") {
+    const actorType = token.actor?.type;
+    const isCharacter = actorType === "character";
+    const isAdversary = actorType === "adversary" && game.user.isGM;
+    const isCompanion = actorType === "companion";
+
+    if (!token.actor || (!isCharacter && !isAdversary && !isCompanion)) {
         _hideTooltip();
         return;
     }
@@ -43,7 +48,7 @@ async function _onHoverToken(token, hovered) {
     const tokenId = token.id;
     _activeTokenId = tokenId;
 
-    const data = _buildData(token);
+    const data = isAdversary ? _buildAdversaryData(token) : isCompanion ? _buildCompanionData(token) : _buildData(token);
     const html = await foundry.applications.handlebars.renderTemplate(TEMPLATE_PATH, data);
 
     // After await: check if user already moved off this token
@@ -53,6 +58,20 @@ async function _onHoverToken(token, hovered) {
     el.innerHTML = html;
     _positionTooltip(token, el);
     el.style.display = "block";
+}
+
+// -------------------------------------------------------------------
+// Helpers
+// -------------------------------------------------------------------
+const ROMAN = ["", "I", "II", "III", "IV"];
+
+function _tierRoman(tier) {
+    return ROMAN[tier] ?? `${tier}`;
+}
+
+function _truncName(name) {
+    if (!name || name.length <= 17) return name;
+    return name.slice(0, 17) + "...";
 }
 
 // -------------------------------------------------------------------
@@ -84,8 +103,11 @@ function _buildData(token) {
         // Variant setting not available; skip massive
     }
 
+    const evasion = sys.evasion ?? 0;
+
     return {
-        name:     actor.name,
+        name:     _truncName(actor.name),
+        evasion,
         hp,
         stress,
         hope,
@@ -98,6 +120,107 @@ function _buildData(token) {
         stressPct: pct(stress.max - stress.value, stress.max),
         hopePct:   pct(hope.value, hope.max),
         armorPct:  pct(armor.max - armor.value, armor.max)
+    };
+}
+
+// -------------------------------------------------------------------
+// Adversary data builder (GM only)
+// -------------------------------------------------------------------
+function _buildAdversaryData(token) {
+    const actor = token.actor;
+    const sys = actor.system;
+
+    const hp     = sys.resources?.hitPoints ?? { value: 0, max: 0 };
+    const stress = sys.resources?.stress    ?? { value: 0, max: 0 };
+    const dt     = sys.damageThresholds     ?? { major: 0, severe: 0 };
+
+    const pct = (v, m) => (!m ? 0 : Math.round(Math.min(100, Math.max(0, (v / m) * 100))));
+
+    const difficulty  = sys.difficulty ?? "";
+    const attackBonus = sys.attack?.roll?.bonus ?? 0;
+    const bonusSign   = attackBonus >= 0 ? `+${attackBonus}` : `${attackBonus}`;
+
+    // Check massive damage variant rule
+    let showMassive = false;
+    let massiveDT = 0;
+    try {
+        const variant = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.variantRules);
+        if (variant?.massiveDamage?.enabled) {
+            showMassive = true;
+            massiveDT = (dt.severe ?? 0) * 2;
+        }
+    } catch (e) {
+        // Variant setting not available; skip massive
+    }
+
+    const tier = sys.tier ?? 1;
+
+    return {
+        isAdversary: true,
+        name:        _truncName(actor.name),
+        tierRoman:   _tierRoman(tier),
+        tier,
+        difficulty,
+        bonusSign,
+        hp,
+        stress,
+        minorDT:  dt.major ?? 0,
+        majorDT:  dt.severe ?? 0,
+        showMassive,
+        massiveDT,
+        hpPct:     pct(hp.max - hp.value, hp.max),
+        stressPct: pct(stress.max - stress.value, stress.max)
+    };
+}
+
+// -------------------------------------------------------------------
+// Companion data builder
+// -------------------------------------------------------------------
+function _buildCompanionData(token) {
+    const actor = token.actor;
+    const sys = actor.system;
+
+    const stress  = sys.resources?.stress ?? { value: 0, max: 0 };
+    const evasion = sys.evasion ?? 0;
+
+    const pct = (v, m) => (!m ? 0 : Math.round(Math.min(100, Math.max(0, (v / m) * 100))));
+
+    // Resolve partner to actor name
+    let partnerName = "";
+    const partnerRef = sys.partner;
+    if (partnerRef) {
+        try {
+            if (typeof partnerRef === "string") {
+                // String reference (e.g. "Actor.Gc7BKSi8Y55elT0k")
+                const idMatch = partnerRef.match(/^Actor\.(.+)$/);
+                if (idMatch) {
+                    const partnerActor = game.actors.get(idMatch[1]);
+                    if (partnerActor?.name) partnerName = partnerActor.name;
+                }
+                if (!partnerName) {
+                    const partnerActor = fromUuidSync(partnerRef);
+                    if (partnerActor?.name) partnerName = partnerActor.name;
+                }
+            } else if (partnerRef?.name) {
+                // Already a resolved document/object with a name
+                partnerName = partnerRef.name;
+            } else if (partnerRef?.id) {
+                // Object with an id property
+                const partnerActor = game.actors.get(partnerRef.id);
+                if (partnerActor?.name) partnerName = partnerActor.name;
+            }
+        } catch (e) {
+            // Invalid reference; skip partner
+        }
+    }
+
+    return {
+        isCompanion: true,
+        name:        _truncName(actor.name),
+        evasion,
+        partnerName: _truncName(partnerName),
+        stress,
+        stressPct: pct(stress.max - stress.value, stress.max)
     };
 }
 

@@ -1838,6 +1838,9 @@
     line-height: 1.4;
 
     .dh-qa-tt-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
         font-weight: 700;
         font-size: 13px;
         color: #C9A060;
@@ -1847,8 +1850,33 @@
         padding-bottom: 5px;
         border-bottom: 1px solid rgba(201, 160, 96, 0.35);
         white-space: nowrap;
+    }
+
+    .dh-qa-tt-name {
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .dh-qa-tt-tier {
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 700;
+        margin-left: 6px;
+
+        &.dh-qa-tt-tier--1 { color: #8aaa6f; }
+        &.dh-qa-tt-tier--2 { color: #5ba4cf; }
+        &.dh-qa-tt-tier--3 { color: #c084d4; }
+        &.dh-qa-tt-tier--4 { color: #e8634a; }
+    }
+
+    .dh-qa-tt-adv-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #b0b0b0;
+        margin-bottom: 6px;
+
+        strong { color: #e0e0e0; }
     }
 
     .dh-qa-tt-body {
@@ -1862,6 +1890,10 @@
         grid-template-columns: 62px 1fr 38px;
         align-items: center;
         gap: 5px;
+
+        &.dh-qa-tt-row--meta {
+            grid-template-columns: 62px 1fr;
+        }
     }
 
     .dh-qa-tt-label {
@@ -1875,10 +1907,12 @@
         align-items: center;
         gap: 4px;
 
-        .fa-heart      { color: #e74c3c; }
-        .fa-bolt       { color: #9b59b6; }
-        .fa-sun        { color: #FFD700; }
-        .fa-shield-alt { color: #2980b9; }
+        .fa-heart          { color: #e74c3c; }
+        .fa-bolt           { color: #9b59b6; }
+        .fa-sun            { color: #FFD700; }
+        .fa-shield-alt     { color: #2980b9; }
+        .fa-person-running { color: #8aaa6f; }
+        .fa-link           { color: #8aaa6f; }
     }
 
     .dh-qa-tt-bar-wrap {
