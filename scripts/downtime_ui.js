@@ -140,6 +140,19 @@ function _hasArmorerFeature(actor) {
     return _hasCoreFeature(actor, "armorer", "Armorer");
 }
 
+function _hasBeastboundFeature(actor) {
+    return _hasCoreFeature(actor, "beastbound", "Beastbound");
+}
+
+async function _getBeastboundCompanion(actor) {
+    // system.companion is already the companion actor object (or null)
+    const companion = actor.system?.companion;
+    if (!companion) return null;
+
+    // Verify it's a valid companion type
+    return companion.type === "companion" ? companion : null;
+}
+
 function _getDomainCardCounts(actor) {
     const domainCards = actor.items.filter(i => i.type === "domainCard");
     let loadout = 0;
@@ -286,11 +299,25 @@ async function _applyDowntimeEffects() {
             if (action === "clearStress") {
                 // Premium Bedroll bonus: +1 stress recovery
                 const premiumBedrollBonus = _hasPremiumBedrollFeature(actor) ? 1 : 0;
+                let companionStressCleared = 0;
 
                 if (effectiveLong) {
                     await actor.update({ "system.resources.stress.value": 0 });
                     const bonusText = premiumBedrollBonus > 0 ? " (+1 Premium Bedroll)" : "";
-                    actorEvents.push(`Clear Stress (Recover All Stress)${bonusText}`);
+                    let eventText = `Clear Stress (Recover All Stress)${bonusText}`;
+
+                    // Beastbound: clear companion stress if Beastbound feature present
+                    if (_hasBeastboundFeature(actor)) {
+                        const companion = await _getBeastboundCompanion(actor);
+                        if (companion) {
+                            const companionStress = companion.system.resources?.stress?.value ?? 0;
+                            companionStressCleared = companionStress;
+                            await companion.update({ "system.resources.stress.value": 0 });
+                            eventText += ` → Companion clears ${companionStressCleared} Stress`;
+                        }
+                    }
+
+                    actorEvents.push(eventText);
                 } else {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
@@ -301,7 +328,21 @@ async function _applyDowntimeEffects() {
                     await actor.update({ "system.resources.stress.value": newStress });
                     const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
                     const bonusText = premiumBedrollBonus > 0 ? " +1 Premium Bedroll" : "";
-                    actorEvents.push(`Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}${bonusText}])`);
+                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}${bonusText}])`;
+
+                    // Beastbound: clear companion stress if Beastbound feature present
+                    if (_hasBeastboundFeature(actor)) {
+                        const companion = await _getBeastboundCompanion(actor);
+                        if (companion) {
+                            const companionStress = companion.system.resources?.stress?.value ?? 0;
+                            companionStressCleared = Math.min(recovery, companionStress);
+                            const newCompanionStress = Math.max(0, companionStress - recovery);
+                            await companion.update({ "system.resources.stress.value": newCompanionStress });
+                            eventText += ` → Companion clears ${companionStressCleared} Stress`;
+                        }
+                    }
+
+                    actorEvents.push(eventText);
                 }
             }
 
@@ -660,7 +701,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "Grants +1 extra move during downtime." },
             { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
             { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
-            { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." }
+            { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." },
+            { key: "beastbound", label: "Beastbound", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "If you choose a downtime move that clears your Stress, your companion clears an equal amount." }
         ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
         const coreRaw = defaultCore.map(d => {
@@ -1194,6 +1236,19 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 }
             }
 
+            // Beastbound feature: resolve companion info
+            const hasBeastbound = _hasBeastboundFeature(actor);
+            let beastboundInfo = null;
+            if (hasBeastbound) {
+                const companion = await _getBeastboundCompanion(actor);
+                if (companion) {
+                    const companionName = companion.name.length > 10 ? companion.name.substring(0, 10) : companion.name;
+                    beastboundInfo = { found: true, name: companionName };
+                } else {
+                    beastboundInfo = { found: false, name: null };
+                }
+            }
+
             // Domain Cards information
             const { loadout: domainLoadout, vault: domainVault } = _getDomainCardCounts(actor);
             let domainCardStatus = null;
@@ -1240,7 +1295,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasArmorer,
                 hasPremiumBedroll,
                 hasCelestialTrance,
-                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasCelestialTrance,
+                hasBeastbound,
+                beastboundInfo,
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasCelestialTrance || hasBeastbound,
                 domainCardStatus
             });
         }

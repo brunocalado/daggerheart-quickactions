@@ -186,6 +186,14 @@
                     <span class="dui-efficient-tooltip">Grants +1 extra move during downtime</span>
                 </div>
                 {{/if}}
+
+                {{#if this.hasBeastbound}}
+                <div class="dui-efficient-indicator">
+                    <i class="fas fa-paw"></i>
+                    <span class="dui-efficient-text">Beastbound {{#if this.beastboundInfo}}({{#if this.beastboundInfo.found}}{{this.beastboundInfo.name}}{{else}}Not Found{{/if}}){{/if}}</span>
+                    <span class="dui-efficient-tooltip">If you choose a downtime move that clears your Stress, your companion clears an equal amount</span>
+                </div>
+                {{/if}}
             </div>
             {{/if}}
 
