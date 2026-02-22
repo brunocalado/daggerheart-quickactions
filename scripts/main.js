@@ -160,6 +160,23 @@ Hooks.once("init", () => {
         default: true
     });
 
+    // 8b. Token Tooltip Size
+    game.settings.register("daggerheart-quickactions", "tokenTooltipSize", {
+        name: "Token Tooltip Size",
+        hint: "Controls the size of the token hover tooltip.",
+        scope: "client",
+        config: true,
+        type: String,
+        default: "normal",
+        choices: {
+            small: "Small",
+            normal: "Normal",
+            large: "Large",
+            xlarge: "Extra Large",
+            xxlarge: "Massive"
+        }
+    });
+
     initTokenTooltip();
 
     globalThis.QuickActions = {

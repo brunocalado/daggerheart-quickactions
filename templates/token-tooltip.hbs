@@ -2,11 +2,7 @@
 
 <div class="dh-qa-tt-header">
     <span class="dh-qa-tt-name">{{name}}</span>
-    <span class="dh-qa-tt-tier dh-qa-tt-tier--{{tier}}">{{tierRoman}}</span>
-</div>
-<div class="dh-qa-tt-adv-meta">
-    <span>Difficulty: <strong>{{difficulty}}</strong></span>
-    <span>Bonus: <strong>{{bonusSign}}</strong></span>
+    <span class="dh-qa-tt-difficulty"><i class="fas fa-skull"></i> {{difficulty}}</span>
 </div>
 
 <div class="dh-qa-tt-body">
@@ -44,21 +40,10 @@
 
 <div class="dh-qa-tt-header">
     <span class="dh-qa-tt-name">{{name}}</span>
+    <span class="dh-qa-tt-evasion"><i class="fas fa-person-running"></i> {{evasion}}</span>
 </div>
 
 <div class="dh-qa-tt-body">
-
-    {{#if partnerName}}
-    <div class="dh-qa-tt-row dh-qa-tt-row--meta">
-        <span class="dh-qa-tt-label"><i class="fas fa-link"></i> Partner</span>
-        <span class="dh-qa-tt-value">{{partnerName}}</span>
-    </div>
-    {{/if}}
-
-    <div class="dh-qa-tt-row dh-qa-tt-row--meta">
-        <span class="dh-qa-tt-label"><i class="fas fa-person-running"></i> Evasion</span>
-        <span class="dh-qa-tt-value">{{evasion}}</span>
-    </div>
 
     <div class="dh-qa-tt-row">
         <span class="dh-qa-tt-label"><i class="fas fa-bolt"></i> Stress</span>
@@ -68,20 +53,23 @@
         <span class="dh-qa-tt-value">{{stress.value}}/{{stress.max}}</span>
     </div>
 
+    {{#if partnerName}}
+    <div class="dh-qa-tt-row dh-qa-tt-row--meta">
+        <span class="dh-qa-tt-label"><i class="fas fa-link"></i> Partner</span>
+        <span class="dh-qa-tt-value">{{partnerName}}</span>
+    </div>
+    {{/if}}
+
 </div>
 
 {{else}}
 
 <div class="dh-qa-tt-header">
     <span class="dh-qa-tt-name">{{name}}</span>
+    <span class="dh-qa-tt-evasion"><i class="fas fa-person-running"></i> {{evasion}}</span>
 </div>
 
 <div class="dh-qa-tt-body">
-
-    <div class="dh-qa-tt-row dh-qa-tt-row--meta">
-        <span class="dh-qa-tt-label"><i class="fas fa-person-running"></i> Evasion</span>
-        <span class="dh-qa-tt-value">{{evasion}}</span>
-    </div>
 
     <div class="dh-qa-tt-row">
         <span class="dh-qa-tt-label"><i class="fas fa-heart"></i> HP</span>

@@ -1857,26 +1857,30 @@
         text-overflow: ellipsis;
     }
 
-    .dh-qa-tt-tier {
+    .dh-qa-tt-evasion {
         flex-shrink: 0;
         font-size: 12px;
         font-weight: 700;
         margin-left: 6px;
+        color: #e0e0e0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
 
-        &.dh-qa-tt-tier--1 { color: #8aaa6f; }
-        &.dh-qa-tt-tier--2 { color: #5ba4cf; }
-        &.dh-qa-tt-tier--3 { color: #c084d4; }
-        &.dh-qa-tt-tier--4 { color: #e8634a; }
+        .fa-person-running { color: #8aaa6f; }
     }
 
-    .dh-qa-tt-adv-meta {
+    .dh-qa-tt-difficulty {
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 700;
+        margin-left: 6px;
+        color: #e0e0e0;
         display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: #b0b0b0;
-        margin-bottom: 6px;
+        align-items: center;
+        gap: 4px;
 
-        strong { color: #e0e0e0; }
+        .fa-skull { color: #e8634a; }
     }
 
     .dh-qa-tt-body {
@@ -1912,7 +1916,7 @@
         .fa-sun            { color: #FFD700; }
         .fa-shield-alt     { color: #2980b9; }
         .fa-person-running { color: #8aaa6f; }
-        .fa-link           { color: #8aaa6f; }
+        .fa-link           { color: #5ba4cf; }
     }
 
     .dh-qa-tt-bar-wrap {
@@ -1973,4 +1977,165 @@
 
         strong { color: #f5836e; }
     }
+}
+
+/* ---- Token Tooltip Size Variants ---- */
+
+#dh-qa-token-tooltip.dh-qa-tt-size--normal {
+    min-width: 230px;
+    max-width: 290px;
+    padding: 10px 13px;
+    font-size: 14px;
+    border-radius: 7px;
+
+    .dh-qa-tt-header {
+        font-size: 15px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        letter-spacing: 0.9px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 14px; gap: 5px; }
+    .dh-qa-tt-evasion { font-size: 14px; gap: 5px; }
+
+    .dh-qa-tt-body { gap: 5px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 74px 1fr 44px;
+        gap: 6px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 74px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 13px; gap: 5px; }
+
+    .dh-qa-tt-bar-wrap { height: 8px; border-radius: 4px; }
+    .dh-qa-tt-bar     { border-radius: 4px; }
+
+    .dh-qa-tt-value { font-size: 13px; }
+
+    .dh-qa-tt-divider { margin: 4px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 13px; gap: 8px; padding-top: 3px; }
+    .dh-qa-tt-dt-item    { font-size: 13px; }
+}
+
+#dh-qa-token-tooltip.dh-qa-tt-size--large {
+    min-width: 280px;
+    max-width: 350px;
+    padding: 13px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+    border-width: 2px;
+
+    .dh-qa-tt-header {
+        font-size: 17px;
+        margin-bottom: 10px;
+        padding-bottom: 7px;
+        letter-spacing: 1px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 16px; gap: 6px; }
+    .dh-qa-tt-evasion { font-size: 16px; gap: 6px; }
+
+    .dh-qa-tt-body { gap: 6px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 88px 1fr 52px;
+        gap: 7px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 88px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 15px; gap: 6px; }
+
+    .dh-qa-tt-bar-wrap { height: 10px; border-radius: 5px; }
+    .dh-qa-tt-bar     { border-radius: 5px; }
+
+    .dh-qa-tt-value { font-size: 15px; }
+
+    .dh-qa-tt-divider { margin: 5px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 15px; gap: 10px; padding-top: 4px; }
+    .dh-qa-tt-dt-item    { font-size: 15px; }
+}
+
+#dh-qa-token-tooltip.dh-qa-tt-size--xlarge {
+    min-width: 340px;
+    max-width: 420px;
+    padding: 16px 20px;
+    font-size: 18px;
+    border-radius: 10px;
+    border-width: 2px;
+
+    .dh-qa-tt-header {
+        font-size: 20px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        letter-spacing: 1.1px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 18px; gap: 7px; }
+    .dh-qa-tt-evasion { font-size: 18px; gap: 7px; }
+
+    .dh-qa-tt-body { gap: 8px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 104px 1fr 60px;
+        gap: 8px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 104px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 17px; gap: 7px; }
+
+    .dh-qa-tt-bar-wrap { height: 12px; border-radius: 6px; }
+    .dh-qa-tt-bar     { border-radius: 6px; }
+
+    .dh-qa-tt-value { font-size: 17px; }
+
+    .dh-qa-tt-divider { margin: 6px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 17px; gap: 12px; padding-top: 5px; }
+    .dh-qa-tt-dt-item    { font-size: 17px; }
+}
+
+#dh-qa-token-tooltip.dh-qa-tt-size--xxlarge {
+    min-width: 400px;
+    max-width: 500px;
+    padding: 20px 24px;
+    font-size: 21px;
+    border-radius: 12px;
+    border-width: 2px;
+
+    .dh-qa-tt-header {
+        font-size: 23px;
+        margin-bottom: 14px;
+        padding-bottom: 9px;
+        letter-spacing: 1.2px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 21px; gap: 8px; }
+    .dh-qa-tt-evasion { font-size: 21px; gap: 8px; }
+
+    .dh-qa-tt-body { gap: 10px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 120px 1fr 68px;
+        gap: 9px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 120px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 19px; gap: 8px; }
+
+    .dh-qa-tt-bar-wrap { height: 14px; border-radius: 7px; }
+    .dh-qa-tt-bar     { border-radius: 7px; }
+
+    .dh-qa-tt-value { font-size: 19px; }
+
+    .dh-qa-tt-divider { margin: 7px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 19px; gap: 14px; padding-top: 6px; }
+    .dh-qa-tt-dt-item    { font-size: 19px; }
 }

@@ -57,6 +57,12 @@ async function _onHoverToken(token, hovered) {
 
     const el = _getOrCreateEl();
     el.innerHTML = html;
+
+    // Apply size class
+    const size = game.settings.get(MODULE_ID, "tokenTooltipSize") ?? "small";
+    el.classList.remove("dh-qa-tt-size--small", "dh-qa-tt-size--normal", "dh-qa-tt-size--large", "dh-qa-tt-size--xlarge", "dh-qa-tt-size--xxlarge");
+    el.classList.add(`dh-qa-tt-size--${size}`);
+
     _positionTooltip(token, el);
     el.style.display = "block";
 }

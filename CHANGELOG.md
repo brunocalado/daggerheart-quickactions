@@ -1,5 +1,7 @@
 # 0.2.3
-- Delete a token will delete a tooltip
+- Deleting a token will delete its tooltip.
+- Tooltip size can be adjusted via user settings; each user can customize this individually.
+- Improved visuals for Tooltip Adversary, Companion and characters.
 
 # 0.2.2
 - Tooltip for Adversaries
