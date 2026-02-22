@@ -18,6 +18,7 @@ let _activeTokenId = null;
 export function initTokenTooltip() {
     foundry.applications.handlebars.loadTemplates([TEMPLATE_PATH]);
     Hooks.on("hoverToken", _onHoverToken);
+    Hooks.on("deleteToken", _onDeleteToken);
 }
 
 // -------------------------------------------------------------------
@@ -58,6 +59,16 @@ async function _onHoverToken(token, hovered) {
     el.innerHTML = html;
     _positionTooltip(token, el);
     el.style.display = "block";
+}
+
+// -------------------------------------------------------------------
+// Hide tooltip when the hovered token is deleted
+// -------------------------------------------------------------------
+function _onDeleteToken(tokenDoc) {
+    if (_activeTokenId && tokenDoc.id === _activeTokenId) {
+        _activeTokenId = null;
+        _hideTooltip();
+    }
 }
 
 // -------------------------------------------------------------------

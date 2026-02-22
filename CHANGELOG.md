@@ -1,3 +1,6 @@
+# 0.2.3
+- Delete a token will delete a tooltip
+
 # 0.2.2
 - Tooltip for Adversaries
 - Tooltip for Companion
