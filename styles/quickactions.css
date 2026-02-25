@@ -1953,10 +1953,7 @@
     }
 
     .dh-qa-tt-thresholds {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
+        text-align: center;
         font-size: 11px;
         color: #e0e0e0;
         padding-top: 2px;
@@ -2016,7 +2013,7 @@
 
     .dh-qa-tt-divider { margin: 4px 0; }
 
-    .dh-qa-tt-thresholds { font-size: 13px; gap: 8px; padding-top: 3px; }
+    .dh-qa-tt-thresholds { font-size: 13px; padding-top: 3px; }
     .dh-qa-tt-dt-item    { font-size: 13px; }
 }
 
@@ -2056,7 +2053,7 @@
 
     .dh-qa-tt-divider { margin: 5px 0; }
 
-    .dh-qa-tt-thresholds { font-size: 15px; gap: 10px; padding-top: 4px; }
+    .dh-qa-tt-thresholds { font-size: 15px; padding-top: 4px; }
     .dh-qa-tt-dt-item    { font-size: 15px; }
 }
 
@@ -2096,7 +2093,7 @@
 
     .dh-qa-tt-divider { margin: 6px 0; }
 
-    .dh-qa-tt-thresholds { font-size: 17px; gap: 12px; padding-top: 5px; }
+    .dh-qa-tt-thresholds { font-size: 17px; padding-top: 5px; }
     .dh-qa-tt-dt-item    { font-size: 17px; }
 }
 
@@ -2136,6 +2133,6 @@
 
     .dh-qa-tt-divider { margin: 7px 0; }
 
-    .dh-qa-tt-thresholds { font-size: 19px; gap: 14px; padding-top: 6px; }
+    .dh-qa-tt-thresholds { font-size: 19px; padding-top: 6px; }
     .dh-qa-tt-dt-item    { font-size: 19px; }
 }
