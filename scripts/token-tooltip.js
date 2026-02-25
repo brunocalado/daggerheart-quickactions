@@ -39,7 +39,8 @@ async function _onHoverToken(token, hovered) {
 
     const actorType = token.actor?.type;
     const isCharacter = actorType === "character";
-    const isAdversary = actorType === "adversary" && game.user.isGM;
+    const isFriendlyAdversary = actorType === "adversary" && token.document?.disposition === 1;
+    const isAdversary = actorType === "adversary" && (game.user.isGM || isFriendlyAdversary);
     const isCompanion = actorType === "companion";
 
     if (!token.actor || (!isCharacter && !isAdversary && !isCompanion)) {

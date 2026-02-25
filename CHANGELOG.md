@@ -1,3 +1,6 @@
+# 0.2.8
+- A player can see the Adversary Tooltip if their token is marked with a friendly disposition.
+
 # 0.2.7
 - Token Tooltip will no longer cause problems to the Token HUD.
 
