@@ -298,6 +298,7 @@ async function _applyDowntimeEffects() {
 
             if (action === "clearStress") {
                 let companionStressCleared = 0;
+                const hasBedroll = _hasPremiumBedrollFeature(actor);
 
                 if (effectiveLong) {
                     await actor.update({ "system.resources.stress.value": 0 });
@@ -319,12 +320,14 @@ async function _applyDowntimeEffects() {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
                     if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-                    const recovery = roll.total + tier + stressModifier;
+                    const bedrollBonus = hasBedroll ? 1 : 0;
+                    const recovery = roll.total + tier + stressModifier + bedrollBonus;
                     const currentStress = actor.system.resources?.stress?.value ?? 0;
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
                     const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
-                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}])`;
+                    const bedrollText = hasBedroll ? " +1 Bedroll" : "";
+                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total} +${tier} Tier${modText}${bedrollText}])`;
 
                     // Beastbound: clear companion stress if Beastbound feature present
                     if (_hasBeastboundFeature(actor)) {
@@ -450,17 +453,17 @@ async function _applyDowntimeEffects() {
         }
     }
 
-    // Apply automatic stress recovery from Premium Bedroll (short rest only — long rest already clears all stress)
-    if (!isLong) {
-        for (const { actor } of includedActors) {
-            if (_hasPremiumBedrollFeature(actor)) {
-                const currentStress = actor.system.resources?.stress?.value ?? 0;
-                const newStress = Math.max(0, currentStress - 1);
-                await actor.update({ "system.resources.stress.value": newStress });
-                if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
-                resultsByActor.get(actor.id).events.push(`Premium Bedroll (Automatically clear 1 Stress)`);
-            }
-        }
+    // Apply automatic stress recovery from Premium Bedroll
+    // Skip if the actor chose Clear Stress (bedroll bonus is already integrated into that roll)
+    for (const { actor, actorState } of includedActors) {
+        if (!_hasPremiumBedrollFeature(actor)) continue;
+        if (actorState.actions.includes("clearStress")) continue;
+        const currentStress = actor.system.resources?.stress?.value ?? 0;
+        if (currentStress <= 0) continue;
+        const newStress = Math.max(0, currentStress - 1);
+        await actor.update({ "system.resources.stress.value": newStress });
+        if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
+        resultsByActor.get(actor.id).events.push(`Premium Bedroll (Automatically clear 1 Stress)`);
     }
 
     // Armorer bonus: when an actor with Armorer uses Repair Armor, all other included actors clear 1 Armor Slot

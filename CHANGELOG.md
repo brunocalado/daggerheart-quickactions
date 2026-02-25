@@ -1,3 +1,6 @@
+# 0.2.5
+- Fix for: Automated: Premium Bedroll
+
 # 0.2.4
 - Fix for: Automated: Premium Bedroll
 
