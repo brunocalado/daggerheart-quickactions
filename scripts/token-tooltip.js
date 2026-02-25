@@ -19,6 +19,7 @@ export function initTokenTooltip() {
     foundry.applications.handlebars.loadTemplates([TEMPLATE_PATH]);
     Hooks.on("hoverToken", _onHoverToken);
     Hooks.on("deleteToken", _onDeleteToken);
+    Hooks.on("renderTokenHUD", () => _hideTooltip());
 }
 
 // -------------------------------------------------------------------
@@ -26,6 +27,12 @@ export function initTokenTooltip() {
 // -------------------------------------------------------------------
 async function _onHoverToken(token, hovered) {
     if (!game.settings.get(MODULE_ID, "tokenTooltip")) {
+        _hideTooltip();
+        return;
+    }
+
+    // Hide tooltip when any Token HUD is open
+    if (canvas.hud?.token?.rendered) {
         _hideTooltip();
         return;
     }

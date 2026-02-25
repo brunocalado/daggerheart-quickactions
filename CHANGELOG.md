@@ -1,3 +1,6 @@
+# 0.2.7
+- Token Tooltip will no longer cause problems to the Token HUD.
+
 # 0.2.6
 - DowntimeUI will auto close for players
 
