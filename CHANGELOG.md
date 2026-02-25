@@ -1,3 +1,6 @@
+# 0.2.4
+- Fix for: Automated: Premium Bedroll
+
 # 0.2.3
 - Deleting a token will delete its tooltip.
 - Tooltip size can be adjusted via user settings; each user can customize this individually.

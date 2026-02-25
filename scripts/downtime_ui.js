@@ -297,14 +297,11 @@ async function _applyDowntimeEffects() {
             }
 
             if (action === "clearStress") {
-                // Premium Bedroll bonus: +1 stress recovery
-                const premiumBedrollBonus = _hasPremiumBedrollFeature(actor) ? 1 : 0;
                 let companionStressCleared = 0;
 
                 if (effectiveLong) {
                     await actor.update({ "system.resources.stress.value": 0 });
-                    const bonusText = premiumBedrollBonus > 0 ? " (+1 Premium Bedroll)" : "";
-                    let eventText = `Clear Stress (Recover All Stress)${bonusText}`;
+                    let eventText = `Clear Stress (Recover All Stress)`;
 
                     // Beastbound: clear companion stress if Beastbound feature present
                     if (_hasBeastboundFeature(actor)) {
@@ -322,13 +319,12 @@ async function _applyDowntimeEffects() {
                     const roll = new Roll("1d4");
                     await roll.evaluate();
                     if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-                    const recovery = roll.total + tier + stressModifier + premiumBedrollBonus;
+                    const recovery = roll.total + tier + stressModifier;
                     const currentStress = actor.system.resources?.stress?.value ?? 0;
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
                     const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
-                    const bonusText = premiumBedrollBonus > 0 ? " +1 Premium Bedroll" : "";
-                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}${bonusText}])`;
+                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total}${modText}])`;
 
                     // Beastbound: clear companion stress if Beastbound feature present
                     if (_hasBeastboundFeature(actor)) {
@@ -454,14 +450,16 @@ async function _applyDowntimeEffects() {
         }
     }
 
-    // Apply automatic stress recovery from Premium Bedroll
-    for (const { actor } of includedActors) {
-        if (_hasPremiumBedrollFeature(actor)) {
-            const currentStress = actor.system.resources?.stress?.value ?? 0;
-            const newStress = Math.max(0, currentStress - 1);
-            await actor.update({ "system.resources.stress.value": newStress });
-            if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
-            resultsByActor.get(actor.id).events.push(`Premium Bedroll (Automatic +1 Stress Recovery)`);
+    // Apply automatic stress recovery from Premium Bedroll (short rest only — long rest already clears all stress)
+    if (!isLong) {
+        for (const { actor } of includedActors) {
+            if (_hasPremiumBedrollFeature(actor)) {
+                const currentStress = actor.system.resources?.stress?.value ?? 0;
+                const newStress = Math.max(0, currentStress - 1);
+                await actor.update({ "system.resources.stress.value": newStress });
+                if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
+                resultsByActor.get(actor.id).events.push(`Premium Bedroll (Automatically clear 1 Stress)`);
+            }
         }
     }
 
@@ -697,7 +695,7 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const defaultCore = [
             { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t", description: "During Short Rest, one selected action can be upgraded to Long Rest quality." },
             { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl", description: "Grants a bonus Forage action that does not count towards the move limit." },
-            { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "Refreshes additional resources during rest, as if it were a Long Rest." },
+            { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "During downtime, you automatically clear 1 Stress." },
             { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "Grants +1 extra move during downtime." },
             { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
             { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
