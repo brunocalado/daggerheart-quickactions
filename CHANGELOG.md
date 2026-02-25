@@ -1,3 +1,6 @@
+# 0.2.6
+- DowntimeUI will auto close for players
+
 # 0.2.5
 - Fix for: Automated: Premium Bedroll
 

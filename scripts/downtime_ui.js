@@ -555,7 +555,8 @@ async function _applyDowntimeEffects() {
     </div>`;
     await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content });
 
-    // Close and clear state + player flags
+    // Broadcast close to all players, then close GM instance and clear state
+    await game.settings.set("daggerheart-quickactions", "downtimeUIClosed", { timestamp: Date.now() });
     DowntimeUIApp._instance?.close();
     await game.settings.set("daggerheart-quickactions", "downtimeUIState", {});
     for (const user of game.users) {

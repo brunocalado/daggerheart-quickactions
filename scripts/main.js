@@ -150,6 +150,21 @@ Hooks.once("init", () => {
         }
     });
 
+    // 7b. Downtime UI Close Broadcast
+    game.settings.register("daggerheart-quickactions", "downtimeUIClosed", {
+        name: "Downtime UI Close",
+        scope: "world",
+        config: false,
+        default: {},
+        type: Object,
+        onChange: (value) => {
+            if (!value?.timestamp) return;
+            if (game.user.isGM) return;
+            const inst = getDowntimeUIInstance();
+            if (inst?.rendered) inst.close();
+        }
+    });
+
     // 8. Token Hover Tooltip
     game.settings.register("daggerheart-quickactions", "tokenTooltip", {
         name: "Token Hover Tooltip",
