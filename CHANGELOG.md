@@ -1,3 +1,6 @@
+# 0.2.9
+- New: QuickActions.Scan();
+
 # 0.2.8
 - A player can see the Adversary Tooltip if their token is marked with a friendly disposition.
 - small css fix for Tooltip

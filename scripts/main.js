@@ -7,6 +7,8 @@
 import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateTemplateCreator, activateLevelUp } from "./apps.js";
 import { activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } from "./downtime_ui.js";
 import { activateRequestRoll, showCinematicPrompt } from "./request_roll.js";
+// Import Scan
+import { scan } from "./scan.js";
 // Import Features
 import { features } from "./features.js";
 // Import Beastform
@@ -207,6 +209,7 @@ Hooks.once("init", () => {
         SpendHope: activateSpendHope, 
         Templates: activateTemplateCreator,
         LevelUp: activateLevelUp,
+        Scan: scan,
         Features: features,
         Beastform: beastformAction,
         DowntimeUI: activateDowntimeUI
