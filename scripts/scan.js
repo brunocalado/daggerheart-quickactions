@@ -40,6 +40,11 @@ function getLabel(pct, labels) {
  * Scans the targeted token and displays its physical and mental state in the chat.
  */
 export async function scan() {
+    // Check if the feature is enabled by the GM
+    if (!game.settings.get("daggerheart-quickactions", "enableScan")) {
+        return ui.notifications.warn("The Scan action is currently disabled by the GM.");
+    }
+
     const targets = game.user.targets;
     if (targets.size === 0) {
         return ui.notifications.warn("Please target a token to scan.");
