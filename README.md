@@ -6,19 +6,22 @@ This module streamlines the flow of gameplay by providing quick access to common
 
 <p align="center"><img width="900" src="docs/preview.webp" alt="Preview"></p>
 
+<p align="center"><img width="900" src="docs/downtime.webp"></p>
+
 <p align="center"><img width="900" src="docs/feature.webp"></p>
 
 ## 🌟 Features
 
 ### 🛠️ Core Utilities
 
-* **🛌 Downtime & Fear:** Automatically calculates and adds Fear to the GM's resource pool based on Short or Long Rests (1d4 or 1d4 + PCs).
-* **💀 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far", and "Collision" damage tiers with automatic dice calculations.
+* **🛌 Downtime:** Manage downtime activities for players, automatically calculating results and resource costs.
+* **� Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far", and "Collision" damage tiers with automatic dice calculations.
 * **🎲 Request Roll:** A GM tool to quickly request rolls from players to the chat, configuring Difficulty, Traits, Advantage/Disadvantage, and context labels.
-* **💰 Loot & Consumables:** A dedicated interface to roll on Loot or Consumable tables from your compendiums, complete with custom dice formulas.
+* **🆙 Level Up:** Easily level up player characters directly from the menu.
 
 ### 🎭 Token Macros
 
+* **🔍 Scan:** Reveal a target's physical and mental state with immersive descriptions (requires GM setting).
 * **🤝 Help an Ally:** Checks the selected token's **Hope** resource. If available, consumes 1 Hope and rolls the Help Die (1d6) to the chat.
 * **❤️ Scar Check:** Automatically checks the actor's Level against a 1d12 roll to determine if they are Safe or take a Scar.
 * **🔦 Spotlight Token:** Instantly changes the active combat turn to the selected token (requires active combat).
@@ -90,6 +93,21 @@ QuickActions.Templates();
 // To use the macro name it requires the macros to exist in the 'daggerheart-quickactions.macros' compendium. You can use the UUID to add any macro from world or any compendium.
 // 
 QuickActions.ShowMacros("Macro Name 1", "Macro Name 2", "Macro.CDcmq4UiZMqs6pbs", "Compendium.daggerheart-quickactions.macros.Macro.5SyMBdCHM5TZXqGz");
+```
+
+```javascript
+/* WARNING: This will only work if you enable the module setting.
+This allows the player to obtain information about a targeted adversary token. 
+They will be informed about the HP and Stress status without revealing numerical values. 
+During the game, it is common for players to ask: "I look at the goblin, how does it look?" 
+The GM usually responds: "He looks quite wounded and exhausted." 
+This macro aims to give players the autonomy to do this themselves. 
+Example output: 
+Physical State: Injured 
+Mental State: Completely overwhelmed, paralyzed by panic and unable to think clearly 
+*/
+
+QuickActions.Scan();
 ```
 
 Extra macros [here](https://github.com/brunocalado/daggerheart-quickactions/wiki)
