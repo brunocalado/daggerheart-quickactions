@@ -1,5 +1,15 @@
 # 0.2.9
 - New: QuickActions.Scan();
+/* WARNING: This will only work if you enable the module setting.
+This allows the player to obtain information about a targeted adversary token. 
+They will be informed about the HP and Stress status without revealing numerical values. 
+During the game, it is common for players to ask: "I look at the goblin, how does it look?" 
+The GM usually responds: "He looks quite wounded and exhausted." 
+This macro aims to give players the autonomy to do this themselves. 
+Example output: 
+Physical State: Injured 
+Mental State: Completely overwhelmed, paralyzed by panic and unable to think clearly 
+*/
 
 # 0.2.8
 - A player can see the Adversary Tooltip if their token is marked with a friendly disposition.

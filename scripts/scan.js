@@ -4,21 +4,19 @@
  */
 
 const HP_LABELS = [
-    { min: 100, label: "no injuries" },
-    { min: 75,  label: "slightly injured" },
-    { min: 50,  label: "more than slightly injured" },
-    { min: 25,  label: "injured" },
-    { min: 1,   label: "heavily injured or near death" },
-    { min: 0,   label: "dying" },
+    { min: 100, label: "Imposing; their form is pristine, radiating an aura of untouched power." },
+    { min: 75,  label: "Weathered; minor injuries or disruptions mark their form, but their stance remains firm." },
+    { min: 50,  label: "Battered; visible wounds or flickering essence betray the toll of battle, slowing them down." },
+    { min: 25,  label: "Broken; they stagger with ragged desperation, their existence hanging by a thread." },
+    { min: 0,   label: "Fallen; the vessel has succumbed, collapsing into stillness or dissipation." },
 ];
 
 const STRESS_LABELS = [
-    { min: 100, label: "calm, focused, and operating with absolute clarity" },
-    { min: 75,  label: "feeling the strain, nerves tight but still in control" },
-    { min: 50,  label: "rattled and hesitant, the pressure beginning to cloud judgment" },
-    { min: 25,  label: "exhausted and erratic, struggling to maintain focus" },
-    { min: 10,  label: "on the verge of breaking, mind racing with fear and doubt" },
-    { min: 0,   label: "completely overwhelmed, paralyzed by panic and unable to think clearly" },
+    { min: 100, label: "Unshakeable; their mind is a fortress, operating with absolute, terrifying clarity." },
+    { min: 70,  label: "Guarded; a subtle tension tightens their movements, the weight of the moment setting in." },
+    { min: 50,  label: "Rattled; hesitation fractures their focus, erratic energy revealing their inner turmoil." },
+    { min: 25,  label: "Overwhelmed; panic or instability has taken hold, leaving them erratic and unpredictable." },
+    { min: 0,   label: "Shattered; their mental defenses have crumbled, leaving them utterly exposed and vulnerable to any threat." },
 ];
 
 /**
