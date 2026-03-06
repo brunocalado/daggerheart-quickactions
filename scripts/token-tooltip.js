@@ -20,6 +20,8 @@ export function initTokenTooltip() {
     Hooks.on("hoverToken", _onHoverToken);
     Hooks.on("deleteToken", _onDeleteToken);
     Hooks.on("renderTokenHUD", () => _hideTooltip());
+    // Hide tooltip on any mouse press (covers drag start)
+    document.addEventListener("pointerdown", () => { _activeTokenId = null; _hideTooltip(); });
 }
 
 // -------------------------------------------------------------------

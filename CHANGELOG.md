@@ -2,6 +2,7 @@
 - QuickActions.Scan(); will be a wisper
 - CSS refactor
 - QuickActions.Scan(); supports customization
+- Tooltip will be disabled on drag token
 
 # 0.2.9
 - New: QuickActions.Scan();
