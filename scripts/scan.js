@@ -106,6 +106,7 @@ export async function scan() {
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),
         content: content,
-        style: CONST.CHAT_MESSAGE_STYLES.OTHER
+        style: CONST.CHAT_MESSAGE_STYLES.OTHER,
+        whisper: [game.user.id]
     });
 }

@@ -1,0 +1,319 @@
+/* ================================================================
+   TOKEN HOVER TOOLTIP  (#dh-qa-token-tooltip)
+================================================================ */
+
+#dh-qa-token-tooltip {
+    position: fixed;
+    z-index: 999999;
+    display: none;
+    pointer-events: none;
+    min-width: 190px;
+    max-width: 240px;
+    background: #191919;
+    border: 1px solid #C9A060;
+    border-radius: 6px;
+    padding: 8px 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.75), 0 0 6px rgba(201, 160, 96, 0.15);
+    font-size: 12px;
+    color: #e0e0e0;
+    line-height: 1.4;
+
+    .dh-qa-tt-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-weight: 700;
+        font-size: 13px;
+        color: #C9A060;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 7px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid rgba(201, 160, 96, 0.35);
+        white-space: nowrap;
+    }
+
+    .dh-qa-tt-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .dh-qa-tt-evasion {
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 700;
+        margin-left: 6px;
+        color: #e0e0e0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .fa-person-running { color: #8aaa6f; }
+    }
+
+    .dh-qa-tt-difficulty {
+        flex-shrink: 0;
+        font-size: 12px;
+        font-weight: 700;
+        margin-left: 6px;
+        color: #e0e0e0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .fa-skull { color: #e8634a; }
+    }
+
+    .dh-qa-tt-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .dh-qa-tt-row {
+        display: grid;
+        grid-template-columns: 62px 1fr 38px;
+        align-items: center;
+        gap: 5px;
+
+        &.dh-qa-tt-row--meta {
+            grid-template-columns: 62px 1fr;
+        }
+    }
+
+    .dh-qa-tt-label {
+        font-size: 11px;
+        font-weight: bold;
+        color: #C9A060;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .fa-heart          { color: #e74c3c; }
+        .fa-bolt           { color: #9b59b6; }
+        .fa-sun            { color: #FFD700; }
+        .fa-shield-alt     { color: #2980b9; }
+        .fa-person-running { color: #8aaa6f; }
+        .fa-link           { color: #5ba4cf; }
+    }
+
+    .dh-qa-tt-bar-wrap {
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .dh-qa-tt-bar {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.2s ease;
+        width: var(--progress);
+
+        &.dh-qa-tt-bar--hp     { background: linear-gradient(to right, #c0392b, #e74c3c); }
+        &.dh-qa-tt-bar--stress { background: linear-gradient(to right, #7f3fbf, #9b59b6); }
+        &.dh-qa-tt-bar--hope   { background: linear-gradient(to right, #b8860b, #FFD700); }
+        &.dh-qa-tt-bar--armor  { background: linear-gradient(to right, #1a6e8e, #2980b9); }
+    }
+
+    .dh-qa-tt-value {
+        font-size: 11px;
+        color: #ffffff;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .dh-qa-tt-divider {
+        border: none;
+        border-top: 1px solid rgba(201, 160, 96, 0.2);
+        margin: 3px 0;
+    }
+
+    .dh-qa-tt-thresholds {
+        text-align: center;
+        font-size: 11px;
+        color: #e0e0e0;
+        padding-top: 2px;
+    }
+
+    .dh-qa-tt-dt-item {
+        white-space: nowrap;
+        font-size: 11px;
+        line-height: 1;
+
+        strong {
+            color: #ffffff;
+        }
+    }
+
+    .dh-qa-tt-dt-massive {
+        color: #f5836e;
+
+        strong { color: #f5836e; }
+    }
+}
+
+/* ---- Token Tooltip Size Variants ---- */
+
+#dh-qa-token-tooltip.dh-qa-tt-size--normal {
+    min-width: 230px;
+    max-width: 290px;
+    padding: 10px 13px;
+    font-size: 14px;
+    border-radius: 7px;
+
+    .dh-qa-tt-header {
+        font-size: 15px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        letter-spacing: 0.9px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 14px; gap: 5px; }
+    .dh-qa-tt-evasion { font-size: 14px; gap: 5px; }
+
+    .dh-qa-tt-body { gap: 5px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 74px 1fr 44px;
+        gap: 6px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 74px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 13px; gap: 5px; }
+
+    .dh-qa-tt-bar-wrap { height: 8px; border-radius: 4px; }
+    .dh-qa-tt-bar     { border-radius: 4px; }
+
+    .dh-qa-tt-value { font-size: 13px; }
+
+    .dh-qa-tt-divider { margin: 4px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 13px; padding-top: 3px; }
+    .dh-qa-tt-dt-item    { font-size: 13px; }
+}
+
+#dh-qa-token-tooltip.dh-qa-tt-size--large {
+    min-width: 280px;
+    max-width: 350px;
+    padding: 13px 16px;
+    font-size: 16px;
+    border-radius: 8px;
+    border-width: 2px;
+
+    .dh-qa-tt-header {
+        font-size: 17px;
+        margin-bottom: 10px;
+        padding-bottom: 7px;
+        letter-spacing: 1px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 16px; gap: 6px; }
+    .dh-qa-tt-evasion { font-size: 16px; gap: 6px; }
+
+    .dh-qa-tt-body { gap: 6px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 88px 1fr 52px;
+        gap: 7px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 88px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 15px; gap: 6px; }
+
+    .dh-qa-tt-bar-wrap { height: 10px; border-radius: 5px; }
+    .dh-qa-tt-bar     { border-radius: 5px; }
+
+    .dh-qa-tt-value { font-size: 15px; }
+
+    .dh-qa-tt-divider { margin: 5px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 15px; padding-top: 4px; }
+    .dh-qa-tt-dt-item    { font-size: 15px; }
+}
+
+#dh-qa-token-tooltip.dh-qa-tt-size--xlarge {
+    min-width: 340px;
+    max-width: 420px;
+    padding: 16px 20px;
+    font-size: 18px;
+    border-radius: 10px;
+    border-width: 2px;
+
+    .dh-qa-tt-header {
+        font-size: 20px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        letter-spacing: 1.1px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 18px; gap: 7px; }
+    .dh-qa-tt-evasion { font-size: 18px; gap: 7px; }
+
+    .dh-qa-tt-body { gap: 8px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 104px 1fr 60px;
+        gap: 8px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 104px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 17px; gap: 7px; }
+
+    .dh-qa-tt-bar-wrap { height: 12px; border-radius: 6px; }
+    .dh-qa-tt-bar     { border-radius: 6px; }
+
+    .dh-qa-tt-value { font-size: 17px; }
+
+    .dh-qa-tt-divider { margin: 6px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 17px; padding-top: 5px; }
+    .dh-qa-tt-dt-item    { font-size: 17px; }
+}
+
+#dh-qa-token-tooltip.dh-qa-tt-size--xxlarge {
+    min-width: 400px;
+    max-width: 500px;
+    padding: 20px 24px;
+    font-size: 21px;
+    border-radius: 12px;
+    border-width: 2px;
+
+    .dh-qa-tt-header {
+        font-size: 23px;
+        margin-bottom: 14px;
+        padding-bottom: 9px;
+        letter-spacing: 1.2px;
+    }
+
+    .dh-qa-tt-difficulty { font-size: 21px; gap: 8px; }
+    .dh-qa-tt-evasion { font-size: 21px; gap: 8px; }
+
+    .dh-qa-tt-body { gap: 10px; }
+
+    .dh-qa-tt-row {
+        grid-template-columns: 120px 1fr 68px;
+        gap: 9px;
+
+        &.dh-qa-tt-row--meta { grid-template-columns: 120px 1fr; }
+    }
+
+    .dh-qa-tt-label { font-size: 19px; gap: 8px; }
+
+    .dh-qa-tt-bar-wrap { height: 14px; border-radius: 7px; }
+    .dh-qa-tt-bar     { border-radius: 7px; }
+
+    .dh-qa-tt-value { font-size: 19px; }
+
+    .dh-qa-tt-divider { margin: 7px 0; }
+
+    .dh-qa-tt-thresholds { font-size: 19px; padding-top: 6px; }
+    .dh-qa-tt-dt-item    { font-size: 19px; }
+}

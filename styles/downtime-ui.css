@@ -1,0 +1,890 @@
+/* --- Downtime UI App --- */
+.dh-downtime-ui {
+    --dui-gold: #C9A060;
+    --dui-gold-bright: #FFD700;
+    --dui-bg: #191919;
+    --dui-surface: #191919;
+    --dui-border: #333;
+    --dui-text: #ffffff;
+    --dui-text-dim: #cccccc;
+    --dui-input-bg: #fff;
+    --dui-input-text: #000;
+
+    & .window-content {
+        background: var(--dui-bg);
+        padding: 12px;
+        max-height: 720px;
+        overflow-y: auto;
+    }
+
+    & .dui-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Toolbar: Rest Toggle & Start Button */
+    & .dui-toolbar {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 5px;
+    }
+
+    & .dui-toggle-type {
+        display: flex;
+        background: #000;
+        border: 1px solid var(--dui-gold);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    & .dui-rest-btn {
+        background: transparent;
+        border: none;
+        color: #888;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s;
+        height: 32px !important;
+
+        &.active {
+            background: rgba(203, 163, 87, 0.2);
+            color: var(--dui-gold);
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        &:hover:not(.active) {
+            color: #ccc;
+        }
+    }
+
+    /* Header text (Short/Long Rest) */
+    & .dui-rest-header {
+        background: linear-gradient(180deg, #333, #111);
+        border: 1px solid var(--dui-gold);
+        color: var(--dui-gold);
+        font-family: "Aleo", serif;
+        font-size: 16px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 4px;
+        text-align: center;
+        padding: 8px;
+        margin-bottom: 10px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+    }
+
+    & .dui-moves-btn {
+        background: linear-gradient(180deg, #333, #111);
+        border: 1px solid var(--dui-gold);
+        color: var(--dui-gold);
+        font-family: "Aleo", serif;
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 14px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        white-space: nowrap;
+        height: 32px !important;
+
+        &:hover {
+            text-shadow: 0 0 5px var(--dui-gold);
+            border-color: #fff;
+        }
+    }
+
+    & .dui-start-btn {
+        flex-grow: 1;
+        background: linear-gradient(180deg, #333, #111);
+        border: 1px solid var(--dui-gold);
+        color: var(--dui-gold);
+        font-family: "Aleo", serif;
+        font-size: 16px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        height: 32px !important;
+
+        &:hover {
+            text-shadow: 0 0 5px var(--dui-gold);
+            border-color: #fff;
+        }
+    }
+
+    & .dui-resend-btn {
+        background: linear-gradient(180deg, #333, #111);
+        border: 1px solid var(--dui-gold);
+        color: var(--dui-gold);
+        cursor: pointer;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        height: 32px !important;
+
+        &:hover {
+            text-shadow: 0 0 5px var(--dui-gold);
+            border-color: #fff;
+        }
+    }
+
+    /* Player List Container */
+    & .dui-player-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Row Layout: Force relative positioning and base z-index */
+    & .dui-row {
+        background: var(--dui-surface);
+        border: 1px solid var(--dui-border);
+        border-radius: 6px;
+        padding: 8px 12px;
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        grid-template-rows: auto auto auto;
+        grid-template-areas:
+            "controls identity refresh counter"
+            "actions actions actions actions"
+            "features features features features";
+        align-items: center;
+        gap: 6px 10px;
+        transition: border-color 0.2s;
+
+        position: relative;
+        z-index: 10; /* Base priority to establish stable stacking context */
+
+        &:hover {
+            border-color: #555;
+            z-index: 1000 !important; /* Overwhelming priority on hover to fix tooltip overlay */
+        }
+    }
+
+    /* Player View Grid */
+    & .dui-row.player-view {
+        grid-template-columns: 1fr auto auto;
+        grid-template-areas:
+            "identity refresh counter"
+            "actions actions actions"
+            "features features features";
+    }
+
+    & .dui-row--excluded {
+        opacity: 0.5;
+        border-color: #222;
+    }
+
+    & .dui-row--preparing {
+        border-color: #C9A060;
+        box-shadow: 0 0 8px 2px rgba(201, 160, 96, 0.5), 0 0 20px 4px rgba(201, 160, 96, 0.25);
+        animation: dui-golden-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes dui-golden-pulse {
+        0%, 100% { box-shadow: 0 0 8px 2px rgba(201, 160, 96, 0.5), 0 0 20px 4px rgba(201, 160, 96, 0.25); }
+        50% { box-shadow: 0 0 12px 4px rgba(201, 160, 96, 0.7), 0 0 28px 8px rgba(201, 160, 96, 0.35); }
+    }
+
+    /* Controls Column */
+    & .dui-controls-col {
+        grid-area: controls;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 45px;
+    }
+
+    /* Inclusion Toggle (Styled accurately using symmetric math) */
+    & .dui-toggle-switch {
+        width: 40px !important;
+        height: 22px !important;
+        min-width: 40px !important;
+        flex-shrink: 0;
+        background: #111;
+        border: 2px solid #555;
+        border-radius: 12px;
+        cursor: pointer;
+        position: relative;
+        padding: 0 !important;
+        margin: 0;
+        box-sizing: border-box;
+        appearance: none;
+        -webkit-appearance: none;
+        transition: all 0.3s ease;
+        display: flex;         /* Forces perfect vertical alignment inside */
+        align-items: center;
+    }
+
+    & .dui-toggle-slider {
+        position: absolute;
+        left: 2px;
+        width: 14px;
+        height: 14px;
+        background: #888;
+        border-radius: 50%;
+        transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    & .dui-toggle-switch.checked {
+        background: rgba(201, 160, 96, 0.15);
+        border-color: var(--dui-gold);
+    }
+
+    & .dui-toggle-switch.checked .dui-toggle-slider {
+        background: var(--dui-gold);
+        transform: translateX(20px); /* Total width(40) - border(4) - left(2) - slider(14) = 20px perfect slide */
+        box-shadow: 0 0 6px rgba(201, 160, 96, 0.6);
+    }
+
+    /* Identity Column (Info) */
+    & .dui-identity {
+        grid-area: identity;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    & .dui-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--dui-gold);
+        object-fit: cover;
+        flex-shrink: 0;
+        background: #000;
+    }
+
+    & .dui-info-text {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        line-height: 1.2;
+    }
+
+    & .dui-actor-name {
+        font-weight: bold;
+        color: #fff;
+        font-size: 16px;
+    }
+
+    /* Badges Container */
+    & .dui-badges-container {
+        grid-area: refresh;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        justify-content: flex-start;
+    }
+
+    /* Refresh Feature Tooltip Badge */
+    & .dui-refresh-badge {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 4px 8px;
+        background: rgba(201, 160, 96, 0.1);
+        border: 1px solid rgba(201, 160, 96, 0.2);
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--dui-gold);
+        font-size: 13px;
+        transition: all 0.2s;
+        white-space: nowrap;
+        z-index: 50;
+
+        &:hover {
+            background: rgba(201, 160, 96, 0.2);
+            border-color: rgba(201, 160, 96, 0.4);
+        }
+
+        /* Tooltip visibility controlled by JS to prevent scroll glitch */
+    }
+
+    & .dui-refresh-label {
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    & .dui-refresh-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        top: calc(100% + 8px);
+        bottom: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #191919;
+        border: 1px solid #C9A060;
+        border-radius: 6px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 999999 !important; /* Forces it over absolutely everything */
+        white-space: nowrap;
+        transition: opacity 0.15s;
+        pointer-events: auto; /* Required: Ensures moving the mouse into the tooltip doesn't lose the parent row's hover state */
+        box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+    }
+
+    /* Flipped tooltip: opens above the badge */
+    & .dui-refresh-tooltip--above {
+        top: auto;
+        bottom: calc(100% + 8px);
+    }
+
+    /* Invisible bridge to prevent hover loss when traversing the 8px gap */
+    & .dui-refresh-tooltip::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: transparent;
+    }
+
+    /* Bridge for flipped tooltip: gap is above the badge, so bridge goes below the tooltip */
+    & .dui-refresh-tooltip--above::before {
+        bottom: auto;
+        top: 100%;
+    }
+
+    & .dui-refresh-feature {
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: normal;
+        border: 1px solid #ffffff;
+        border-radius: 4px;
+        padding: 2px 6px;
+    }
+
+    /* Domain Card Status Badge */
+    & .dui-domain-card-badge {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border: 1px solid rgba(201, 160, 96, 0.2);
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--dui-gold);
+        font-size: 13px;
+        transition: all 0.2s;
+        white-space: nowrap;
+        z-index: 50;
+
+        &.warning {
+            background: rgba(255, 165, 0, 0.15);
+            border-color: rgba(255, 165, 0, 0.4);
+            color: #ffa500;
+
+            &:hover {
+                background: rgba(255, 165, 0, 0.25);
+                border-color: rgba(255, 165, 0, 0.6);
+            }
+        }
+
+        &.info {
+            background: rgba(201, 160, 96, 0.1);
+            border-color: rgba(201, 160, 96, 0.2);
+            color: var(--dui-gold);
+
+            &:hover {
+                background: rgba(201, 160, 96, 0.2);
+                border-color: rgba(201, 160, 96, 0.4);
+            }
+        }
+    }
+
+    & .dui-domain-card-label {
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    & .dui-domain-card-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        top: calc(100% + 8px);
+        bottom: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #191919;
+        border: 1px solid #C9A060;
+        border-radius: 6px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        z-index: 999999 !important;
+        white-space: nowrap;
+        transition: opacity 0.15s;
+        pointer-events: auto;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: normal;
+    }
+
+    /* Flipped tooltip: opens above the badge */
+    & .dui-domain-card-tooltip--above {
+        top: auto;
+        bottom: calc(100% + 8px);
+    }
+
+    & .dui-domain-card-badge:hover .dui-domain-card-tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Invisible bridge to prevent hover loss when traversing the 8px gap */
+    & .dui-domain-card-tooltip::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: transparent;
+    }
+
+    /* Bridge for flipped tooltip: gap is above the badge, so bridge goes below the tooltip */
+    & .dui-domain-card-tooltip--above::before {
+        bottom: auto;
+        top: 100%;
+    }
+
+    /* Settings Gear Button */
+    & .dui-config-btn {
+        background: none;
+        border: none;
+        color: var(--dui-text-dim);
+        cursor: pointer;
+        font-size: 14px;
+        padding: 0;
+        transition: color 0.2s;
+
+        &:hover { color: #fff; }
+    }
+
+    & .dui-user-name {
+        font-size: 16px;
+        color: var(--dui-text-dim);
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    & .dui-user-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+        background: var(--user-color);
+    }
+
+    /* Actions Wrapper */
+    & .dui-actions-wrapper {
+        grid-area: actions;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Actions Column */
+    & .dui-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+    }
+
+    /* Group: Button + Select Wrapper */
+    & .dui-action-group {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        background: rgba(255,255,255,0.03);
+        border-radius: 4px;
+        border: 1px solid #444;
+        transition: 0.2s;
+        height: 30px !important;
+        display: inline-flex;
+        align-items: center;
+
+        &.active {
+            border-color: var(--dui-gold);
+            background: rgba(203, 163, 87, 0.1);
+        }
+
+        &:hover {
+             border-color: #666;
+        }
+        &.active:hover {
+             border-color: var(--dui-gold);
+        }
+    }
+
+    /* Action Button */
+    & .dui-action-btn {
+        background: transparent;
+        border: 1px solid #555;
+        color: #ffffff;
+        padding: 0 10px;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        height: 30px !important;
+        display: inline-flex !important;
+        justify-content: center;
+
+        /* Standalone button style */
+        &.standalone {
+            border: 1px solid #444;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+
+            &:hover {
+                border-color: var(--dui-gold);
+                color: #fff;
+            }
+            &.selected {
+                border-color: var(--dui-gold);
+                color: var(--dui-gold);
+                background: rgba(203, 163, 87, 0.15);
+            }
+        }
+
+        &:hover {
+            border-color: #C9A060 !important;
+            color: #C9A060 !important;
+        }
+    }
+
+    & .dui-action-group.active .dui-action-btn {
+        color: var(--dui-gold);
+        font-weight: bold;
+    }
+
+    /* Inline Select */
+    & .dui-target-select {
+        background-color: var(--dui-input-bg);
+        color: var(--dui-input-text);
+        border: none;
+        border-left: 1px solid #999;
+        height: 100%;
+        padding: 0 5px;
+        font-size: 12px;
+        font-family: inherit;
+        outline: none;
+        border-radius: 0 3px 3px 0;
+        max-width: 100px;
+        cursor: pointer;
+        display: block;
+    }
+
+    /* Efficient Feature Badge */
+    & .dui-efficient-badge {
+        background: none;
+        border: none;
+        color: #555;
+        cursor: pointer;
+        font-size: 10px;
+        padding: 0 4px;
+        line-height: 1;
+        height: 100%;
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.15s;
+
+        &.active {
+            color: var(--dui-gold-bright, #ffd700);
+            text-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
+        }
+
+        &:hover:not(:disabled) {
+            color: var(--dui-gold, #C9A060);
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.4;
+        }
+    }
+
+    /* Efficient slot glow */
+    & .dui-action-group.efficient {
+        border-color: var(--dui-gold-bright, #ffd700);
+        box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
+    }
+
+    & .dui-action-btn.standalone.efficient {
+        border-color: var(--dui-gold-bright, #ffd700);
+        box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
+    }
+
+    & .dui-action-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+
+        &:has(.dui-efficient-badge) {
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+            border: 1px solid #444;
+            height: 30px !important;
+            transition: 0.2s;
+        }
+
+        &:has(.dui-efficient-badge) > .dui-action-btn.standalone {
+            border: none;
+            border-radius: 4px 0 0 4px;
+            background: none;
+            box-shadow: none;
+        }
+
+        /* Selected state: wrapper mirrors the button's selected look */
+        &:has(.dui-efficient-badge):has(.dui-action-btn.selected) {
+            border-color: var(--dui-gold);
+            background: rgba(203, 163, 87, 0.15);
+        }
+
+        &:has(.dui-efficient-badge):has(.dui-action-btn.selected) > .dui-action-btn.standalone {
+            color: var(--dui-gold);
+        }
+
+        /* Efficient slot active glow */
+        &:has(.dui-efficient-badge.active) {
+            border-color: var(--dui-gold-bright, #ffd700);
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
+        }
+    }
+
+
+    /* Bonus Move */
+    & .dui-bonus-move {
+        border-style: dashed;
+
+        & .dui-action-btn i {
+            font-size: 10px;
+            margin-right: 2px;
+        }
+    }
+
+    & .dui-forager-select {
+        background-color: var(--dui-input-bg);
+        color: var(--dui-input-text);
+        border: none;
+        border-left: 1px solid #999;
+        height: 100%;
+        padding: 0 5px;
+        font-size: 11px;
+        font-family: inherit;
+        outline: none;
+        border-radius: 0 3px 3px 0;
+        max-width: 120px;
+        cursor: pointer;
+    }
+
+    /* Counter Column */
+    & .dui-counter {
+        grid-area: counter;
+        color: var(--dui-text-dim);
+        font-family: monospace;
+        border-left: 1px solid #333;
+        padding-left: 10px;
+        height: 30px;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+        min-width: max-content;
+    }
+
+    & .dui-count-val {
+        color: var(--dui-gold);
+        font-weight: bold;
+        font-size: 16px;
+    }
+
+    & .dui-count-label {
+        font-size: 14px;
+        color: var(--dui-text-dim);
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+    /* Features Row (Eloquent + Efficient side by side) */
+    & .dui-features-row {
+        grid-area: features;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    /* Eloquent Beneficiary Selector */
+    & .dui-eloquent-selector-below {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #444;
+        border-radius: 4px;
+        gap: 8px;
+    }
+
+    & .dui-eloquent-label {
+        color: var(--dui-gold);
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    & .dui-eloquent-select {
+        padding: 0 4px;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid #555;
+        border-radius: 3px;
+        color: #ffffff;
+        cursor: pointer;
+        outline: none;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        font-family: inherit;
+        transition: 0.2s;
+        max-width: 140px;
+        text-overflow: ellipsis;
+    }
+
+    & .dui-eloquent-select:hover {
+        border-color: var(--dui-gold);
+        color: #ffffff;
+    }
+
+    & .dui-eloquent-select:focus {
+        border-color: var(--dui-gold);
+        box-shadow: 0 0 4px rgba(201, 160, 96, 0.3);
+    }
+
+    & .dui-eloquent-select option {
+        background: #191919;
+        color: #ffffff;
+        padding: 4px;
+    }
+
+    & .dui-eloquent-select option:checked {
+        background: #C9A060;
+        color: #191919;
+    }
+
+    /* Efficient Feature Indicator */
+    & .dui-efficient-indicator {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid #444;
+        border-radius: 4px;
+        gap: 6px;
+        cursor: default;
+        color: var(--dui-gold-bright, #ffd700);
+
+        & i {
+            font-size: 12px;
+        }
+
+        &:hover .dui-efficient-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+
+    & .dui-efficient-text {
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--dui-gold);
+    }
+
+    & .dui-efficient-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        bottom: calc(100% + 6px);
+        left: 0;
+        background: #191919;
+        border: 1px solid #C9A060;
+        border-radius: 6px;
+        padding: 6px 10px;
+        z-index: 999999 !important;
+        white-space: nowrap;
+        transition: opacity 0.15s;
+        pointer-events: none;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: normal;
+    }
+
+    & .dui-empty {
+        text-align: center;
+        padding: 32px 16px;
+        color: var(--dui-text-dim);
+
+        & i {
+            font-size: 2em;
+            margin-bottom: 8px;
+            display: block;
+            color: #555;
+        }
+    }
+}

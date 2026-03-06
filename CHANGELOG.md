@@ -1,3 +1,7 @@
+# 0.3.0
+- QuickActions.Scan(); will be a wisper
+- CSS refactor
+
 # 0.2.9
 - New: QuickActions.Scan();
 /* WARNING: This will only work if you enable the module setting.

@@ -44,7 +44,7 @@ You can trigger any function programmatically or via Foundry Macros using the gl
 
 ```javascript
 // Opens the Downtime interface
-QuickActions.Downtime();
+QuickActions.DowntimeUI();
 ```
 
 ```javascript
