@@ -155,6 +155,24 @@
 
         strong { color: #f5836e; }
     }
+
+    .dh-qa-tt-features {
+        font-size: 11px;
+        color: #e0e0e0;
+        line-height: 1.4;
+    }
+
+    .dh-qa-tt-features-label {
+        font-weight: 700;
+        color: #C9A060;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-right: 4px;
+    }
+
+    .dh-qa-tt-features-list {
+        color: #ffffff;
+    }
 }
 
 /* ---- Token Tooltip Size Variants ---- */
@@ -196,6 +214,7 @@
 
     .dh-qa-tt-thresholds { font-size: 13px; padding-top: 3px; }
     .dh-qa-tt-dt-item    { font-size: 13px; }
+    .dh-qa-tt-features   { font-size: 13px; }
 }
 
 #dh-qa-token-tooltip.dh-qa-tt-size--large {
@@ -236,6 +255,7 @@
 
     .dh-qa-tt-thresholds { font-size: 15px; padding-top: 4px; }
     .dh-qa-tt-dt-item    { font-size: 15px; }
+    .dh-qa-tt-features   { font-size: 15px; }
 }
 
 #dh-qa-token-tooltip.dh-qa-tt-size--xlarge {
@@ -276,6 +296,7 @@
 
     .dh-qa-tt-thresholds { font-size: 17px; padding-top: 5px; }
     .dh-qa-tt-dt-item    { font-size: 17px; }
+    .dh-qa-tt-features   { font-size: 17px; }
 }
 
 #dh-qa-token-tooltip.dh-qa-tt-size--xxlarge {
@@ -316,4 +337,5 @@
 
     .dh-qa-tt-thresholds { font-size: 19px; padding-top: 6px; }
     .dh-qa-tt-dt-item    { font-size: 19px; }
+    .dh-qa-tt-features   { font-size: 19px; }
 }

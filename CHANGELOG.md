@@ -3,6 +3,7 @@
 - CSS refactor
 - QuickActions.Scan(); supports customization
 - Tooltip will be disabled on drag token
+- Adversary Tooltip will show reaction and passive features
 
 # 0.2.9
 - New: QuickActions.Scan();

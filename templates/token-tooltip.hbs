@@ -34,6 +34,22 @@
         {{/if}}
     </div>
 
+    {{#if hasReactions}}
+    <div class="dh-qa-tt-divider"></div>
+    <div class="dh-qa-tt-features">
+        <span class="dh-qa-tt-features-label">Reactions:</span>
+        <span class="dh-qa-tt-features-list">{{#each reactions}}{{#if @index}}, {{/if}}{{this}}{{/each}}</span>
+    </div>
+    {{/if}}
+
+    {{#if hasPassives}}
+    <div class="dh-qa-tt-divider"></div>
+    <div class="dh-qa-tt-features">
+        <span class="dh-qa-tt-features-label">Passive:</span>
+        <span class="dh-qa-tt-features-list">{{#each passives}}{{#if @index}}, {{/if}}{{this}}{{/each}}</span>
+    </div>
+    {{/if}}
+
 </div>
 
 {{else if isCompanion}}

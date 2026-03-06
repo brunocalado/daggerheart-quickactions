@@ -101,6 +101,11 @@ function _truncName(name) {
     return name.slice(0, 17) + "...";
 }
 
+function _truncFeatureName(name) {
+    if (!name || name.length <= 15) return name;
+    return name.slice(0, 15) + "…";
+}
+
 // -------------------------------------------------------------------
 // Data builder — always use actor.system (live, post-Active Effects)
 // NEVER use .toObject(), actor.data, or JSON extraction
@@ -182,6 +187,15 @@ function _buildAdversaryData(token) {
 
     const tier = sys.tier ?? 1;
 
+    // Collect passive and reaction features from actor items
+    const reactions = [];
+    const passives = [];
+    for (const item of actor.items) {
+        const form = item.system?.featureForm;
+        if (form === "reaction") reactions.push(_truncFeatureName(item.name));
+        else if (form === "passive") passives.push(_truncFeatureName(item.name));
+    }
+
     return {
         isAdversary: true,
         name:        _truncName(actor.name),
@@ -196,7 +210,11 @@ function _buildAdversaryData(token) {
         showMassive,
         massiveDT,
         hpPct:     pct(hp.max - hp.value, hp.max),
-        stressPct: pct(stress.max - stress.value, stress.max)
+        stressPct: pct(stress.max - stress.value, stress.max),
+        reactions,
+        passives,
+        hasReactions: reactions.length > 0,
+        hasPassives:  passives.length > 0
     };
 }
 
