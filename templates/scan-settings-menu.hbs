@@ -1,0 +1,75 @@
+<div class="scan-settings-wrapper">
+
+    <!-- NAVIGATION TABS -->
+    <nav class="tracker-nav tabs">
+        <a class="item active" data-tab="hp"><i class="fas fa-heart"></i> Physical State</a>
+        <a class="item" data-tab="stress"><i class="fas fa-brain"></i> Mental State</a>
+    </nav>
+
+    <!-- TAB CONTENT CONTAINER -->
+    <section class="tab-content">
+
+        <!-- =======================
+             TAB: HP LABELS
+             ======================= -->
+        <div class="tab active" data-tab="hp">
+            <div class="config-card">
+                <h3><i class="fas fa-heart"></i> Physical State Configuration</h3>
+
+                <div class="form-group">
+                    <label>Chat Card Title</label>
+                    <input type="text" name="hpTitle" value="{{hpTitle}}" maxlength="30" placeholder="Physical State">
+                    <span class="hint">The heading displayed on the scan chat card for hit points. Max 30 characters.</span>
+                </div>
+
+                <div class="label-list" data-label-type="hp">
+                    {{#each hpLabels}}
+                    <div class="label-row">
+                        <span class="label-threshold">{{this.min}}%+</span>
+                        <input type="text" class="label-text" name="hpLabel-{{this.min}}" value="{{this.label}}" maxlength="140" placeholder="Descriptive label...">
+                    </div>
+                    {{/each}}
+                </div>
+
+                <button type="button" class="reset-btn" data-reset="hp">
+                    <i class="fas fa-undo"></i> Reset to Defaults
+                </button>
+            </div>
+        </div>
+
+        <!-- =======================
+             TAB: STRESS LABELS
+             ======================= -->
+        <div class="tab" data-tab="stress">
+            <div class="config-card">
+                <h3><i class="fas fa-brain"></i> Mental State Configuration</h3>
+
+                <div class="form-group">
+                    <label>Chat Card Title</label>
+                    <input type="text" name="stressTitle" value="{{stressTitle}}" maxlength="30" placeholder="Mental State">
+                    <span class="hint">The heading displayed on the scan chat card for stress. Max 30 characters.</span>
+                </div>
+
+                <div class="label-list" data-label-type="stress">
+                    {{#each stressLabels}}
+                    <div class="label-row">
+                        <span class="label-threshold">{{this.min}}%+</span>
+                        <input type="text" class="label-text" name="stressLabel-{{this.min}}" value="{{this.label}}" maxlength="140" placeholder="Descriptive label...">
+                    </div>
+                    {{/each}}
+                </div>
+
+                <button type="button" class="reset-btn" data-reset="stress">
+                    <i class="fas fa-undo"></i> Reset to Defaults
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+    <footer class="sheet-footer flexrow">
+        <button type="submit" name="submit">
+            <i class="far fa-save"></i> Save Configuration
+        </button>
+    </footer>
+</div>

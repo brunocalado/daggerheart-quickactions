@@ -1,6 +1,7 @@
 # 0.3.0
 - QuickActions.Scan(); will be a wisper
 - CSS refactor
+- QuickActions.Scan(); supports customization
 
 # 0.2.9
 - New: QuickActions.Scan();

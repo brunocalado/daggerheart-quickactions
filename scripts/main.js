@@ -15,6 +15,8 @@ import { features } from "./features.js";
 import { beastformAction } from "./beastform.js";
 // Import Token Tooltip
 import { initTokenTooltip } from "./token-tooltip.js";
+// Import Scan Settings
+import { registerScanSettings } from "./scan-settings.js";
 
 // ==================================================================
 // GLOBAL API
@@ -204,6 +206,7 @@ Hooks.once("init", () => {
         default: false
     });
 
+    registerScanSettings();
     initTokenTooltip();
 
     globalThis.QuickActions = {

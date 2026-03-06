@@ -1,9 +1,13 @@
 /**
  * Scan Module
  * Contains the logic for the QuickActions.Scan() feature.
+ * Labels and titles are configurable via the Scan Settings menu.
  */
 
-const HP_LABELS = [
+const MODULE_ID = "daggerheart-quickactions";
+
+/** Fallback HP labels used when settings are unavailable. */
+const DEFAULT_HP_LABELS = [
     { min: 100, label: "Imposing; their form is pristine, radiating an aura of untouched power." },
     { min: 75,  label: "Weathered; minor injuries or disruptions mark their form, but their stance remains firm." },
     { min: 50,  label: "Battered; visible wounds or flickering essence betray the toll of battle, slowing them down." },
@@ -11,13 +15,44 @@ const HP_LABELS = [
     { min: 0,   label: "Fallen; the vessel has succumbed, collapsing into stillness or dissipation." },
 ];
 
-const STRESS_LABELS = [
+/** Fallback Stress labels used when settings are unavailable. */
+const DEFAULT_STRESS_LABELS = [
     { min: 100, label: "Unshakeable; their mind is a fortress, operating with absolute, terrifying clarity." },
     { min: 70,  label: "Guarded; a subtle tension tightens their movements, the weight of the moment setting in." },
     { min: 50,  label: "Rattled; hesitation fractures their focus, erratic energy revealing their inner turmoil." },
     { min: 25,  label: "Overwhelmed; panic or instability has taken hold, leaving them erratic and unpredictable." },
     { min: 0,   label: "Shattered; their mental defenses have crumbled, leaving them utterly exposed and vulnerable to any threat." },
 ];
+
+/**
+ * Reads the configured scan labels from world settings, falling back to defaults.
+ * @param {"hp"|"stress"} type - Which label set to retrieve.
+ * @returns {Array<{min: number, label: string}>}
+ */
+function getScanLabels(type) {
+    const key = type === "hp" ? "scanHpLabels" : "scanStressLabels";
+    const fallback = type === "hp" ? DEFAULT_HP_LABELS : DEFAULT_STRESS_LABELS;
+    try {
+        return JSON.parse(game.settings.get(MODULE_ID, key));
+    } catch {
+        return fallback;
+    }
+}
+
+/**
+ * Reads the configured scan title from world settings, falling back to defaults.
+ * @param {"hp"|"stress"} type - Which title to retrieve.
+ * @returns {string}
+ */
+function getScanTitle(type) {
+    const key = type === "hp" ? "scanHpTitle" : "scanStressTitle";
+    const fallback = type === "hp" ? "Physical State" : "Mental State";
+    try {
+        return game.settings.get(MODULE_ID, key) || fallback;
+    } catch {
+        return fallback;
+    }
+}
 
 /**
  * Gets a descriptive label based on a percentage value.
@@ -75,8 +110,10 @@ export async function scan() {
         stressPct = stress.value > 0 ? 0 : 100;
     }
 
-    const hpLabel = hp ? getLabel(hpPct, HP_LABELS) : null;
-    const stressLabel = stress ? getLabel(stressPct, STRESS_LABELS) : null;
+    const hpLabel = hp ? getLabel(hpPct, getScanLabels("hp")) : null;
+    const stressLabel = stress ? getLabel(stressPct, getScanLabels("stress")) : null;
+    const hpTitle = getScanTitle("hp");
+    const stressTitle = getScanTitle("stress");
 
     const titleColor = "#C9A060";
     const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
@@ -92,11 +129,11 @@ export async function scan() {
             <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
             <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; gap: 15px;">
                 ${hpLabel ? `<div>
-                    <div style="color: #ff6b6b; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Physical State</div>
+                    <div style="color: #ff6b6b; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">${hpTitle}</div>
                     <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${hpLabel.charAt(0).toUpperCase() + hpLabel.slice(1)}</div>
                 </div>` : ''}
                 ${stressLabel ? `<div>
-                    <div style="color: #9d80ff; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Mental State</div>
+                    <div style="color: #9d80ff; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">${stressTitle}</div>
                     <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${stressLabel.charAt(0).toUpperCase() + stressLabel.slice(1)}</div>
                 </div>` : ''}
             </div>
