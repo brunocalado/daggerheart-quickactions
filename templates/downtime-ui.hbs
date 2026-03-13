@@ -76,6 +76,38 @@
                 {{/if}}
             </div>
 
+            <!-- Resource stats row -->
+            <div class="dui-stats-row">
+                <div class="dui-stat-item">
+                    <span class="dui-stat-label"><i class="fas fa-heart"></i> HP</span>
+                    <div class="dui-stat-bar-wrap">
+                        <div class="dui-stat-bar dui-stat-bar--hp" style="--progress: {{this.hpPct}}%"></div>
+                    </div>
+                    <span class="dui-stat-value">{{this.hp.value}}/{{this.hp.max}}</span>
+                </div>
+                <div class="dui-stat-item">
+                    <span class="dui-stat-label"><i class="fas fa-bolt"></i> Stress</span>
+                    <div class="dui-stat-bar-wrap">
+                        <div class="dui-stat-bar dui-stat-bar--stress" style="--progress: {{this.stressPct}}%"></div>
+                    </div>
+                    <span class="dui-stat-value">{{this.stress.value}}/{{this.stress.max}}</span>
+                </div>
+                <div class="dui-stat-item">
+                    <span class="dui-stat-label"><i class="fas fa-shield-alt"></i> Armor</span>
+                    <div class="dui-stat-bar-wrap">
+                        <div class="dui-stat-bar dui-stat-bar--armor" style="--progress: {{this.armorPct}}%"></div>
+                    </div>
+                    <span class="dui-stat-value">{{this.armor.value}}/{{this.armor.max}}</span>
+                </div>
+                <div class="dui-stat-item">
+                    <span class="dui-stat-label"><i class="fas fa-sun"></i> Hope</span>
+                    <div class="dui-stat-bar-wrap">
+                        <div class="dui-stat-bar dui-stat-bar--hope" style="--progress: {{this.hopePct}}%"></div>
+                    </div>
+                    <span class="dui-stat-value">{{this.hope.value}}/{{this.hope.max}}</span>
+                </div>
+            </div>
+
             <!-- Actions Column -->
             <div class="dui-actions-wrapper">
                 <div class="dui-actions">

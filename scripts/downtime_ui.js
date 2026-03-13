@@ -1071,6 +1071,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // ==================================================================
 class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static _instance = null;
+    /** @type {Function} Debounced render to collapse rapid re-render bursts into a single execution */
+    _debouncedRender = foundry.utils.debounce(() => this.render(), 100);
 
     static DEFAULT_OPTIONS = {
         id: "daggerheart-downtime-ui",
@@ -1251,6 +1253,21 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 }
             }
 
+            // Resource bars — mirrors token-tooltip.js data access pattern
+            const sys = actor.system;
+            const hp     = sys.resources?.hitPoints ?? { value: 0, max: 0 };
+            const stress = sys.resources?.stress    ?? { value: 0, max: 0 };
+            const hope   = sys.resources?.hope      ?? { value: 0, max: 0 };
+            const armor  = sys.resources?.armor     ?? { value: 0, max: 0 };
+
+            const _pct = (v, m) => (!m ? 0 : Math.round(Math.min(100, Math.max(0, (v / m) * 100))));
+
+            // HP/Stress/Armor bars fill as the resource is *spent*; Hope fills as it *increases*
+            const hpPct     = _pct(hp.max - hp.value,         hp.max);
+            const stressPct = _pct(stress.max - stress.value,  stress.max);
+            const hopePct   = _pct(hope.value,                 hope.max);
+            const armorPct  = _pct(armor.max - armor.value,    armor.max);
+
             // Domain Cards information
             const { loadout: domainLoadout, vault: domainVault } = _getDomainCardCounts(actor);
             let domainCardStatus = null;
@@ -1300,7 +1317,15 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasBeastbound,
                 beastboundInfo,
                 showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasCelestialTrance || hasBeastbound,
-                domainCardStatus
+                domainCardStatus,
+                hp,
+                stress,
+                hope,
+                armor,
+                hpPct,
+                stressPct,
+                hopePct,
+                armorPct
             });
         }
 

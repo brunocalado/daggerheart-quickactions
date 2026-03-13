@@ -1,5 +1,7 @@
 # 0.3.1
 - CSS refactor
+- [Added] HP, Stress, Armor, and Hope resource bars in Downtime UI player rows
+- [Fixed] Debounce Downtime UI re-renders to prevent redundant render bursts from concurrent state changes
 
 # 0.3.0
 - QuickActions.Scan(); will be a wisper

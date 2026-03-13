@@ -166,9 +166,10 @@
         padding: 8px 12px;
         display: grid;
         grid-template-columns: auto 1fr auto auto;
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto auto auto auto;
         grid-template-areas:
             "controls identity refresh counter"
+            "stats stats stats stats"
             "actions actions actions actions"
             "features features features features";
         align-items: center;
@@ -189,6 +190,7 @@
         grid-template-columns: 1fr auto auto;
         grid-template-areas:
             "identity refresh counter"
+            "stats stats stats"
             "actions actions actions"
             "features features features";
     }
@@ -873,6 +875,73 @@
         color: #ffffff;
         font-size: 12px;
         font-weight: normal;
+    }
+
+    /* ---- Resource stats row (HP / Stress / Armor / Hope) ---- */
+    & .dui-stats-row {
+        grid-area: stats;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        padding: 4px 8px 6px;
+        background: rgba(255, 255, 255, 0.03);
+        border-top: 1px solid rgba(201, 160, 96, 0.15);
+        border-bottom: 1px solid rgba(201, 160, 96, 0.15);
+    }
+
+    & .dui-stat-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        min-width: 130px;
+        flex: 1 1 130px;
+    }
+
+    & .dui-stat-label {
+        font-size: 11px;
+        font-weight: bold;
+        color: #C9A060;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 62px;
+
+        .fa-heart      { color: #e74c3c; }
+        .fa-bolt       { color: #9b59b6; }
+        .fa-shield-alt { color: #2980b9; }
+        .fa-sun        { color: #FFD700; }
+    }
+
+    & .dui-stat-bar-wrap {
+        flex: 1;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    & .dui-stat-bar {
+        height: 100%;
+        border-radius: 3px;
+        width: var(--progress);
+        transition: width 0.2s ease;
+
+        &.dui-stat-bar--hp     { background: linear-gradient(to right, #c0392b, #e74c3c); }
+        &.dui-stat-bar--stress { background: linear-gradient(to right, #7f3fbf, #9b59b6); }
+        &.dui-stat-bar--armor  { background: linear-gradient(to right, #1a6e8e, #2980b9); }
+        &.dui-stat-bar--hope   { background: linear-gradient(to right, #b8860b, #FFD700); }
+    }
+
+    & .dui-stat-value {
+        font-size: 11px;
+        color: #ffffff;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        min-width: 32px;
+        text-align: right;
     }
 
     & .dui-empty {

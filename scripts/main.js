@@ -135,7 +135,7 @@ Hooks.once("init", () => {
             if (!value?.timestamp) return;
             // Removed timestamp check to avoid clock sync issues
             const inst = getDowntimeUIInstance();
-            if (inst?.rendered) inst.render();
+            if (inst?.rendered) inst._debouncedRender();
         }
     });
 
@@ -267,7 +267,7 @@ Hooks.on("ready", async () => {
         if (change?.flags?.["daggerheart-quickactions"]?.downtimeChoices !== undefined ||
             change?.flags?.["daggerheart-quickactions"]?.["-=downtimeChoices"] !== undefined) {
             const inst = getDowntimeUIInstance();
-            if (inst?.rendered) inst.render();
+            if (inst?.rendered) inst._debouncedRender();
         }
     });
 });
