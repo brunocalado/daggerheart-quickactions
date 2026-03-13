@@ -2,7 +2,7 @@
   "id": "daggerheart-quickactions",
   "title": "Daggerheart: Quick Actions",
   "description": "Quick Actions",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -83,7 +83,14 @@
   ],
   
   "styles": [
-    "styles/quickactions.css"
+    "styles/app-base.css",
+    "styles/falling-damage.css",
+    "styles/loot-consumable.css",
+    "styles/level-up.css",
+    "styles/downtime-ui.css",
+    "styles/configure-actor.css",
+    "styles/token-tooltip.css",
+    "styles/scan-settings.css"
   ],
   
   "languages": [],

@@ -1,3 +1,6 @@
+# 0.3.1
+- CSS refactor
+
 # 0.3.0
 - QuickActions.Scan(); will be a wisper
 - CSS refactor
