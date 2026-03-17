@@ -1,3 +1,14 @@
-2026/03/17-09:26:55.124 6038 Recovering log #3898
-2026/03/17-09:26:55.127 6038 Delete type=0 #3898
-2026/03/17-09:26:55.127 6038 Delete type=3 #3897
+2026/03/17-09:51:24.820 605c Recovering log #3900
+2026/03/17-09:51:24.824 605c Delete type=0 #3900
+2026/03/17-09:51:24.824 605c Delete type=3 #3899
+2026/03/17-09:53:21.505 6bbc Level-0 table #3904: started
+2026/03/17-09:53:21.506 6bbc Level-0 table #3904: 950 bytes OK
+2026/03/17-09:53:21.507 6bbc Delete type=0 #3902
+2026/03/17-09:53:21.508 6bbc Manual compaction at level-0 from '!folders!Hz442cHCkERSfi2B' @ 72057594037927935 : 1 .. '!macros!xLP6wSQnsvHyTo3w' @ 0 : 0; will stop at '!macros!jo5JYUntssedoYuE' @ 176 : 1
+2026/03/17-09:53:21.508 6bbc Compacting 1@0 + 1@1 files
+2026/03/17-09:53:21.510 6bbc Generated table #3905@0: 20 keys, 5608 bytes
+2026/03/17-09:53:21.510 6bbc Compacted 1@0 + 1@1 files => 5608 bytes
+2026/03/17-09:53:21.510 6bbc compacted to: files[ 0 1 0 0 0 0 0 ]
+2026/03/17-09:53:21.511 6bbc Delete type=2 #3748
+2026/03/17-09:53:21.511 6bbc Delete type=2 #3904
+2026/03/17-09:53:21.515 6bbc Manual compaction at level-0 from '!macros!jo5JYUntssedoYuE' @ 176 : 1 .. '!macros!xLP6wSQnsvHyTo3w' @ 0 : 0; will stop at (end)

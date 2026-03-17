@@ -1,5 +1,6 @@
 # 0.3.2
 - Templates fix.
+- [Removed] Beastform art updater feature and all related settings.
 
 # 0.3.1
 - CSS refactor

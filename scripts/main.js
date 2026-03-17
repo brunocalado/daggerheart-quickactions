@@ -12,8 +12,6 @@ import { activateRequestRoll, showCinematicPrompt } from "./request_roll.js";
 import { scan } from "./scan.js";
 // Import Features
 import { features } from "./features.js";
-// Import Beastform
-import { beastformAction } from "./beastform.js";
 // Import Token Tooltip
 import { initTokenTooltip } from "./token-tooltip.js";
 // Import Scan Settings
@@ -32,27 +30,7 @@ Hooks.once("init", () => {
         default: 4
     });
 
-    // 2. Beastform Root Path (Stored for automation)
-    game.settings.register("daggerheart-quickactions", "beastformRootPath", {
-        name: "Beastform Root Folder",
-        hint: "Path used if you turn on 'Auto Update Beastform Paths'.",
-        scope: "world",
-        config: true,
-        type: String,
-        default: ""
-    });
-
-    // 3. Beastform Auto-Check
-    game.settings.register("daggerheart-quickactions", "beastformAutoCheck", {
-        name: "Auto Update Beastform Paths",
-        hint: "WARNING: Only turn on this if you read the instructions in the wiki.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: false
-    });
-
-    // 4. Cinematic Request Synchronization (Force Open Logic)
+    // 2. Cinematic Request Synchronization (Force Open Logic)
     game.settings.register("daggerheart-quickactions", "cinematicRequest", {
         name: "Cinematic Roll Request",
         scope: "world",     // Synchronizes between all clients
@@ -225,7 +203,6 @@ Hooks.once("init", () => {
         LevelUp: activateLevelUp,
         Scan: scan,
         Features: features,
-        Beastform: beastformAction,
         DowntimeUI: activateDowntimeUI
     };
     console.log("Daggerheart Quick Actions | Global API Registered: QuickActions");
@@ -235,34 +212,6 @@ Hooks.once("init", () => {
 // READY HOOK: AUTOMATION
 // ==================================================================
 Hooks.on("ready", async () => {
-    // Check if automation is enabled
-    const autoCheck = game.settings.get("daggerheart-quickactions", "beastformAutoCheck");
-    
-    if (autoCheck) {
-        const checkImage = "icons/creatures/mammals/rodent-rat-diseaed-gray.webp";
-        const packName = "daggerheart.beastforms";
-        const pack = game.packs.get(packName);
-
-        if (pack) {
-            const documents = await pack.getDocuments({ type: "beastform" });
-            const agileScout = documents.find(d => d.name === "Agile Scout");
-
-            if (agileScout) {
-                // Check if it has the "default/wrong" image
-                if (agileScout.system.tokenImg === checkImage) {
-                    const savedRoot = game.settings.get("daggerheart-quickactions", "beastformRootPath");
-                    
-                    if (savedRoot) {
-                        console.log("QuickActions | Auto-Check: Agile Scout image mismatch detected. Running Beastform fix...");
-                        QuickActions.Beastform(savedRoot);
-                    } else {
-                        ui.notifications.warn("QuickActions: Beastform Auto-Fix triggered, but no Root Folder is saved in settings.");
-                    }
-                }
-            }
-        }
-    }
-
     // Re-render DowntimeUI when any user's flags change (player choices via setFlag)
     Hooks.on("updateUser", (user, change) => {
         if (change?.flags?.["daggerheart-quickactions"]?.downtimeChoices !== undefined ||
