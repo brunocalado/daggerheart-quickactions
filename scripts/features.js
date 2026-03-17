@@ -77,9 +77,154 @@ export async function features(featureName, ...args) {
             }
             new ChainLightningApp().render(true);
             break;
+        case 'Unleash Chaos':
+            if (!canvas.tokens.controlled.length) {
+                ui.notifications.warn("Select a token first!");
+                return;
+            }
+            await executeUnleashChaos(canvas.tokens.controlled[0]);
+            break;
         default:
             ui.notifications.warn(`QuickActions.Features: Feature '${featureName}' not found.`);
     }
+}
+
+// ==================================================================
+// UNLEASH CHAOS
+// ==================================================================
+
+/**
+ * Recharges the "Unleash Chaos" item by spending 1 Stress or 1 HP.
+ * If Stress is not full, spends 1 Stress automatically.
+ * If Stress is already full, prompts via DialogV2 to spend 1 HP instead.
+ * Posts a styled chat message summarising the cost and the recharge result.
+ *
+ * @param {Token} token - The controlled token whose actor owns Unleash Chaos.
+ * @returns {Promise<void>}
+ */
+async function executeUnleashChaos(token) {
+    const actor = token.actor;
+
+    // Require a subclass with a spellcastingTrait to determine max charge
+    const subclassItem = actor.items.find(i => i.type === "subclass");
+    if (!subclassItem?.system?.spellcastingTrait) {
+        ui.notifications.warn("The actor has no subclass with a spellcastingTrait defined.");
+        return;
+    }
+
+    const spellcastingTrait = subclassItem.system.spellcastingTrait;
+    const traitValue = actor.system.traits?.[spellcastingTrait]?.value || 0;
+    // Minimum of 1 token so the ability is always usable
+    const maxTokens = Math.max(1, traitValue);
+
+    const targetItem = actor.items.find(i => i.name === "Unleash Chaos");
+    if (!targetItem) {
+        ui.notifications.warn("Item 'Unleash Chaos' not found on this actor.");
+        return;
+    }
+
+    const currentTokens = targetItem.system.resource?.value || 0;
+    if (currentTokens >= maxTokens) {
+        ui.notifications.info(`Unleash Chaos is already at maximum charge (${maxTokens}).`);
+        return;
+    }
+
+    const stress = actor.system.resources.stress;
+    const hp = actor.system.resources.hitPoints;
+
+    /**
+     * Applies the recharge to the item and posts the chat message.
+     * @param {"stress"|"hp"} costType - Which resource was spent.
+     * @returns {Promise<void>}
+     */
+    const recharge = async (costType) => {
+        await targetItem.update({ "system.resource.value": maxTokens });
+        await _createUnleashChaosChatMessage(token, costType, maxTokens - currentTokens, maxTokens);
+    };
+
+    if (stress.value < stress.max) {
+        await actor.update({ "system.resources.stress.value": stress.value + 1 });
+        await recharge("stress");
+    } else {
+        // Stress is full — ask the player if they want to pay with HP instead
+        const proceed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: "Stress at Maximum" },
+            content: "<p>Your <strong>Stress</strong> limit has been reached. Do you want to mark <strong>1 HP</strong> to recharge Unleash Chaos?</p>",
+            rejectClose: false
+        });
+
+        if (!proceed) {
+            ui.notifications.warn("Action cancelled.");
+            return;
+        }
+
+        if (hp.value >= hp.max) {
+            ui.notifications.error("Your Hit Points are already at maximum — you cannot pay this cost.");
+            return;
+        }
+
+        // In Daggerheart, marking HP means adding to the current value (damage track)
+        await actor.update({ "system.resources.hitPoints.value": hp.value + 1 });
+        await recharge("hp");
+    }
+}
+
+/**
+ * Creates a styled chat message summarising the Unleash Chaos recharge.
+ * Follows the same visual style used throughout this module.
+ *
+ * @param {Token} token             - The token used as the chat speaker.
+ * @param {"stress"|"hp"} costType  - Which resource was spent.
+ * @param {number} tokensGained     - How many tokens were added.
+ * @param {number} newTotal         - The new total charge after recharge.
+ * @returns {Promise<void>}
+ */
+async function _createUnleashChaosChatMessage(token, costType, tokensGained, newTotal) {
+    const titleColor = "#C9A060";
+    const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
+
+    const isStress = costType === "stress";
+    const costColor  = isStress ? "#9d80ff" : "#ff6b6b";
+    const costLabel  = isStress ? "Stress" : "Hit Points";
+    const costIcon   = isStress ? "fas fa-brain" : "fas fa-heart";
+    const restoreColor = "#4CAF50";
+
+    const content = `
+    <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
+        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
+            <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
+                Unleash Chaos
+            </h3>
+        </header>
+        <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 0; min-height: 100px; position: relative;">
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); z-index: 0;"></div>
+            <div style="position: relative; z-index: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+
+                <!-- Cost Row -->
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${costColor};">
+                    <i class="${costIcon}" style="color: ${costColor}; width: 16px; text-align: center;"></i>
+                    <span style="color: #ccc; font-size: 0.95em;">Cost paid:</span>
+                    <strong style="color: ${costColor}; font-size: 1em;">1 ${costLabel}</strong>
+                </div>
+
+                <!-- Restore Row -->
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${restoreColor};">
+                    <i class="fas fa-bolt" style="color: ${restoreColor}; width: 16px; text-align: center;"></i>
+                    <span style="color: #ccc; font-size: 0.95em;">Restored:</span>
+                    <strong style="color: ${restoreColor}; font-size: 1em;">+${tokensGained} token${tokensGained !== 1 ? 's' : ''}</strong>
+                    <span style="color: #777; font-size: 0.85em;">(now ${newTotal})</span>
+                </div>
+
+            </div>
+        </div>
+    </div>`;
+
+    await ChatMessage.create({
+        user: game.user.id,
+        speaker: ChatMessage.getSpeaker({ token }),
+        content,
+        style: CONST.CHAT_MESSAGE_STYLES.OTHER
+    });
 }
 
 // ==================================================================
