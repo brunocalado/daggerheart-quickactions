@@ -4,7 +4,8 @@
  */
 
 // Import all functions from consolidated files
-import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateTemplateCreator, activateLevelUp } from "./apps.js";
+import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
+import { activateTemplateCreator } from "./template-creator.js";
 import { activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } from "./downtime_ui.js";
 import { activateRequestRoll, showCinematicPrompt } from "./request_roll.js";
 // Import Scan

@@ -1,0 +1,64 @@
+<div class="dh-rr-container">
+    <label class="dh-rr-label">Shape</label>
+    <div class="dh-trait-grid">
+        <button type="button" class="dh-trait-btn {{#if (eq type 'circle')}}active{{/if}}" data-action="selectType" data-value="circle">
+            <i class="fas fa-circle" style="margin-right:4px"></i>Circle
+        </button>
+        <button type="button" class="dh-trait-btn {{#if (eq type 'cone')}}active{{/if}}" data-action="selectType" data-value="cone">
+            <i class="fas fa-wifi" style="transform: rotate(-45deg); margin-right:4px"></i>Cone
+        </button>
+        <button type="button" class="dh-trait-btn {{#if (eq type 'front')}}active{{/if}}" data-action="selectType" data-value="front">
+            <i class="fas fa-wifi" style="margin-right:4px"></i>Front
+        </button>
+        <button type="button" class="dh-trait-btn {{#if (eq type 'ray')}}active{{/if}}" data-action="selectType" data-value="ray">
+            <i class="fas fa-bolt" style="margin-right:4px"></i>Ray
+        </button>
+    </div>
+
+    <label class="dh-rr-label" style="margin-top: 12px;">Distance</label>
+    <div class="dh-trait-grid">
+        <button type="button" class="dh-trait-btn {{#if (eq range 'm')}}active{{/if}}" data-action="selectRange" data-value="m">Melee</button>
+        <button type="button" class="dh-trait-btn {{#if (eq range 'vc')}}active{{/if}}" data-action="selectRange" data-value="vc">V.Close</button>
+        <button type="button" class="dh-trait-btn {{#if (eq range 'c')}}active{{/if}}" data-action="selectRange" data-value="c">Close</button>
+        <button type="button" class="dh-trait-btn {{#if (eq range 'f')}}active{{/if}}" data-action="selectRange" data-value="f">Far</button>
+    </div>
+
+    <div class="dh-copy-row">
+        <input type="text" id="dh-template-code" class="dh-copy-input" readonly value="{{codeString}}">
+        <button type="button" data-action="copyCode" class="dh-trait-btn" style="width: auto; padding: 0 10px; height: 32px;">Copy</button>
+        <button type="button" data-action="chatCode" class="dh-sq-action-btn" title="Send to Chat"><i class="fas fa-comment"></i></button>
+    </div>
+
+    {{#if hasTokenMagic}}
+    <label class="dh-rr-label" style="margin-top: 12px;">Magic Effect</label>
+    <select id="dh-effect-select" data-action="changeEffect" class="dh-select">
+        <option value="none" {{#if (eq effect 'none')}}selected{{/if}}>None</option>
+        <option value="glow" {{#if (eq effect 'glow')}}selected{{/if}}>Glowing Outline</option>
+        <option value="rays" {{#if (eq effect 'rays')}}selected{{/if}}>Annihilating Rays</option>
+        <option value="bulge" {{#if (eq effect 'bulge')}}selected{{/if}}>Bulging Out</option>
+        <option value="classic_rays" {{#if (eq effect 'classic_rays')}}selected{{/if}}>Classic Rays</option>
+        <option value="classic_rays_2" {{#if (eq effect 'classic_rays_2')}}selected{{/if}}>Classic Rays 2</option>
+        <option value="fairy" {{#if (eq effect 'fairy')}}selected{{/if}}>Fairy Fireflies</option>
+        <option value="fire" {{#if (eq effect 'fire')}}selected{{/if}}>Fire Rays</option>
+        <option value="flames" {{#if (eq effect 'flames')}}selected{{/if}}>Flames</option>
+        <option value="protoplasm" {{#if (eq effect 'protoplasm')}}selected{{/if}}>Protoplasm</option>
+        <option value="water" {{#if (eq effect 'water')}}selected{{/if}}>Watery Surface</option>
+        <option value="zone_blizzard" {{#if (eq effect 'zone_blizzard')}}selected{{/if}}>Zone: Blizzard</option>
+        <option value="zone_electricity" {{#if (eq effect 'zone_electricity')}}selected{{/if}}>Zone: Electricity</option>
+        <option value="zone_fire" {{#if (eq effect 'zone_fire')}}selected{{/if}}>Zone: Fire</option>
+    </select>
+    {{/if}}
+
+    <div class="dh-checkbox-row">
+        <input type="checkbox" id="dh-hidden-checkbox" data-action="toggleHidden" {{#if hidden}}checked{{/if}}>
+        <label for="dh-hidden-checkbox" class="dh-rr-label" style="margin-bottom: 0; cursor: pointer;">Hide Template</label>
+    </div>
+
+    <hr class="dh-hr">
+
+    <div class="dh-actions">
+        <button type="button" class="dh-btn-submit" data-action="createTemplate">
+            <i class="fas fa-crosshairs"></i> Place Template
+        </button>
+    </div>
+</div>

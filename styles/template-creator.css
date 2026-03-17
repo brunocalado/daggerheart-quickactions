@@ -1,0 +1,135 @@
+.dh-trait-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 5px;
+}
+
+.dh-trait-btn {
+    background: #2b2b2b;
+    color: #999;
+    border: 1px solid #444;
+    padding: 8px 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.dh-trait-btn:hover { border-color: #C9A060; color: #C9A060; }
+
+.dh-trait-btn.active {
+    background: #C9A060;
+    color: #191919;
+    border-color: #C9A060;
+    font-weight: 800;
+    box-shadow: 0 0 8px rgba(201, 160, 96, 0.4);
+}
+
+.dh-select {
+    width: 100%;
+    height: auto;
+    background: #2b2b2b;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    font-family: inherit;
+    cursor: pointer;
+    display: block;
+}
+
+.dh-select:focus {
+    outline: none;
+    border-color: #C9A060;
+}
+
+.dh-checkbox-row {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.dh-checkbox-row input[type="checkbox"] {
+    accent-color: #C9A060;
+    width: 16px;
+    height: 16px;
+    margin: 0 8px 0 0;
+    cursor: pointer;
+}
+
+.dh-btn-submit {
+    background: #C9A060;
+    color: #191919;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    margin-top: 5px;
+}
+
+.dh-btn-submit:hover {
+    filter: brightness(1.15);
+    box-shadow: 0 0 12px rgba(201, 160, 96, 0.5);
+}
+
+.dh-copy-row {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+    align-items: center;
+}
+
+.dh-copy-input {
+    flex: 1;
+    background: rgba(0,0,0,0.3);
+    color: #C9A060;
+    border: 1px solid #444;
+    padding: 5px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.dh-sq-action-btn {
+    width: 32px;
+    height: 32px;
+    background: #2b2b2b;
+    border: 1px solid #444;
+    color: #C9A060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.dh-sq-action-btn:hover {
+    background: #444;
+    border-color: #C9A060;
+}
+
+.dh-rr-label {
+    font-weight: 700;
+    color: #C9A060;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.dh-rr-container { padding: 10px; }
+
+hr.dh-hr { border: 0; border-top: 1px solid #444; margin: 15px 0; }

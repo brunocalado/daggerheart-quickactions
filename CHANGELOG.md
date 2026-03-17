@@ -1,3 +1,6 @@
+# 0.3.2
+- Templates fix.
+
 # 0.3.1
 - CSS refactor
 - [Added] HP, Stress, Armor, and Hope resource bars in Downtime UI player rows
