@@ -113,7 +113,7 @@
                 <div class="dui-actions">
                     {{#each this.actions}}
                         {{#if this.hasTarget}}
-                             <div class="dui-action-group {{#if this.selected}}active{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}">
+                             <div class="dui-action-group {{#if this.selected}}active{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}} {{#if this.isRecoverySlot}}recovery{{/if}} {{#if this.isRecoveryGrantedSlot}}recovery-granted{{/if}}">
                                 <button type="button" class="dui-action-btn" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
                                     {{this.label}}
                                 </button>
@@ -128,6 +128,16 @@
                                 {{#if this.canBeEfficientSlot}}
                                 <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
                                     <i class="fas fa-star"></i>
+                                </button>
+                                {{/if}}
+                                {{#if this.canBeRecoverySlot}}
+                                <button type="button" class="dui-recovery-badge {{#if this.isRecoverySlot}}active{{/if}}" data-action="toggleRecoverySlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isRecoverySlot}}Remove Recovery Slot{{else}}Use as Recovery Slot (Long Rest effect){{/if}}">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                {{/if}}
+                                {{#if this.canBeRecoveryGrantedSlot}}
+                                <button type="button" class="dui-recovery-granted-badge {{#if this.isRecoveryGrantedSlot}}active{{/if}}" data-action="toggleRecoveryGrantedSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isRecoveryGrantedSlot}}Remove Recovery Grant Slot{{else}}Use as Recovery Grant Slot (Long Rest effect, ally's Hope){{/if}}">
+                                    <i class="fas fa-heart"></i>
                                 </button>
                                 {{/if}}
                             </div>
@@ -147,12 +157,22 @@
                             </div>
                             {{else}}
                             <div class="dui-action-wrapper">
-                            <button type="button" class="dui-action-btn standalone {{#if this.selected}}selected{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
+                            <button type="button" class="dui-action-btn standalone {{#if this.selected}}selected{{/if}} {{#if this.isEfficientSlot}}efficient{{/if}} {{#if this.isRecoverySlot}}recovery{{/if}} {{#if this.isRecoveryGrantedSlot}}recovery-granted{{/if}}" data-action="toggleAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#if this.cannotSelect}}disabled{{/if}} {{#unless ../canInteract}}disabled{{/unless}}>
                                 {{this.label}}
                             </button>
                             {{#if this.canBeEfficientSlot}}
                             <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
                                 <i class="fas fa-star"></i>
+                            </button>
+                            {{/if}}
+                            {{#if this.canBeRecoverySlot}}
+                            <button type="button" class="dui-recovery-badge {{#if this.isRecoverySlot}}active{{/if}}" data-action="toggleRecoverySlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isRecoverySlot}}Remove Recovery Slot{{else}}Use as Recovery Slot (Long Rest effect){{/if}}">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                            {{/if}}
+                            {{#if this.canBeRecoveryGrantedSlot}}
+                            <button type="button" class="dui-recovery-granted-badge {{#if this.isRecoveryGrantedSlot}}active{{/if}}" data-action="toggleRecoveryGrantedSlot" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{#if this.isRecoveryGrantedSlot}}Remove Recovery Grant Slot{{else}}Use as Recovery Grant Slot (Long Rest effect, ally's Hope){{/if}}">
+                                <i class="fas fa-heart"></i>
                             </button>
                             {{/if}}
                             </div>
@@ -184,6 +204,34 @@
                     <i class="fas fa-star"></i>
                     <span class="dui-efficient-text">Efficient</span>
                     <span class="dui-efficient-tooltip">Can upgrade one action to Long Rest quality</span>
+                </div>
+                {{/if}}{{/if}}
+
+                {{#if this.hasRecovery}}{{#if ../isShort}}
+                <div class="dui-recovery-selector">
+                    <div class="dui-efficient-indicator dui-recovery-indicator">
+                        <i class="fas fa-redo"></i>
+                        <span class="dui-efficient-text">Recovery</span>
+                        <span class="dui-efficient-tooltip">Can upgrade one action to Long Rest quality</span>
+                    </div>
+                    {{#if this.canSelectRecoveryAlly}}
+                    <select class="dui-recovery-beneficiary-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Spend 1 Hope to grant an ally a Long Rest upgrade">
+                        <option value="">Grant ally (costs 1 Hope)...</option>
+                        {{#each this.recoveryAllyOptions}}
+                        <option value="{{this.id}}" {{#if (eq this.id ../recoveryBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
+                        {{/each}}
+                    </select>
+                    {{else}}
+                    <span class="dui-recovery-no-hope" title="Need at least 1 Hope to grant Recovery to an ally">(No Hope to grant)</span>
+                    {{/if}}
+                </div>
+                {{/if}}{{/if}}
+
+                {{#if this.hasRecoveryGrant}}{{#if ../isShort}}
+                <div class="dui-efficient-indicator dui-recovery-grant-indicator">
+                    <i class="fas fa-heart"></i>
+                    <span class="dui-efficient-text">Recovery (granted)</span>
+                    <span class="dui-efficient-tooltip">An ally spent 1 Hope to grant you a Long Rest upgrade{{#unless this.grantorHasHope}} — but they no longer have Hope{{/unless}}</span>
                 </div>
                 {{/if}}{{/if}}
 

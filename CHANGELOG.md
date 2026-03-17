@@ -1,6 +1,7 @@
 # 0.3.2
 - Templates fix.
 - [Removed] Beastform art updater feature and all related settings.
+- [Added] Recovery core feature for Downtime UI: during a short rest, choose one long rest downtime move instead. Can spend 1 Hope to grant the same benefit to an ally. Fully compatible with Efficient (both can be active simultaneously as independent upgrade slots).
 
 # 0.3.1
 - CSS refactor

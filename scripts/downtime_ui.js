@@ -116,6 +116,10 @@ function _hasEfficientFeature(actor) {
     return _hasCoreFeature(actor, "efficient", "Efficient");
 }
 
+function _hasRecoveryFeature(actor) {
+    return _hasCoreFeature(actor, "recovery", "Recovery");
+}
+
 function _hasForagerFeature(actor) {
     return _hasCoreFeature(actor, "forager", "Forager");
 }
@@ -259,10 +263,29 @@ async function _applyDowntimeEffects() {
         const hasEfficient = _hasEfficientFeature(actor);
         const efficientSlot = actorState.efficientSlot ?? null;
 
+        // Recovery feature: like Efficient but independent; also enables ally grant via Hope
+        const hasRecovery = _hasRecoveryFeature(actor);
+        const recoverySlot = actorState.recoverySlot ?? null;
+
+        // Determine if this actor received a Recovery grant from another included actor
+        const recoveryGrantor = includedActors.find(a =>
+            a.actor.id !== actor.id &&
+            _hasRecoveryFeature(a.actor) &&
+            a.actorState.recoveryBeneficiary === actor.id
+        );
+        const recoveryGrantedSlot = actorState.recoveryGrantedSlot ?? null;
+        // Validate the grantor still has enough Hope at execution time
+        const grantorCurrentHope = recoveryGrantor
+            ? (recoveryGrantor.actor.system.resources?.hope?.value ?? 0)
+            : 0;
+
         for (const action of actorState.actions) {
             const targetActor = targets[action] ? (game.actors.get(targets[action]) ?? actor) : actor;
             const isSelf = targetActor.id === actor.id;
-            const effectiveLong = isLong || (hasEfficient && action === efficientSlot);
+            const effectiveLong = isLong
+                || (hasEfficient && action === efficientSlot)
+                || (hasRecovery && action === recoverySlot)
+                || (recoveryGrantedSlot !== null && action === recoveryGrantedSlot && grantorCurrentHope >= 1);
 
             if (action === "tendWounds") {
                 // Read the target actor's modifier (when healing others, use target's modifier)
@@ -476,6 +499,21 @@ async function _applyDowntimeEffects() {
             if (!resultsByActor.has(ally.id)) resultsByActor.set(ally.id, { name: ally.name, events: [] });
             resultsByActor.get(ally.id).events.push(`Armorer (${actor.name} cleared 1 Armor Slot)`);
         }
+    }
+
+    // Recovery Hope cost: deduct 1 Hope from the Recovery actor if their ally used the granted slot
+    for (const { actor, actorState } of includedActors) {
+        if (!_hasRecoveryFeature(actor)) continue;
+        const beneficiaryId = actorState.recoveryBeneficiary ?? null;
+        if (!beneficiaryId) continue;
+        const beneficiaryEntry = includedActors.find(a => a.actor.id === beneficiaryId);
+        // Only deduct if the ally actually used their granted upgrade slot
+        if (!beneficiaryEntry?.actorState.recoveryGrantedSlot) continue;
+        const currentHope = actor.system.resources?.hope?.value ?? 0;
+        if (currentHope < 1) continue;
+        await actor.update({ "system.resources.hope.value": currentHope - 1 });
+        if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
+        resultsByActor.get(actor.id).events.push(`Recovery (Spent 1 Hope — ${beneficiaryEntry.actor.name} upgraded a move)`);
     }
 
     // Feature refresh (uses recovery + resource recovery)
@@ -704,7 +742,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
             { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
             { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." },
-            { key: "beastbound", label: "Beastbound", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "If you choose a downtime move that clears your Stress, your companion clears an equal amount." }
+            { key: "beastbound", label: "Beastbound", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "If you choose a downtime move that clears your Stress, your companion clears an equal amount." },
+            { key: "recovery", label: "Recovery", itemUuid: "Compendium.daggerheart.domains.Item.gsiQFT6q3WOgqerJ", description: "During a short rest, you can choose a long rest downtime move instead. You can spend 1 Hope to let an ally do the same." }
         ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
         const coreRaw = defaultCore.map(d => {
@@ -1086,6 +1125,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             setRestType: DowntimeUIApp.prototype._onSetRestType,
             toggleAction: DowntimeUIApp.prototype._onToggleAction,
             toggleEfficientSlot: DowntimeUIApp.prototype._onToggleEfficientSlot,
+            toggleRecoverySlot: DowntimeUIApp.prototype._onToggleRecoverySlot,
+            toggleRecoveryGrantedSlot: DowntimeUIApp.prototype._onToggleRecoveryGrantedSlot,
             openMovesConfig: DowntimeUIApp.prototype._onOpenMovesConfig,
             resendDowntime: DowntimeUIApp.prototype._onResendDowntime
         }
@@ -1187,7 +1228,39 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Efficient feature: actor sees long rest actions during short rest
             const hasEfficient = _hasEfficientFeature(actor);
             const efficientSlot = playerChoices.efficientSlot ?? null;
-            const actorAvailableActions = (hasEfficient && !isLong) ? longActions : availableActions;
+
+            // Recovery feature: like Efficient, allows one move to use long rest quality
+            const hasRecovery = _hasRecoveryFeature(actor);
+            const recoverySlot = playerChoices.recoverySlot ?? null;
+            const recoveryBeneficiary = playerChoices.recoveryBeneficiary ?? "";
+
+            // Determine if another included actor with Recovery has designated this actor as beneficiary
+            const recoveryGrantor = allActors.find(a => {
+                if (a.id === actorId) return false;
+                if (!_hasRecoveryFeature(a.actor)) return false;
+                const grantorUser = game.users.find(u => u.character?.id === a.id);
+                const grantorChoices = grantorUser?.getFlag("daggerheart-quickactions", "downtimeChoices");
+                return grantorChoices?.recoveryBeneficiary === actorId;
+            });
+            const hasRecoveryGrant = !!recoveryGrantor;
+            // Grant is only valid if the grantor still has at least 1 Hope
+            const grantorHasHope = recoveryGrantor
+                ? (recoveryGrantor.actor.system.resources?.hope?.value ?? 0) >= 1
+                : false;
+            const recoveryGrantedSlot = playerChoices.recoveryGrantedSlot ?? null;
+
+            // Ally selector options for Recovery (populated only when actor has Recovery during short rest)
+            const recoveryAllyOptions = [];
+            if (hasRecovery && !isLong) {
+                for (const other of allActors) {
+                    if (other.id === actorId) continue;
+                    recoveryAllyOptions.push({ id: other.id, name: other.name });
+                }
+            }
+            // Ally grant is only selectable if actor has at least 1 Hope (read directly to avoid forward reference)
+            const canSelectRecoveryAlly = (actor.system.resources?.hope?.value ?? 0) >= 1;
+
+            const actorAvailableActions = ((hasEfficient || hasRecovery || hasRecoveryGrant) && !isLong) ? longActions : availableActions;
 
             // Forager feature: bonus action that doesn't count towards move limit
             const hasForager = _hasForagerFeature(actor);
@@ -1204,7 +1277,11 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 targetActorId: playerChoices.targets?.[a.key] ?? "",
                 cannotSelect: false,
                 isEfficientSlot: a.key === efficientSlot,
-                canBeEfficientSlot: hasEfficient && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key)
+                canBeEfficientSlot: hasEfficient && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key),
+                isRecoverySlot: a.key === recoverySlot,
+                canBeRecoverySlot: hasRecovery && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key),
+                isRecoveryGrantedSlot: a.key === recoveryGrantedSlot,
+                canBeRecoveryGrantedSlot: hasRecoveryGrant && grantorHasHope && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key)
             }));
 
             // Target options: "Yourself" + all other actors
@@ -1316,7 +1393,15 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasCelestialTrance,
                 hasBeastbound,
                 beastboundInfo,
-                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasCelestialTrance || hasBeastbound,
+                hasRecovery,
+                recoverySlot,
+                recoveryBeneficiary,
+                recoveryAllyOptions,
+                canSelectRecoveryAlly,
+                hasRecoveryGrant,
+                grantorHasHope,
+                recoveryGrantedSlot,
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasCelestialTrance || hasBeastbound || (hasRecovery && !isLong) || (hasRecoveryGrant && !isLong),
                 domainCardStatus,
                 hp,
                 stress,
@@ -1349,6 +1434,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             if (event.target.classList.contains("dui-eloquent-select")) {
                 this._onSetEloquentBeneficiary(event);
+            }
+            if (event.target.classList.contains("dui-recovery-beneficiary-select")) {
+                this._onSetRecoveryBeneficiary(event);
             }
         });
 
@@ -1396,8 +1484,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     // Player writes own choices to user flag
-    async _savePlayerChoices(actions, targets, efficientSlot = null, foragerChoice = null, eloquentBeneficiary = null) {
-        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary });
+    async _savePlayerChoices(actions, targets, efficientSlot = null, foragerChoice = null, eloquentBeneficiary = null, recoverySlot = null, recoveryBeneficiary = null, recoveryGrantedSlot = null) {
+        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
     }
 
     async _onStartDowntime() {
@@ -1513,22 +1601,37 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const currentEfficientSlot = currentChoices.efficientSlot ?? null;
         let efficientSlot = (idx >= 0 && currentEfficientSlot === actionKey) ? null : currentEfficientSlot;
 
-        // workOnProject is long-rest-only: auto-set as efficient slot when selected during short rest
+        // If deselecting the action that was the recovery slot, clear it
+        const currentRecoverySlot = currentChoices.recoverySlot ?? null;
+        let recoverySlot = (idx >= 0 && currentRecoverySlot === actionKey) ? null : currentRecoverySlot;
+
+        // If deselecting the action that was the recovery granted slot (ally side), clear it
+        const currentRecoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
+        let recoveryGrantedSlot = (idx >= 0 && currentRecoveryGrantedSlot === actionKey) ? null : currentRecoveryGrantedSlot;
+
+        // workOnProject is long-rest-only: auto-set as efficient/recovery slot when selected during short rest
         const restType = state?.restType || "short";
         if (actionKey === "workOnProject" && restType === "short") {
             if (idx < 0) {
-                // Selecting workOnProject → auto-mark as efficient slot
-                efficientSlot = "workOnProject";
+                // Prefer recoverySlot if actor has Recovery but not Efficient
+                const actor = ownerUser.character;
+                if (actor && _hasRecoveryFeature(actor) && !_hasEfficientFeature(actor)) {
+                    recoverySlot = "workOnProject";
+                } else {
+                    efficientSlot = "workOnProject";
+                }
             }
         }
 
         // Players write their own flag; GM can write any user's flag
         const foragerChoice = currentChoices.foragerChoice ?? null;
+        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
+        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice });
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
             this.render();
         } else {
-            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice);
+            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
         }
     }
 
@@ -1558,16 +1661,128 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        const recoverySlot = currentChoices.recoverySlot ?? null;
+        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
+        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
+        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
+
         if (game.user.isGM) {
             await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
                 actions,
                 targets,
                 efficientSlot: newEfficientSlot,
-                foragerChoice
+                foragerChoice,
+                eloquentBeneficiary,
+                recoverySlot,
+                recoveryBeneficiary,
+                recoveryGrantedSlot
             });
             this.render();
         } else {
-            await this._savePlayerChoices(actions, targets, newEfficientSlot, foragerChoice);
+            await this._savePlayerChoices(actions, targets, newEfficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
+        }
+    }
+
+    /**
+     * Toggles the Recovery upgrade slot for the actor's own Recovery feature.
+     * Mirrors _onToggleEfficientSlot but operates on recoverySlot.
+     * If workOnProject loses the recovery slot during short rest, it is also deselected.
+     * @param {Event} event
+     * @param {HTMLElement} target
+     */
+    async _onToggleRecoverySlot(event, target) {
+        const actorId = target.dataset.actorId;
+        const actionKey = target.dataset.actionKey;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, recoverySlot: null };
+        const newRecoverySlot = currentChoices.recoverySlot === actionKey ? null : actionKey;
+        const foragerChoice = currentChoices.foragerChoice ?? null;
+        const efficientSlot = currentChoices.efficientSlot ?? null;
+        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
+        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
+        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
+
+        // If workOnProject loses its recovery slot during short rest, deselect it
+        let actions = [...currentChoices.actions];
+        let targets = { ...(currentChoices.targets ?? {}) };
+        const oldSlot = currentChoices.recoverySlot;
+        if (oldSlot === "workOnProject" && newRecoverySlot !== "workOnProject") {
+            const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+            const restType = state?.restType || "short";
+            if (restType === "short") {
+                actions = actions.filter(a => a !== "workOnProject");
+                delete targets.workOnProject;
+            }
+        }
+
+        if (game.user.isGM) {
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+                actions,
+                targets,
+                efficientSlot,
+                foragerChoice,
+                eloquentBeneficiary,
+                recoverySlot: newRecoverySlot,
+                recoveryBeneficiary,
+                recoveryGrantedSlot
+            });
+            this.render();
+        } else {
+            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, newRecoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
+        }
+    }
+
+    /**
+     * Toggles the Recovery grant slot for the beneficiary actor.
+     * The beneficiary marks which of their selected actions benefits from the ally's Recovery grant.
+     * @param {Event} event
+     * @param {HTMLElement} target
+     */
+    async _onToggleRecoveryGrantedSlot(event, target) {
+        const actorId = target.dataset.actorId;
+        const actionKey = target.dataset.actionKey;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, recoveryGrantedSlot: null };
+        const newRecoveryGrantedSlot = currentChoices.recoveryGrantedSlot === actionKey ? null : actionKey;
+        const foragerChoice = currentChoices.foragerChoice ?? null;
+        const efficientSlot = currentChoices.efficientSlot ?? null;
+        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
+        const recoverySlot = currentChoices.recoverySlot ?? null;
+        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
+
+        // If workOnProject loses its granted slot during short rest, deselect it
+        let actions = [...currentChoices.actions];
+        let targets = { ...(currentChoices.targets ?? {}) };
+        const oldGrantedSlot = currentChoices.recoveryGrantedSlot;
+        if (oldGrantedSlot === "workOnProject" && newRecoveryGrantedSlot !== "workOnProject") {
+            const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+            const restType = state?.restType || "short";
+            if (restType === "short") {
+                actions = actions.filter(a => a !== "workOnProject");
+                delete targets.workOnProject;
+            }
+        }
+
+        if (game.user.isGM) {
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+                actions,
+                targets,
+                efficientSlot,
+                foragerChoice,
+                eloquentBeneficiary,
+                recoverySlot,
+                recoveryBeneficiary,
+                recoveryGrantedSlot: newRecoveryGrantedSlot
+            });
+            this.render();
+        } else {
+            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, newRecoveryGrantedSlot);
         }
     }
 
@@ -1584,12 +1799,16 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const targets = { ...(currentChoices.targets ?? {}), [actionKey]: targetId || null };
         const efficientSlot = currentChoices.efficientSlot ?? null;
         const foragerChoice = currentChoices.foragerChoice ?? null;
+        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
+        const recoverySlot = currentChoices.recoverySlot ?? null;
+        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
+        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot, foragerChoice });
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
             this.render();
         } else {
-            await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot, foragerChoice);
+            await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
         }
     }
 
@@ -1603,17 +1822,25 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
         const efficientSlot = currentChoices.efficientSlot ?? null;
+        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
+        const recoverySlot = currentChoices.recoverySlot ?? null;
+        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
+        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
 
         if (game.user.isGM) {
             await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
                 actions: currentChoices.actions,
                 targets: currentChoices.targets ?? {},
                 efficientSlot,
-                foragerChoice: choiceValue
+                foragerChoice: choiceValue,
+                eloquentBeneficiary,
+                recoverySlot,
+                recoveryBeneficiary,
+                recoveryGrantedSlot
             });
             this.render();
         } else {
-            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, efficientSlot, choiceValue);
+            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, efficientSlot, choiceValue, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
         }
     }
 
@@ -1630,12 +1857,45 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const targets = currentChoices.targets ?? {};
         const efficientSlot = currentChoices.efficientSlot ?? null;
         const foragerChoice = currentChoices.foragerChoice ?? null;
+        const recoverySlot = currentChoices.recoverySlot ?? null;
+        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
+        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId });
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
             this.render();
         } else {
-            await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId });
+            await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
+        }
+    }
+
+    /**
+     * Handles selection of a Recovery beneficiary ally.
+     * The Recovery actor spends 1 Hope at execution time; this only stores the selection.
+     * @param {Event} event - The change event from the recovery beneficiary select.
+     */
+    async _onSetRecoveryBeneficiary(event) {
+        const select = event.target;
+        const actorId = select.dataset.actorId;
+        const beneficiaryId = select.value || null;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
+        const actions = currentChoices.actions ?? [];
+        const targets = currentChoices.targets ?? {};
+        const efficientSlot = currentChoices.efficientSlot ?? null;
+        const foragerChoice = currentChoices.foragerChoice ?? null;
+        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
+        const recoverySlot = currentChoices.recoverySlot ?? null;
+        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
+
+        if (game.user.isGM) {
+            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
+            this.render();
+        } else {
+            await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
         }
     }
 
