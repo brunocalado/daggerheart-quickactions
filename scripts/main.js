@@ -44,9 +44,10 @@ Hooks.once("init", () => {
             // Verificação de tempo removida para evitar problemas com relógios dessincronizados.
             // O evento onChange nativo do Foundry já previne execução no carregamento (F5).
 
-            // Checks the target
-            // If targetId is empty, it is for everyone. If it has an ID, checks if it is me.
-            const isTarget = !value.targetId || value.targetId === game.user.id;
+            // Support new targetIds array and legacy targetId string
+            // Empty targetIds (or legacy empty targetId) means broadcast to all
+            const targetIds = value.targetIds ?? (value.targetId ? [value.targetId] : []);
+            const isTarget = targetIds.length === 0 || targetIds.includes(game.user.id);
 
             if (isTarget) {
                 // Calls the function exported from apps.js to open the window

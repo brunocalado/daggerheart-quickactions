@@ -11,8 +11,9 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options = {}) {
         super(options);
-        // Receives the showImages option (defaults to true if not passed)
         this.showImages = options.showImages ?? true;
+        /** @type {Set<string>} IDs of currently selected target users */
+        this._selectedTargets = new Set();
     }
 
     static DEFAULT_OPTIONS = {
@@ -21,7 +22,11 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         classes: ["dh-qa-app", "request-roll-app"],
         window: { title: "Roll Configuration", icon: "fas fa-dice-d20", resizable: false, controls: [] },
         position: { width: 650, height: "auto" }, // Increased Width for 2 columns
-        actions: { roll: RequestRollApp.prototype._onRoll, cancel: RequestRollApp.prototype._onCancel }
+        actions: {
+            roll: RequestRollApp.prototype._onRoll,
+            cancel: RequestRollApp.prototype._onCancel,
+            toggleUser: RequestRollApp.prototype._onTargetToggle
+        }
     };
 
     static PARTS = {
@@ -109,6 +114,50 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
+    /**
+     * Toggles a user button in the "Send To" column and updates _selectedTargets.
+     * Triggered by data-action="toggleUser" on user selection buttons.
+     * @param {Event} event
+     * @param {HTMLElement} target - The clicked button element
+     */
+    _onTargetToggle(event, target) {
+        const targetId = target.dataset.target;
+        const html = this.element;
+        const userButtons = [...html.querySelectorAll('.dh-user-btn[data-target]:not([data-target="all"])')];
+        const allBtn = html.querySelector('.dh-user-btn[data-target="all"]');
+        const sendBtn = html.querySelector('[data-action="roll"]');
+        const allUserIds = userButtons.map(b => b.dataset.target);
+
+        if (targetId === "all") {
+            // Toggle all: if every user already selected → clear; otherwise → select all
+            if (this._selectedTargets.size === allUserIds.length && allUserIds.length > 0) {
+                this._selectedTargets.clear();
+            } else {
+                allUserIds.forEach(id => this._selectedTargets.add(id));
+            }
+        } else {
+            if (this._selectedTargets.has(targetId)) {
+                this._selectedTargets.delete(targetId);
+            } else {
+                this._selectedTargets.add(targetId);
+            }
+        }
+
+        // Sync visual state for individual buttons
+        userButtons.forEach(btn => {
+            btn.classList.toggle("selected", this._selectedTargets.has(btn.dataset.target));
+        });
+
+        // Sync "All Players" button — active only when every user is selected
+        if (allBtn) {
+            allBtn.classList.toggle("selected",
+                allUserIds.length > 0 && this._selectedTargets.size === allUserIds.length);
+        }
+
+        // Enable Send Roll only when at least one target is selected
+        if (sendBtn) sendBtn.disabled = this._selectedTargets.size === 0;
+    }
+
     async _onRoll(event, target) {
         const container = this.element;
         const difficulty = container.querySelector('[name="difficulty"]').value;
@@ -120,7 +169,12 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const disadvantage = container.querySelector('[name="disadvantage"]').checked;
         const cinematicMode = container.querySelector('[name="cinematicMode"]').checked;
         const labelInput = (container.querySelector('[name="label"]').value || "").trim();
-        const targetUser = target.dataset.target || "";
+
+        // Resolve targets: empty array means broadcast to all, populated array means specific users
+        const connectedUserIds = [...container.querySelectorAll('.dh-user-btn[data-target]:not([data-target="all"])')].map(b => b.dataset.target);
+        const isAll = this._selectedTargets.size === connectedUserIds.length;
+        const selectedIds = [...this._selectedTargets];
+        const targetIds = isAll ? [] : selectedIds;
 
         // Persist Cinematic Mode choice
         await game.user.setFlag("daggerheart-quickactions", "cinematicMode", cinematicMode);
@@ -136,19 +190,15 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             // Non-Cinematic Hope/Fear sends direct command
             if (!cinematicMode) {
-                // Simple command: [[/fr type=hope]] or [[/fr type=fear]]
-                // Adds {label} if present
                 let textCommand = `[[/fr type=${capSpecial}]]`;
-                if (labelInput) {
-                    textCommand += `{${labelInput}}`;
-                }
+                if (labelInput) textCommand += `{${labelInput}}`;
 
                 await ChatMessage.create({
                     user: game.user.id,
-                    content: textCommand
-                    // Speaker is not strictly necessary for this command as Foundry resolves it
+                    content: textCommand,
+                    whisper: targetIds
                 });
-                
+
                 this.close();
                 return;
             }
@@ -191,7 +241,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             };
             
             await game.settings.set("daggerheart-quickactions", "cinematicRequest", {
-                targetId: targetUser,
+                targetIds: targetIds,
                 data: dataPacket,
                 timestamp: Date.now()
             });
@@ -201,7 +251,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Standard Text Chat Logic (Traits)
-        let whisperArray = targetUser ? [targetUser] : [];
+        let whisperArray = targetIds;
         const content = `
         <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
             <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">

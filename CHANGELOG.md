@@ -1,3 +1,7 @@
+# 0.3.3
+
+- Request Roll: you can pick users.
+
 # 0.3.2
 - Unleash Chaos Macro
 - Templates fix.

@@ -3,7 +3,7 @@
     /* Layout */
     .dh-main-layout { display: flex; gap: 15px; height: 100%; }
     .dh-left-col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-    .dh-right-col { width: 150px; display: flex; flex-direction: column; gap: 5px; border-left: 1px solid #444; padding-left: 10px; overflow-y: auto; max-height: 400px; }
+    .dh-right-col { width: 150px; display: flex; flex-direction: column; gap: 5px; border-left: 1px solid #444; padding-left: 10px; max-height: 400px; }
 
     /* Existing Styles Adapted */
     .dh-rr-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -58,10 +58,36 @@
         width: 100%;
     }
     .dh-user-btn:hover {
+        border-color: #C9A060;
+        color: #C9A060;
+    }
+    .dh-user-btn.selected {
         background: #C9A060;
         color: #191919 !important;
         border-color: #C9A060;
     }
+    .dh-user-btn.selected:hover {
+        background: #b8893e;
+        color: #191919 !important;
+    }
+    .dh-user-list { display: flex; flex-direction: column; gap: 5px; overflow-y: auto; flex: 1; min-height: 0; }
+    .dh-send-btn {
+        background: #C9A060;
+        color: #191919;
+        border: 2px solid #8a6d3b;
+        padding: 10px;
+        width: 100%;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.95em;
+        transition: all 0.2s;
+        margin-top: 8px;
+        flex-shrink: 0;
+    }
+    .dh-send-btn:hover:not(:disabled) { background: #b8893e; box-shadow: 0 0 8px rgba(201, 160, 96, 0.5); }
+    .dh-send-btn:disabled { background: #444; color: #666; border-color: #444; cursor: not-allowed; }
 
     .dh-btn-cancel { 
         background: transparent; 
@@ -137,9 +163,14 @@
     <!-- RIGHT COLUMN -->
     <div class="dh-right-col">
         <div style="font-weight: bold; color: #C9A060; text-align: center; margin-bottom: 5px; text-transform: uppercase; font-size: 0.9em;">Send To</div>
-        <button type="button" class="dh-user-btn" data-action="roll" data-target="">All Players</button>
-        {{#each connectedUsers}}
-        <button type="button" class="dh-user-btn" data-action="roll" data-target="{{this.id}}" style="color:{{this.color}}">{{this.name}}</button>
-        {{/each}}
+        <div class="dh-user-list">
+            <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="all">All Players</button>
+            {{#each connectedUsers}}
+            <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="{{this.id}}" style="--user-color: {{this.color}}; color: {{this.color}}">{{this.name}}</button>
+            {{/each}}
+        </div>
+        <button type="button" class="dh-send-btn" data-action="roll" disabled>
+            <i class="fas fa-paper-plane"></i> Send Roll
+        </button>
     </div>
 </div>
