@@ -179,6 +179,17 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // Persist Cinematic Mode choice
         await game.user.setFlag("daggerheart-quickactions", "cinematicMode", cinematicMode);
 
+        // LOOT: Trigger LootConsumable screen on targeted players
+        if (specialRoll === "loot") {
+            await game.settings.set("daggerheart-quickactions", "cinematicRequest", {
+                targetIds: targetIds,
+                data: { type: "loot" },
+                timestamp: Date.now()
+            });
+            this.close();
+            return;
+        }
+
         let rawCommand = "";
         let displayCommand = "";
         let cinematicTraitLabel = "";

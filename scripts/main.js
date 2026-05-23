@@ -52,8 +52,11 @@ Hooks.once("init", () => {
             const isTarget = targetIds.length === 0 || targetIds.includes(game.user.id);
 
             if (isTarget) {
-                // Calls the function exported from apps.js to open the window
-                showCinematicPrompt(value.data);
+                if (value.data?.type === "loot") {
+                    if (!game.user.isGM) activateLootConsumable();
+                } else {
+                    showCinematicPrompt(value.data);
+                }
             }
         }
     });

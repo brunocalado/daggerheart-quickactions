@@ -34,6 +34,9 @@
     .dh-special-btn[data-special="fear"] { border-color: #800080; color: #b54ec4; }
     .dh-special-btn[data-special="fear"].active, .dh-special-btn[data-special="fear"]:hover { background: #800080; color: #fff; box-shadow: 0 0 8px #800080; }
 
+    .dh-special-btn[data-special="loot"] { border-color: #2ecc71; color: #2ecc71; }
+    .dh-special-btn[data-special="loot"].active, .dh-special-btn[data-special="loot"]:hover { background: #2ecc71; color: #000; box-shadow: 0 0 8px #2ecc71; }
+
     .dh-cb-row { display: flex; align-items: center; justify-content: space-around; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 4px; }
     .dh-cb-label { display: flex; align-items: center; gap: 8px; color: #e0e0e0; cursor: pointer; font-size: 0.95em; margin-bottom: 0; }
     .dh-cb-label input { accent-color: #C9A060; transform: scale(1.2); margin: 0; }
@@ -128,10 +131,11 @@
             <input type="hidden" name="specialRoll" value="">
             
             <div class="dh-trait-grid">
-                <button type="button" class="dh-trait-btn full-width active" data-trait="">None</button>
                 <div style="grid-column: 1 / -1; display: flex; gap: 10px; margin-bottom: 2px;">
-                        <button type="button" class="dh-trait-btn dh-special-btn" data-special="hope" style="flex:1;">HOPE</button>
-                        <button type="button" class="dh-trait-btn dh-special-btn" data-special="fear" style="flex:1;">FEAR</button>
+                    <button type="button" class="dh-trait-btn active" data-trait="" style="flex:1;">None</button>
+                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="hope" style="flex:1;">HOPE</button>
+                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="fear" style="flex:1;">FEAR</button>
+                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="loot" style="flex:1;">LOOT</button>
                 </div>
                 <button type="button" class="dh-trait-btn" data-trait="agility">Agility</button>
                 <button type="button" class="dh-trait-btn" data-trait="strength">Strength</button>
