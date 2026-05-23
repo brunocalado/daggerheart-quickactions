@@ -178,16 +178,6 @@ Hooks.once("init", () => {
         }
     });
 
-    // 9. Enable Scan
-    game.settings.register("daggerheart-quickactions", "enableScan", {
-        name: "Enable Token Scan",
-        hint: "Allows non-GM users to use the Scan quick action on targeted tokens.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: false
-    });
-
     registerScanSettings();
     registerFallingDamageSettings();
     initTokenTooltip();

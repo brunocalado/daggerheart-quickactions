@@ -2,7 +2,8 @@
 
     <!-- NAVIGATION TABS -->
     <nav class="tracker-nav tabs">
-        <a class="item active" data-tab="hp"><i class="fas fa-heart"></i> Physical State</a>
+        <a class="item active" data-tab="general"><i class="fas fa-cog"></i> General</a>
+        <a class="item" data-tab="hp"><i class="fas fa-heart"></i> Physical State</a>
         <a class="item" data-tab="stress"><i class="fas fa-brain"></i> Mental State</a>
     </nav>
 
@@ -10,9 +11,24 @@
     <section class="tab-content">
 
         <!-- =======================
+             TAB: GENERAL SETTINGS
+             ======================= -->
+        <div class="tab active" data-tab="general">
+            <div class="config-card">
+                <h3><i class="fas fa-cog"></i> General Settings</h3>
+
+                <div class="form-group toggle-group">
+                    <label for="enableScanToggle">Enable Token Scan</label>
+                    <input type="checkbox" id="enableScanToggle" name="enableScan" value="true" {{#if enableScan}}checked{{/if}}>
+                    <span class="hint">Allows non-GM users to use the Scan quick action on targeted tokens.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- =======================
              TAB: HP LABELS
              ======================= -->
-        <div class="tab active" data-tab="hp">
+        <div class="tab" data-tab="hp">
             <div class="config-card">
                 <h3><i class="fas fa-heart"></i> Physical State Configuration</h3>
 

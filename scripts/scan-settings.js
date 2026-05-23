@@ -49,6 +49,7 @@ class ScanSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _prepareContext(_options) {
         return {
+            enableScan: game.settings.get(MODULE_ID, "enableScan"),
             hpTitle: game.settings.get(MODULE_ID, "scanHpTitle"),
             stressTitle: game.settings.get(MODULE_ID, "scanStressTitle"),
             hpLabels: JSON.parse(game.settings.get(MODULE_ID, "scanHpLabels")),
@@ -107,6 +108,7 @@ class ScanSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             await game.settings.set(MODULE_ID, 'scanHpLabels', JSON.stringify(collectLabels('hp', DEFAULT_HP_LABELS)));
             await game.settings.set(MODULE_ID, 'scanStressLabels', JSON.stringify(collectLabels('stress', DEFAULT_STRESS_LABELS)));
+            await game.settings.set(MODULE_ID, 'enableScan', formData.get('enableScan') === 'true');
 
             this.close();
         });
@@ -118,6 +120,13 @@ class ScanSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
  * Called from the init hook in main.js.
  */
 export function registerScanSettings() {
+    game.settings.register(MODULE_ID, "enableScan", {
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
     game.settings.register(MODULE_ID, "scanHpTitle", {
         scope: "world",
         config: false,

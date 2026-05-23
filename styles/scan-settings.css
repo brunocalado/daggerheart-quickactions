@@ -124,6 +124,31 @@
         }
     }
 
+    /* -- TOGGLE GROUP (General tab enable/disable checkbox) -- */
+    & .toggle-group {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        & label {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        & input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-accent);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        & .hint {
+            flex-basis: 100%;
+        }
+    }
+
     /* -- LABEL LIST -- */
     & .label-list {
         display: flex;
