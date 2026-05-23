@@ -1,3 +1,9 @@
+# 0.4.1
+
+- [Changed] Refactor: extracted `MODULE_ID` to `scripts/constants.js` as the single source of truth — all 11 scripts now import the constant instead of declaring it locally or using string literals
+- [Changed] Refactor: extracted `buildChatCard()` helper to `scripts/helpers.js` — eliminates duplicated chat card HTML across apps.js, scan.js, request_roll.js, and template-creator.js
+- [Fixed] Downtime Rest: item feature refresh now batches all item updates into a single `updateDocuments()` call per actor instead of sequential awaited updates
+
 # 0.4.0
 
 - v14 only

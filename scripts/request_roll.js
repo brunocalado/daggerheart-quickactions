@@ -3,6 +3,9 @@
  * Contains the RequestRollApp and CinematicRollPrompt.
  */
 
+import { MODULE_ID } from "./constants.js";
+import { buildChatCard } from "./helpers.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 // ==================================================================
@@ -30,7 +33,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
 
     static PARTS = {
-        form: { template: "modules/daggerheart-quickactions/templates/request-roll.hbs" }
+        form: { template: `modules/${MODULE_ID}/templates/request-roll.hbs` }
     };
 
     async _prepareContext(options) {
@@ -42,7 +45,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }));
         
         // Retrieve cinematic mode flag
-        const savedCinematic = game.user.getFlag("daggerheart-quickactions", "cinematicMode") ?? false;
+        const savedCinematic = game.user.getFlag(MODULE_ID, "cinematicMode") ?? false;
 
         return {
             connectedUsers,
@@ -177,11 +180,11 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const targetIds = isAll ? [] : selectedIds;
 
         // Persist Cinematic Mode choice
-        await game.user.setFlag("daggerheart-quickactions", "cinematicMode", cinematicMode);
+        await game.user.setFlag(MODULE_ID, "cinematicMode", cinematicMode);
 
         // LOOT: Trigger LootConsumable screen on targeted players
         if (specialRoll === "loot") {
-            await game.settings.set("daggerheart-quickactions", "cinematicRequest", {
+            await game.settings.set(MODULE_ID, "cinematicRequest", {
                 targetIds: targetIds,
                 data: { type: "loot" },
                 timestamp: Date.now()
@@ -251,7 +254,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 showImages: this.showImages // Passes image configuration to client
             };
             
-            await game.settings.set("daggerheart-quickactions", "cinematicRequest", {
+            await game.settings.set(MODULE_ID, "cinematicRequest", {
                 targetIds: targetIds,
                 data: dataPacket,
                 timestamp: Date.now()
@@ -263,20 +266,11 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Standard Text Chat Logic (Traits)
         let whisperArray = targetIds;
-        const content = `
-        <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
-            <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
-                <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                    ${labelInput || "Roll Request"}
-                </h3>
-            </header>
-            <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 100px; display: flex; align-items: center; justify-content: center; text-align: center; position: relative;">
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-                <span style="color: #ffffff !important; font-size: 1.1em; font-weight: bold; text-shadow: 0px 0px 8px #000000; position: relative; z-index: 1; font-family: 'Lato', sans-serif; line-height: 1.4; width: 100%;">
-                    ${displayCommand}
-                </span>
-            </div>
-        </div>`;
+        const content = buildChatCard(labelInput || "Roll Request", `
+            <span style="color: #ffffff !important; font-size: 1.1em; font-weight: bold; text-shadow: 0px 0px 8px #000000; font-family: 'Lato', sans-serif; line-height: 1.4; width: 100%;">
+                ${displayCommand}
+            </span>
+        `);
 
         await ChatMessage.create({
             user: game.user.id,
@@ -341,7 +335,7 @@ export class CinematicRollPrompt extends ApplicationV2 {
             }
 
             if (imageName) {
-                const imagePath = `modules/daggerheart-quickactions/assets/requestroll/${imageName}.webp`;
+                const imagePath = `modules/${MODULE_ID}/assets/requestroll/${imageName}.webp`;
                 imageHtml = `<img src="${imagePath}" style="max-width: 400px; border: none; filter: drop-shadow(0 0 10px rgba(201, 160, 96, 0.5)); margin-bottom: 10px;" />`;
             }
         }

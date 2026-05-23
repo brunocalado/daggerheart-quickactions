@@ -4,7 +4,8 @@
  * Labels and titles are configurable via the Scan Settings menu.
  */
 
-const MODULE_ID = "daggerheart-quickactions";
+import { MODULE_ID } from "./constants.js";
+import { buildChatCard } from "./helpers.js";
 
 /** Fallback HP labels used when settings are unavailable. */
 const DEFAULT_HP_LABELS = [
@@ -74,7 +75,7 @@ function getLabel(pct, labels) {
  */
 export async function scan() {
     // Check if the feature is enabled by the GM
-    if (!game.settings.get("daggerheart-quickactions", "enableScan")) {
+    if (!game.settings.get(MODULE_ID, "enableScan")) {
         return ui.notifications.warn("The Scan action is currently disabled by the GM.");
     }
 
@@ -115,30 +116,18 @@ export async function scan() {
     const hpTitle = getScanTitle("hp");
     const stressTitle = getScanTitle("stress");
 
-    const titleColor = "#C9A060";
-    const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
-
-    const content = `
-    <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
-        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
-            <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                Scan: ${target.name}
-            </h3>
-        </header>
-        <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 120px; display: flex; flex-direction: column; align-items: stretch; justify-content: center; text-align: center; position: relative; gap: 15px;">
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; gap: 15px;">
-                ${hpLabel ? `<div>
-                    <div style="color: #ff6b6b; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">${hpTitle}</div>
-                    <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${hpLabel.charAt(0).toUpperCase() + hpLabel.slice(1)}</div>
-                </div>` : ''}
-                ${stressLabel ? `<div>
-                    <div style="color: #9d80ff; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">${stressTitle}</div>
-                    <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${stressLabel.charAt(0).toUpperCase() + stressLabel.slice(1)}</div>
-                </div>` : ''}
-            </div>
-        </div>
-    </div>`;
+    const bodyHtml = `
+                <div style="width: 100%; display: flex; flex-direction: column; gap: 15px;">
+                    ${hpLabel ? `<div>
+                        <div style="color: #ff6b6b; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">${hpTitle}</div>
+                        <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${hpLabel.charAt(0).toUpperCase() + hpLabel.slice(1)}</div>
+                    </div>` : ''}
+                    ${stressLabel ? `<div>
+                        <div style="color: #9d80ff; font-size: 1.0em; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">${stressTitle}</div>
+                        <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${stressLabel.charAt(0).toUpperCase() + stressLabel.slice(1)}</div>
+                    </div>` : ''}
+                </div>`;
+    const content = buildChatCard(`Scan: ${target.name}`, bodyHtml);
 
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),

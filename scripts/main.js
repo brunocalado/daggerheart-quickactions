@@ -3,6 +3,8 @@
  * Main module that injects buttons into the menu and exposes the global API.
  */
 
+import { MODULE_ID } from "./constants.js";
+
 // Import all functions from consolidated files
 import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
 import { activateTemplateCreator } from "./template-creator.js";
@@ -26,7 +28,7 @@ import { registerCoinTierSettings } from "./loot-consumable-settings.js";
 // ==================================================================
 Hooks.once("init", () => {
     // 1. Downtime Setting
-    game.settings.register("daggerheart-quickactions", "downtimePCs", {
+    game.settings.register(MODULE_ID, "downtimePCs", {
         name: "Downtime PCs",
         scope: "world",
         config: false,
@@ -35,7 +37,7 @@ Hooks.once("init", () => {
     });
 
     // 2. Cinematic Request Synchronization (Force Open Logic)
-    game.settings.register("daggerheart-quickactions", "cinematicRequest", {
+    game.settings.register(MODULE_ID, "cinematicRequest", {
         name: "Cinematic Roll Request",
         scope: "world",     // Synchronizes between all clients
         config: false,      // Invisible in menu
@@ -64,7 +66,7 @@ Hooks.once("init", () => {
     });
 
     // 5. Global craft entries (shared across all actors)
-    game.settings.register("daggerheart-quickactions", "downtimeCraftEntries", {
+    game.settings.register(MODULE_ID, "downtimeCraftEntries", {
         name: "Downtime Craft Entries",
         scope: "world",
         config: false,
@@ -73,7 +75,7 @@ Hooks.once("init", () => {
     });
 
     // 5b. Global custom moves (shared across all actors)
-    game.settings.register("daggerheart-quickactions", "downtimeCustomMoves", {
+    game.settings.register(MODULE_ID, "downtimeCustomMoves", {
         name: "Downtime Custom Moves",
         scope: "world",
         config: false,
@@ -82,7 +84,7 @@ Hooks.once("init", () => {
     });
 
     // 5c. Global item move entries (shared across all actors)
-    game.settings.register("daggerheart-quickactions", "downtimeItemMoveEntries", {
+    game.settings.register(MODULE_ID, "downtimeItemMoveEntries", {
         name: "Downtime Item Move Entries",
         scope: "world",
         config: false,
@@ -91,7 +93,7 @@ Hooks.once("init", () => {
     });
 
     // 5d. Core feature entries (e.g. Efficient)
-    game.settings.register("daggerheart-quickactions", "downtimeCoreFeatures", {
+    game.settings.register(MODULE_ID, "downtimeCoreFeatures", {
         name: "Downtime Core Features",
         scope: "world",
         config: false,
@@ -103,7 +105,7 @@ Hooks.once("init", () => {
     });
 
     // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)
-    game.settings.register("daggerheart-quickactions", "shortRestCount", {
+    game.settings.register(MODULE_ID, "shortRestCount", {
         name: "Short Rest Count",
         scope: "world",
         config: false,
@@ -111,7 +113,7 @@ Hooks.once("init", () => {
         default: 0
     });
 
-    game.settings.register("daggerheart-quickactions", "downtimeActorConfigs", {
+    game.settings.register(MODULE_ID, "downtimeActorConfigs", {
         name: "Downtime Actor Configs",
         scope: "world",
         config: false,
@@ -120,7 +122,7 @@ Hooks.once("init", () => {
     });
 
     // 6b. Downtime UI State (player choices, GM config)
-    game.settings.register("daggerheart-quickactions", "downtimeUIState", {
+    game.settings.register(MODULE_ID, "downtimeUIState", {
         name: "Downtime UI State",
         scope: "world",
         config: false,
@@ -135,7 +137,7 @@ Hooks.once("init", () => {
     });
 
     // 7. Downtime UI Open Broadcast
-    game.settings.register("daggerheart-quickactions", "downtimeUIOpen", {
+    game.settings.register(MODULE_ID, "downtimeUIOpen", {
         name: "Downtime UI Open",
         scope: "world",
         config: false,
@@ -150,7 +152,7 @@ Hooks.once("init", () => {
     });
 
     // 7b. Downtime UI Close Broadcast
-    game.settings.register("daggerheart-quickactions", "downtimeUIClosed", {
+    game.settings.register(MODULE_ID, "downtimeUIClosed", {
         name: "Downtime UI Close",
         scope: "world",
         config: false,
@@ -165,7 +167,7 @@ Hooks.once("init", () => {
     });
 
     // 8. Token Hover Tooltip
-    game.settings.register("daggerheart-quickactions", "tokenTooltip", {
+    game.settings.register(MODULE_ID, "tokenTooltip", {
         name: "Token Hover Tooltip",
         hint: "Show a stat summary tooltip when hovering over character tokens on the canvas.",
         scope: "world",
@@ -175,7 +177,7 @@ Hooks.once("init", () => {
     });
 
     // 8b. Token Tooltip Size
-    game.settings.register("daggerheart-quickactions", "tokenTooltipSize", {
+    game.settings.register(MODULE_ID, "tokenTooltipSize", {
         name: "Token Tooltip Size",
         hint: "Controls the size of the token hover tooltip.",
         scope: "client",
@@ -222,8 +224,8 @@ Hooks.once("init", () => {
 Hooks.on("ready", async () => {
     // Re-render DowntimeUI when any user's flags change (player choices via setFlag)
     Hooks.on("updateUser", (user, change) => {
-        if (change?.flags?.["daggerheart-quickactions"]?.downtimeChoices !== undefined ||
-            change?.flags?.["daggerheart-quickactions"]?.["-=downtimeChoices"] !== undefined) {
+        if (change?.flags?.[MODULE_ID]?.downtimeChoices !== undefined ||
+            change?.flags?.[MODULE_ID]?.["-=downtimeChoices"] !== undefined) {
             const inst = getDowntimeUIInstance();
             if (inst?.rendered) inst._debouncedRender();
         }

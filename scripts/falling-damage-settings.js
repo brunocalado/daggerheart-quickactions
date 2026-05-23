@@ -4,7 +4,8 @@
  * Registered from the init hook in main.js.
  */
 
-const MODULE_ID = "daggerheart-quickactions";
+import { MODULE_ID } from "./constants.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /** Default falling damage formulas, keyed by fall height category. */

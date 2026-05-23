@@ -3,7 +3,8 @@
  * Shows a stat summary when hovering over character tokens on the canvas.
  */
 
-const MODULE_ID = "daggerheart-quickactions";
+import { MODULE_ID } from "./constants.js";
+
 const TEMPLATE_PATH = `modules/${MODULE_ID}/templates/token-tooltip.hbs`;
 
 // Singleton DOM element for the tooltip

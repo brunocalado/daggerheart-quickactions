@@ -4,6 +4,7 @@
  */
 
 import { rollD4WithDiceSoNice, rollD6WithDiceSoNice } from "./apps.js";
+import { MODULE_ID } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -22,11 +23,11 @@ const DEFAULT_ITEM_MOVE_ENTRIES = [
 ];
 
 const FORAGER_OPTIONS = [
-    { value: 1, label: "A unique food", effect: "Clear 2 Stress", itemUuid: "Compendium.daggerheart-quickactions.items.Item.1tnzi64VuC8kTQKn" },
-    { value: 2, label: "A beautiful relic", effect: "Gain 2 Hope", itemUuid: "Compendium.daggerheart-quickactions.items.Item.q1VJh3YHE1peFgpP" },
-    { value: 3, label: "An arcane rune", effect: "+2 to a Spellcast Roll", itemUuid: "Compendium.daggerheart-quickactions.items.Item.vPGhnT1C84fwNiYf" },
-    { value: 4, label: "A healing vial", effect: "Clear 2 Hit Points", itemUuid: "Compendium.daggerheart-quickactions.items.Item.C1lOuQ5TGYVCIOqB" },
-    { value: 5, label: "A luck charm", effect: "Reroll any die", itemUuid: "Compendium.daggerheart-quickactions.items.Item.Fm6XzoBkT7G4a9La" }
+    { value: 1, label: "A unique food", effect: "Clear 2 Stress", itemUuid: `Compendium.${MODULE_ID}.items.Item.1tnzi64VuC8kTQKn` },
+    { value: 2, label: "A beautiful relic", effect: "Gain 2 Hope", itemUuid: `Compendium.${MODULE_ID}.items.Item.q1VJh3YHE1peFgpP` },
+    { value: 3, label: "An arcane rune", effect: "+2 to a Spellcast Roll", itemUuid: `Compendium.${MODULE_ID}.items.Item.vPGhnT1C84fwNiYf` },
+    { value: 4, label: "A healing vial", effect: "Clear 2 Hit Points", itemUuid: `Compendium.${MODULE_ID}.items.Item.C1lOuQ5TGYVCIOqB` },
+    { value: 5, label: "A luck charm", effect: "Reroll any die", itemUuid: `Compendium.${MODULE_ID}.items.Item.Fm6XzoBkT7G4a9La` }
 ];
 
 // ==================================================================
@@ -106,7 +107,7 @@ function _getMaxHope(actor) {
 }
 
 function _hasCoreFeature(actor, featureKey, fallbackName) {
-    const coreFeatures = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
+    const coreFeatures = game.settings.get(MODULE_ID, "downtimeCoreFeatures") ?? [];
     const feature = coreFeatures.find(f => f.key === featureKey);
     const name = feature?.label || fallbackName;
     return actor.items.some(i => i.name === name);
@@ -203,7 +204,7 @@ function _getRefreshableFeatures(actor, restType, forceEffectiveLong = false) {
 }
 
 async function _applyDowntimeEffects() {
-    const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+    const state = game.settings.get(MODULE_ID, "downtimeUIState");
     if (!state?.actors) return;
 
     const restType = state.restType || "short";
@@ -216,7 +217,7 @@ async function _applyDowntimeEffects() {
         const actor = game.actors.get(actorId);
         if (!actor) continue;
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
-        const playerChoices = ownerUser?.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
+        const playerChoices = ownerUser?.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {} };
         includedActors.push({ actor, actorState: { ...gmState, ...playerChoices } });
     }
 
@@ -450,7 +451,7 @@ async function _applyDowntimeEffects() {
                 actorEvents.push(`Used ${recipeName}`);
 
                 // Find matching craft entry to grant the crafted item
-                const savedCraft = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
+                const savedCraft = game.settings.get(MODULE_ID, "downtimeCraftEntries") ?? [];
                 const craftEntries = savedCraft.length > 0 ? savedCraft : DEFAULT_CRAFT_ENTRIES;
                 const entry = craftEntries.find(e => e.recipeUuid === recipeUuid);
                 if (entry?.craftUuid) {
@@ -546,11 +547,16 @@ async function _applyDowntimeEffects() {
             }
         }
 
+        // Batch all item updates for this actor into a single database operation.
+        const batchUpdates = [];
         const refreshedNames = [];
         for (const [, record] of itemUpdates) {
             if (!record.changed) continue;
-            await record.item.update(record.updateData);
+            batchUpdates.push({ _id: record.item.id, ...record.updateData });
             refreshedNames.push(record.name);
+        }
+        if (batchUpdates.length > 0) {
+            await Item.implementation.updateDocuments(batchUpdates, { parent: actor });
         }
         if (refreshedNames.length > 0) {
             if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
@@ -594,17 +600,17 @@ async function _applyDowntimeEffects() {
     await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content });
 
     // Update consecutive short rest counter (resets on long rest)
-    const currentCount = game.settings.get("daggerheart-quickactions", "shortRestCount") ?? 0;
-    await game.settings.set("daggerheart-quickactions", "shortRestCount", isLong ? 0 : currentCount + 1);
+    const currentCount = game.settings.get(MODULE_ID, "shortRestCount") ?? 0;
+    await game.settings.set(MODULE_ID, "shortRestCount", isLong ? 0 : currentCount + 1);
 
     // Broadcast close to all players, then close GM instance and clear state
-    await game.settings.set("daggerheart-quickactions", "downtimeUIClosed", { timestamp: Date.now() });
+    await game.settings.set(MODULE_ID, "downtimeUIClosed", { timestamp: Date.now() });
     DowntimeUIApp._instance?.close();
-    await game.settings.set("daggerheart-quickactions", "downtimeUIState", {});
+    await game.settings.set(MODULE_ID, "downtimeUIState", {});
     for (const user of game.users) {
         if (user.isGM) continue;
-        if (user.getFlag("daggerheart-quickactions", "downtimeChoices")) {
-            await user.unsetFlag("daggerheart-quickactions", "downtimeChoices");
+        if (user.getFlag(MODULE_ID, "downtimeChoices")) {
+            await user.unsetFlag(MODULE_ID, "downtimeChoices");
         }
     }
 }
@@ -626,7 +632,7 @@ class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/configure-actor.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/configure-actor.hbs` } };
 
     constructor(actorId, actorState, resolve) {
         super();
@@ -699,10 +705,10 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/configure-moves.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/configure-moves.hbs` } };
 
     async _prepareContext() {
-        const saved = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
+        const saved = game.settings.get(MODULE_ID, "downtimeCraftEntries") ?? [];
         const craftEntries = saved.length > 0 ? saved : DEFAULT_CRAFT_ENTRIES;
 
         const resolvedEntries = [];
@@ -717,13 +723,13 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        const customMovesRaw = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
+        const customMovesRaw = game.settings.get(MODULE_ID, "downtimeCustomMoves") ?? [];
         const customMoves = customMovesRaw.map(m => ({
             label: m.label || "",
             restType: m.restType || "any"
         }));
 
-        const savedItemMoves = game.settings.get("daggerheart-quickactions", "downtimeItemMoveEntries") ?? [];
+        const savedItemMoves = game.settings.get(MODULE_ID, "downtimeItemMoveEntries") ?? [];
         const itemMoveRaw = savedItemMoves.length > 0 ? savedItemMoves : DEFAULT_ITEM_MOVE_ENTRIES;
 
         const itemMoveEntries = [];
@@ -737,7 +743,7 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         // Core features — merge saved with defaults so new features always appear
-        const savedCore = game.settings.get("daggerheart-quickactions", "downtimeCoreFeatures") ?? [];
+        const savedCore = game.settings.get(MODULE_ID, "downtimeCoreFeatures") ?? [];
         const defaultCore = [
             { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t", description: "During Short Rest, one selected action can be upgraded to Long Rest quality." },
             { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl", description: "Grants a bonus Forage action that does not count towards the move limit." },
@@ -1096,10 +1102,10 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             k++;
         }
 
-        await game.settings.set("daggerheart-quickactions", "downtimeCraftEntries", craftEntries);
-        await game.settings.set("daggerheart-quickactions", "downtimeCustomMoves", customMoves);
-        await game.settings.set("daggerheart-quickactions", "downtimeItemMoveEntries", itemMoveEntries);
-        await game.settings.set("daggerheart-quickactions", "downtimeCoreFeatures", coreFeatures);
+        await game.settings.set(MODULE_ID, "downtimeCraftEntries", craftEntries);
+        await game.settings.set(MODULE_ID, "downtimeCustomMoves", customMoves);
+        await game.settings.set(MODULE_ID, "downtimeItemMoveEntries", itemMoveEntries);
+        await game.settings.set(MODULE_ID, "downtimeCoreFeatures", coreFeatures);
         ui.notifications.info("Moves configuration saved.");
         this.close();
     }
@@ -1136,11 +1142,11 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/downtime-ui.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/downtime-ui.hbs` } };
 
     async _prepareContext() {
         const isGM = game.user.isGM;
-        const savedState = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+        const savedState = game.settings.get(MODULE_ID, "downtimeUIState");
         const rows = [];
 
         const globalRestType = savedState?.restType || "short";
@@ -1176,9 +1182,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 maxChoices += 1;
             }
             // Eloquent bonus: +1 move if chosen by another party member
-            const playerChoices = user.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
+            const playerChoices = user.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
             const eloquentGiver = allActors.find(a => a.id !== actorId && _hasEloquentFeature(a.actor));
-            const eloquentGiverChoices = eloquentGiver ? game.users.find(u => u.character?.id === eloquentGiver.id)?.getFlag("daggerheart-quickactions", "downtimeChoices") : null;
+            const eloquentGiverChoices = eloquentGiver ? game.users.find(u => u.character?.id === eloquentGiver.id)?.getFlag(MODULE_ID, "downtimeChoices") : null;
             if (eloquentGiverChoices?.eloquentBeneficiary === actorId) {
                 maxChoices += 1;
             }
@@ -1188,7 +1194,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const isOverLimit = selectedCount > maxChoices;
 
             // Build craft downtime actions from global setting
-            const savedCraft = game.settings.get("daggerheart-quickactions", "downtimeCraftEntries") ?? [];
+            const savedCraft = game.settings.get(MODULE_ID, "downtimeCraftEntries") ?? [];
             const craftEntries = savedCraft.length > 0 ? savedCraft : DEFAULT_CRAFT_ENTRIES;
             const extraActions = [];
             for (const entry of craftEntries) {
@@ -1202,7 +1208,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             // Build custom move actions from global setting
-            const customMoves = game.settings.get("daggerheart-quickactions", "downtimeCustomMoves") ?? [];
+            const customMoves = game.settings.get(MODULE_ID, "downtimeCustomMoves") ?? [];
             for (const move of customMoves) {
                 if (!move.label) continue;
                 const rt = move.restType || "any";
@@ -1211,7 +1217,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             // Build item move actions from global setting
-            const savedItemMoves = game.settings.get("daggerheart-quickactions", "downtimeItemMoveEntries") ?? [];
+            const savedItemMoves = game.settings.get(MODULE_ID, "downtimeItemMoveEntries") ?? [];
             const itemMoveEntries = savedItemMoves.length > 0 ? savedItemMoves : DEFAULT_ITEM_MOVE_ENTRIES;
             for (const entry of itemMoveEntries) {
                 if (!entry.itemUuid) continue;
@@ -1243,7 +1249,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (a.id === actorId) return false;
                 if (!_hasRecoveryFeature(a.actor)) return false;
                 const grantorUser = game.users.find(u => u.character?.id === a.id);
-                const grantorChoices = grantorUser?.getFlag("daggerheart-quickactions", "downtimeChoices");
+                const grantorChoices = grantorUser?.getFlag(MODULE_ID, "downtimeChoices");
                 return grantorChoices?.recoveryBeneficiary === actorId;
             });
             const hasRecoveryGrant = !!recoveryGrantor;
@@ -1418,7 +1424,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        const shortRestCount = game.settings.get("daggerheart-quickactions", "shortRestCount") ?? 0;
+        const shortRestCount = game.settings.get(MODULE_ID, "shortRestCount") ?? 0;
         const shortRestPips = Array.from({ length: 3 }, (_, i) => ({
             filled: i < shortRestCount,
             warn: shortRestCount >= 3
@@ -1496,7 +1502,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Player writes own choices to user flag
     async _savePlayerChoices(actions, targets, efficientSlot = null, foragerChoice = null, eloquentBeneficiary = null, recoverySlot = null, recoveryBeneficiary = null, recoveryGrantedSlot = null) {
-        await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
+        await game.user.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
     }
 
     async _onStartDowntime() {
@@ -1507,17 +1513,17 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onToggleIncluded(event, target) {
         if (!game.user.isGM) return;
         const actorId = target.dataset.actorId;
-        const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+        const state = game.settings.get(MODULE_ID, "downtimeUIState");
         if (!state?.actors?.[actorId]) return;
         state.actors[actorId].included = !state.actors[actorId].included;
         state.timestamp = Date.now();
-        await game.settings.set("daggerheart-quickactions", "downtimeUIState", state);
+        await game.settings.set(MODULE_ID, "downtimeUIState", state);
     }
 
     async _onConfigMaxChoices(event, target) {
         if (!game.user.isGM) return;
         const actorId = target.dataset.actorId;
-        const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+        const state = game.settings.get(MODULE_ID, "downtimeUIState");
         const actorState = state?.actors?.[actorId] ?? {};
 
         const result = await ConfigureActorApp.open(actorId, actorState);
@@ -1525,10 +1531,10 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         Object.assign(state.actors[actorId], result);
         state.timestamp = Date.now();
-        await game.settings.set("daggerheart-quickactions", "downtimeUIState", state);
+        await game.settings.set(MODULE_ID, "downtimeUIState", state);
 
         // Persist configs so they survive across sessions
-        const persistedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
+        const persistedConfigs = game.settings.get(MODULE_ID, "downtimeActorConfigs") ?? {};
         persistedConfigs[actorId] = {
             maxChoices: result.maxChoices,
             hpModifier: result.hpModifier,
@@ -1536,7 +1542,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             hopeModifier: result.hopeModifier,
             armorSlotModifier: result.armorSlotModifier
         };
-        await game.settings.set("daggerheart-quickactions", "downtimeActorConfigs", persistedConfigs);
+        await game.settings.set(MODULE_ID, "downtimeActorConfigs", persistedConfigs);
     }
 
     _onOpenMovesConfig() {
@@ -1546,23 +1552,23 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _onResendDowntime() {
         if (!game.user.isGM) return;
-        await game.settings.set("daggerheart-quickactions", "downtimeUIOpen", { timestamp: Date.now() });
+        await game.settings.set(MODULE_ID, "downtimeUIOpen", { timestamp: Date.now() });
         ui.notifications.info("Downtime UI re-sent to all players.");
     }
 
     async _onSetRestType(event, target) {
         if (!game.user.isGM) return;
         const restType = target.dataset.restType;
-        const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+        const state = game.settings.get(MODULE_ID, "downtimeUIState");
         if (!state?.actors) return;
         state.restType = restType;
         state.timestamp = Date.now();
-        await game.settings.set("daggerheart-quickactions", "downtimeUIState", state);
+        await game.settings.set(MODULE_ID, "downtimeUIState", state);
         // Clear all player choices when switching rest type
         for (const user of game.users) {
             if (user.isGM) continue;
-            if (user.getFlag("daggerheart-quickactions", "downtimeChoices")) {
-                await user.unsetFlag("daggerheart-quickactions", "downtimeChoices");
+            if (user.getFlag(MODULE_ID, "downtimeChoices")) {
+                await user.unsetFlag(MODULE_ID, "downtimeChoices");
             }
         }
     }
@@ -1576,7 +1582,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!ownerUser) return;
 
         const actor = ownerUser.character;
-        const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+        const state = game.settings.get(MODULE_ID, "downtimeUIState");
         let maxChoices = state?.actors?.[actorId]?.maxChoices ?? 2;
         // Celestial Trance bonus: +1 move
         if (actor && _hasCelestialTranceFeature(actor)) {
@@ -1589,14 +1595,14 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 return u.character != null && _hasEloquentFeature(u.character);
             });
             if (eloquentGiver) {
-                const eloquentGiverChoices = eloquentGiver.getFlag("daggerheart-quickactions", "downtimeChoices");
+                const eloquentGiverChoices = eloquentGiver.getFlag(MODULE_ID, "downtimeChoices");
                 if (eloquentGiverChoices?.eloquentBeneficiary === actorId) {
                     maxChoices += 1;
                 }
             }
         }
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
         const actions = [...currentChoices.actions];
         const targets = { ...(currentChoices.targets ?? {}) };
         const idx = actions.indexOf(actionKey);
@@ -1639,7 +1645,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
         const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
             this.render();
         } else {
             await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
@@ -1653,7 +1659,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null };
         // Toggle: if already this slot, clear it; otherwise set it
         const newEfficientSlot = currentChoices.efficientSlot === actionKey ? null : actionKey;
         const foragerChoice = currentChoices.foragerChoice ?? null;
@@ -1664,7 +1670,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let targets = { ...(currentChoices.targets ?? {}) };
         const oldSlot = currentChoices.efficientSlot;
         if (oldSlot === "workOnProject" && newEfficientSlot !== "workOnProject") {
-            const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+            const state = game.settings.get(MODULE_ID, "downtimeUIState");
             const restType = state?.restType || "short";
             if (restType === "short") {
                 actions = actions.filter(a => a !== "workOnProject");
@@ -1678,7 +1684,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
                 actions,
                 targets,
                 efficientSlot: newEfficientSlot,
@@ -1708,7 +1714,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, recoverySlot: null };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, recoverySlot: null };
         const newRecoverySlot = currentChoices.recoverySlot === actionKey ? null : actionKey;
         const foragerChoice = currentChoices.foragerChoice ?? null;
         const efficientSlot = currentChoices.efficientSlot ?? null;
@@ -1721,7 +1727,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let targets = { ...(currentChoices.targets ?? {}) };
         const oldSlot = currentChoices.recoverySlot;
         if (oldSlot === "workOnProject" && newRecoverySlot !== "workOnProject") {
-            const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+            const state = game.settings.get(MODULE_ID, "downtimeUIState");
             const restType = state?.restType || "short";
             if (restType === "short") {
                 actions = actions.filter(a => a !== "workOnProject");
@@ -1730,7 +1736,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
                 actions,
                 targets,
                 efficientSlot,
@@ -1759,7 +1765,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, recoveryGrantedSlot: null };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, recoveryGrantedSlot: null };
         const newRecoveryGrantedSlot = currentChoices.recoveryGrantedSlot === actionKey ? null : actionKey;
         const foragerChoice = currentChoices.foragerChoice ?? null;
         const efficientSlot = currentChoices.efficientSlot ?? null;
@@ -1772,7 +1778,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let targets = { ...(currentChoices.targets ?? {}) };
         const oldGrantedSlot = currentChoices.recoveryGrantedSlot;
         if (oldGrantedSlot === "workOnProject" && newRecoveryGrantedSlot !== "workOnProject") {
-            const state = game.settings.get("daggerheart-quickactions", "downtimeUIState");
+            const state = game.settings.get(MODULE_ID, "downtimeUIState");
             const restType = state?.restType || "short";
             if (restType === "short") {
                 actions = actions.filter(a => a !== "workOnProject");
@@ -1781,7 +1787,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
                 actions,
                 targets,
                 efficientSlot,
@@ -1806,7 +1812,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {} };
         const targets = { ...(currentChoices.targets ?? {}), [actionKey]: targetId || null };
         const efficientSlot = currentChoices.efficientSlot ?? null;
         const foragerChoice = currentChoices.foragerChoice ?? null;
@@ -1816,7 +1822,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
             this.render();
         } else {
             await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
@@ -1831,7 +1837,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {} };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {} };
         const efficientSlot = currentChoices.efficientSlot ?? null;
         const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
         const recoverySlot = currentChoices.recoverySlot ?? null;
@@ -1839,7 +1845,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", {
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
                 actions: currentChoices.actions,
                 targets: currentChoices.targets ?? {},
                 efficientSlot,
@@ -1863,7 +1869,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
         const actions = currentChoices.actions ?? [];
         const targets = currentChoices.targets ?? {};
         const efficientSlot = currentChoices.efficientSlot ?? null;
@@ -1873,10 +1879,10 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
             this.render();
         } else {
-            await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
+            await game.user.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
         }
     }
 
@@ -1893,7 +1899,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag("daggerheart-quickactions", "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
+        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
         const actions = currentChoices.actions ?? [];
         const targets = currentChoices.targets ?? {};
         const efficientSlot = currentChoices.efficientSlot ?? null;
@@ -1903,10 +1909,10 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
 
         if (game.user.isGM) {
-            await ownerUser.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
             this.render();
         } else {
-            await game.user.setFlag("daggerheart-quickactions", "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
+            await game.user.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
         }
     }
 
@@ -1932,7 +1938,7 @@ export async function activateDowntimeUI() {
 
     // Initialize GM-controlled state with all non-GM character actors
     // Load persistent configs so modifiers and maxChoices survive across sessions
-    const savedConfigs = game.settings.get("daggerheart-quickactions", "downtimeActorConfigs") ?? {};
+    const savedConfigs = game.settings.get(MODULE_ID, "downtimeActorConfigs") ?? {};
     const defaults = { included: true, maxChoices: 2, hpModifier: 0, stressModifier: 0, hopeModifier: 0, armorSlotModifier: 0 };
     const actors = {};
     for (const user of game.users) {
@@ -1942,17 +1948,17 @@ export async function activateDowntimeUI() {
         const saved = savedConfigs[actor.id] ?? {};
         actors[actor.id] = { ...defaults, ...saved, included: user.active };
         // Clear any previous player choices
-        if (user.getFlag("daggerheart-quickactions", "downtimeChoices")) {
-            await user.unsetFlag("daggerheart-quickactions", "downtimeChoices");
+        if (user.getFlag(MODULE_ID, "downtimeChoices")) {
+            await user.unsetFlag(MODULE_ID, "downtimeChoices");
         }
     }
-    await game.settings.set("daggerheart-quickactions", "downtimeUIState", { timestamp: Date.now(), restType: "short", actors });
+    await game.settings.set(MODULE_ID, "downtimeUIState", { timestamp: Date.now(), restType: "short", actors });
 
     DowntimeUIApp._instance = new DowntimeUIApp();
     DowntimeUIApp._instance.render(true);
 
     // Broadcast to players so they open the UI too
-    await game.settings.set("daggerheart-quickactions", "downtimeUIOpen", { timestamp: Date.now() });
+    await game.settings.set(MODULE_ID, "downtimeUIOpen", { timestamp: Date.now() });
 }
 
 export function getDowntimeUIInstance() {

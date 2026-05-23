@@ -3,12 +3,14 @@
  * Contains specific complex macros and features accessed via QuickActions.Features()
  */
 
+import { MODULE_ID, CHAT_CARD_BG } from "./constants.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 // ==================================================================
 // EMBEDDED TEMPLATE (Inline HTML)
 // ==================================================================
-const CHAIN_LIGHTNING_TEMPLATE_PATH = "modules/daggerheart-quickactions/templates/chain-lightning-inline.hbs";
+const CHAIN_LIGHTNING_TEMPLATE_PATH = `modules/${MODULE_ID}/templates/chain-lightning-inline.hbs`;
 const CHAIN_LIGHTNING_TEMPLATE_CONTENT = `
 <div class="dh-qa-app" style="display: flex; flex-direction: column; gap: 10px;">
     <p class="notes" style="margin-bottom: 10px;">Configure the Chain Lightning effect.</p>
@@ -181,7 +183,7 @@ async function executeUnleashChaos(token) {
  */
 async function _createUnleashChaosChatMessage(token, costType, tokensGained, newTotal) {
     const titleColor = "#C9A060";
-    const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
+    const bgImage = CHAT_CARD_BG;
 
     const isStress = costType === "stress";
     const costColor  = isStress ? "#9d80ff" : "#ff6b6b";
@@ -452,7 +454,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _createChatMessage(results, dc, damageFormula, applied, originToken) {
         const titleColor = "#C9A060"; // Gold
-        const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
+        const bgImage = CHAT_CARD_BG;
 
         let listItemsHtml = "";
 

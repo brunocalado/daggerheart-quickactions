@@ -4,7 +4,9 @@
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
-const MODULE_ID = "daggerheart-quickactions";
+import { MODULE_ID } from "./constants.js";
+import { buildChatCard } from "./helpers.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 // ==================================================================
@@ -74,26 +76,13 @@ async function performVisualFateRoll(dieFormula, rollType) {
     }
 
     const title = `${rollType.charAt(0).toUpperCase() + rollType.slice(1)} Roll`;
-    const titleColor = "#C9A060";
-    const bgImage = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
-
-    const content = `
-    <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
-        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
-            <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                ${title}
-            </h3>
-        </header>
-        <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <div style="color: #ffffff; font-size: 0.9em; margin-bottom: 5px;">Result</div>
-                <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px ${rollType === 'hope' ? '#FFD700' : '#800080'}, 2px 2px 0px #000; font-family: 'Lato', sans-serif; line-height: 1;">
-                    ${roll.total}
-                </div>
-            </div>
+    const glowColor = rollType === 'hope' ? '#FFD700' : '#800080';
+    const content = buildChatCard(title, `
+        <div style="color: #ffffff; font-size: 0.9em; margin-bottom: 5px;">Result</div>
+        <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px ${glowColor}, 2px 2px 0px #000; font-family: 'Lato', sans-serif; line-height: 1;">
+            ${roll.total}
         </div>
-    </div>`;
+    `);
 
     await roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor: actor }),
@@ -114,11 +103,11 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         position: { width: 400, height: "auto" },
         actions: { shortRest: DowntimeApp.prototype._onShortRest, longRest: DowntimeApp.prototype._onLongRest }
     };
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/downtime.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/downtime.hbs` } };
 
     async _prepareContext(options) {
         const context = await super._prepareContext(options);
-        context.numberOfPCs = game.settings.get("daggerheart-quickactions", "downtimePCs");
+        context.numberOfPCs = game.settings.get(MODULE_ID, "downtimePCs");
         return context;
     }
     async _onShortRest() { await this._processRest("short"); this.close(); }
@@ -127,7 +116,7 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _processRest(type) {
         const pcInput = this.element.querySelector('[name="numberOfPCs"]');
         let numberOfPCs = pcInput && pcInput.value ? parseInt(pcInput.value, 10) : 4;
-        await game.settings.set("daggerheart-quickactions", "downtimePCs", numberOfPCs);
+        await game.settings.set(MODULE_ID, "downtimePCs", numberOfPCs);
 
         const currentFear = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Resources.Fear);
         const fearRoll = await rollD4WithDiceSoNice();
@@ -143,21 +132,12 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.settings.set(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Resources.Fear, newFear);
 
         const MESSAGE_TITLE = type === "short" ? "Short Rest" : "Long Rest";
-        const content = `
-        <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
-            <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
-                <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">${MESSAGE_TITLE}</h3>
-            </header>
-            <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 25px 20px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.75); z-index: 0;"></div>
-                <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                    <div style="color: #ffffff; font-size: 1.4em; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; font-family: 'Aleo', serif;">The GM earns Fear</div>
-                    <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #800080, 2px 2px 2px #000; font-family: 'Lato', sans-serif;">+${addedFear}</div>
-                    <div style="color: #ccc; font-size: 0.8em; margin-top: 5px; font-style: italic;">${calculationText}</div>
-                    <div style="color: #e0e0e0; font-size: 0.9em; margin-top: 8px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px;">Current Total: ${newFear}</div>
-                </div>
-            </div>
-        </div>`;
+        const content = buildChatCard(MESSAGE_TITLE, `
+            <div style="color: #ffffff; font-size: 1.4em; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; font-family: 'Aleo', serif;">The GM earns Fear</div>
+            <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #800080, 2px 2px 2px #000; font-family: 'Lato', sans-serif;">+${addedFear}</div>
+            <div style="color: #ccc; font-size: 0.8em; margin-top: 5px; font-style: italic;">${calculationText}</div>
+            <div style="color: #e0e0e0; font-size: 0.9em; margin-top: 8px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px;">Current Total: ${newFear}</div>
+        `, { overlayOpacity: 0.75 });
         await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content: content });
     }
 }
@@ -174,7 +154,7 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
         position: { width: 420, height: "auto" },
         actions: { rollDamage: FallingDamageApp.prototype._onRollDamage, cancel: FallingDamageApp.prototype._onCancel }
     };
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/falling.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/falling.hbs` } };
 
     /**
      * Prepares context data with current falling damage formulas from settings.
@@ -227,7 +207,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         position: { width: 450, height: "auto" },
         actions: { selectType: LootConsumableApp.prototype._onSelectType, setFormula: LootConsumableApp.prototype._onSetFormula, selectTier: LootConsumableApp.prototype._onSelectTier, roll: LootConsumableApp.prototype._onRoll }
     };
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/lootConsumable.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/lootConsumable.hbs` } };
 
     /**
      * Builds context for the template, including coins mode flags and tier ranges.
@@ -262,19 +242,9 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const key = `tier${this.localState.coinsTier}`;
             const { min, max } = tiers[key];
             const amount = Math.floor(Math.random() * (max - min + 1)) + min;
-            const titleColor = "#C9A060";
-            const content = `
-            <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
-                <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
-                    <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">Coins</h3>
-                </header>
-                <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-                    <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                        <div style="color: ${titleColor} !important; font-size: 2em; font-weight: bold; text-shadow: 0px 0px 12px ${titleColor}; font-family: 'Lato', sans-serif;"><i class="fas fa-coins"></i> ${amount} Coins</div>
-                    </div>
-                </div>
-            </div>`;
+            const content = buildChatCard("Coins", `
+                <div style="color: #C9A060 !important; font-size: 2em; font-weight: bold; text-shadow: 0px 0px 12px #C9A060; font-family: 'Lato', sans-serif;"><i class="fas fa-coins"></i> ${amount} Coins</div>
+            `);
             await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
             return;
         }
@@ -304,22 +274,12 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             } else { displayHtml = itemName; }
         }
 
-        const titleColor = "#C9A060";
-        const content = `
-        <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
-            <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
-                <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">${this.localState.type} Roll</h3>
-            </header>
-            <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-                <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                    <div style="color: #ffffff; font-size: 0.9em;">Result: <strong>${rollTotal}</strong> (${rollFormula})</div>
-                    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.3); width: 80%; margin: 10px 0;">
-                    <div style="color: #ffffff !important; font-size: 1.5em; font-weight: bold; text-shadow: 0px 0px 10px ${titleColor}; font-family: 'Lato', sans-serif; line-height: 1.2;">${displayHtml}</div>
-                    ${drawResult && drawResult.img ? `<img src="${drawResult.img}" style="margin-top: 10px; max-width: 48px; border: none;" />` : ''}
-                </div>
-            </div>
-        </div>`;
+        const content = buildChatCard(`${this.localState.type} Roll`, `
+            <div style="color: #ffffff; font-size: 0.9em;">Result: <strong>${rollTotal}</strong> (${rollFormula})</div>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.3); width: 80%; margin: 10px 0;">
+            <div style="color: #ffffff !important; font-size: 1.5em; font-weight: bold; text-shadow: 0px 0px 10px #C9A060; font-family: 'Lato', sans-serif; line-height: 1.2;">${displayHtml}</div>
+            ${drawResult && drawResult.img ? `<img src="${drawResult.img}" style="margin-top: 10px; max-width: 48px; border: none;" />` : ''}
+        `);
         await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
     }
 }
@@ -335,31 +295,26 @@ export async function helpAnAlly() {
     const currentHope = actor.system.resources?.hope?.value;
     if (currentHope === undefined) { ui.notifications.warn("No Hope resource!"); return; }
 
-    const BACKGROUND_IMAGE = "modules/daggerheart-quickactions/assets/chat-messages/skull.webp";
     if (currentHope <= 0) {
         await ChatMessage.create({
-            user: game.user.id, speaker: ChatMessage.getSpeaker({actor: actor}), style: CONST.CHAT_MESSAGE_STYLES.OTHER,
-            content: `<div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;"><header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;"><h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">Help an Ally</h3></header><div class="card-content" style="background-image: url('${BACKGROUND_IMAGE}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;"><div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 0;"></div><div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;"><i class="fas fa-heart-broken" style="font-size: 32px; color: #ff6b6b; margin-bottom: 10px;"></i><div style="color: #ff6b6b; font-size: 1.1em; font-weight: bold; font-family: 'Aleo', serif;">No Hope remaining!</div></div></div></div>`
+            user: game.user.id,
+            speaker: ChatMessage.getSpeaker({actor: actor}),
+            style: CONST.CHAT_MESSAGE_STYLES.OTHER,
+            content: buildChatCard("Help an Ally", `
+                <i class="fas fa-heart-broken" style="font-size: 32px; color: #ff6b6b; margin-bottom: 10px;"></i>
+                <div style="color: #ff6b6b; font-size: 1.1em; font-weight: bold; font-family: 'Aleo', serif;">No Hope remaining!</div>
+            `, { overlayOpacity: 0.6 })
         });
         return;
     }
-    
+
     const roll = new Roll("1d6"); await roll.evaluate();
     await actor.update({"system.resources.hope.value": currentHope - 1});
-    
-    const content = `
-    <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
-        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
-            <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">Help an Ally</h3>
-        </header>
-        <div class="card-content" style="background-image: url('${BACKGROUND_IMAGE}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px #4CAF50, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">${roll.total}</div>
-                <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">Hope used: ${currentHope} → ${currentHope - 1}</div>
-            </div>
-        </div>
-    </div>`;
+
+    const content = buildChatCard("Help an Ally", `
+        <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px #4CAF50, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">${roll.total}</div>
+        <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">Hope used: ${currentHope} → ${currentHope - 1}</div>
+    `);
     await roll.toMessage({ speaker: ChatMessage.getSpeaker({actor: actor}), flavor: "<strong>Help an Ally</strong>", content: content });
 }
 
@@ -380,22 +335,13 @@ export async function scarCheck() {
     const resultIcon = isScar ? "fas fa-skull" : "fas fa-shield-alt";
     const resultDesc = isScar ? "Mark a Scar manually on your sheet." : "No scar taken.";
 
-    const content = `
-    <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
-        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
-            <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">Scar Check</h3>
-        </header>
-        <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-            <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <div style="color: #ccc; font-size: 0.9em; margin-bottom: 5px; font-weight: bold; text-shadow: 1px 1px 0 #000;">Level: ${currentLevel} vs Roll:</div>
-                <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 10px ${resultColor}, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">${roll.total}</div>
-                <i class="${resultIcon}" style="font-size: 24px; color: ${resultColor}; margin: 10px 0; text-shadow: 1px 1px 0 #000;"></i>
-                <div style="color: ${resultColor}; font-size: 1.2em; font-weight: bold; text-transform: uppercase; font-family: 'Aleo', serif; text-shadow: 1px 1px 0 #000;">${resultTitle}</div>
-                <div style="color: #eee; font-size: 0.9em; margin-top: 5px; font-style: italic;">${resultDesc}</div>
-            </div>
-        </div>
-    </div>`;
+    const content = buildChatCard("Scar Check", `
+        <div style="color: #ccc; font-size: 0.9em; margin-bottom: 5px; font-weight: bold; text-shadow: 1px 1px 0 #000;">Level: ${currentLevel} vs Roll:</div>
+        <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 10px ${resultColor}, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">${roll.total}</div>
+        <i class="${resultIcon}" style="font-size: 24px; color: ${resultColor}; margin: 10px 0; text-shadow: 1px 1px 0 #000;"></i>
+        <div style="color: ${resultColor}; font-size: 1.2em; font-weight: bold; text-transform: uppercase; font-family: 'Aleo', serif; text-shadow: 1px 1px 0 #000;">${resultTitle}</div>
+        <div style="color: #eee; font-size: 0.9em; margin-top: 5px; font-style: italic;">${resultDesc}</div>
+    `);
     await roll.toMessage({ speaker: ChatMessage.getSpeaker({token: token}), flavor: "<strong>Scar Check</strong>", content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
 }
 
@@ -417,11 +363,11 @@ export async function spotlightToken() {
 class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(macroNames, options = {}) { super(options); this.macroNames = macroNames; }
     static DEFAULT_OPTIONS = { tag: "form", id: "show-macros-app", classes: ["dh-qa-app", "show-macros-app"], window: { title: "Macros", icon: "fas fa-play-circle", resizable: true }, position: { width: 300, height: "auto" }, actions: { executeMacro: ShowMacrosApp.prototype._onExecuteMacro } };
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/showmacros.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/showmacros.hbs` } };
 
     async _prepareContext(options) {
         const macroList = [];
-        const pack = game.packs.get("daggerheart-quickactions.macros");
+        const pack = game.packs.get(`${MODULE_ID}.macros`);
         let index = pack ? await pack.getIndex() : null;
 
         for (const input of this.macroNames) {
@@ -440,7 +386,7 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onExecuteMacro(event, target) {
         const identifier = target.dataset.macro;
         let macro = null;
-        const pack = game.packs.get("daggerheart-quickactions.macros");
+        const pack = game.packs.get(`${MODULE_ID}.macros`);
         if (pack) { const index = await pack.getIndex(); const entry = index.find(m => m.name === identifier); if (entry) macro = await pack.getDocument(entry._id); }
         if (!macro) try { macro = await fromUuid(identifier); } catch(e){}
         if (!macro) macro = game.macros.find(m => m.name === identifier);
@@ -489,7 +435,10 @@ class HopeSpenderApp extends ApplicationV2 {
         if (currentHope === undefined) return ui.notifications.warn("No Hope resource!");
         if (currentHope < spendAmount) return ui.notifications.error("Not enough Hope!");
         await actor.update({"system.resources.hope.value": currentHope - spendAmount});
-        const content = `<div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;"><header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;"><h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">Hope Spent</h3></header><div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;"><div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.80); z-index: 0;"></div><div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;"><div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #C9A060, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">-${spendAmount}</div><div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">Hope Remaining: ${currentHope} → <span style="color: #C9A060; font-weight: bold;">${currentHope - spendAmount}</span></div></div></div></div>`;
+        const content = buildChatCard("Hope Spent", `
+            <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #C9A060, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">-${spendAmount}</div>
+            <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">Hope Remaining: ${currentHope} → <span style="color: #C9A060; font-weight: bold;">${currentHope - spendAmount}</span></div>
+        `, { overlayOpacity: 0.8 });
         await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker({actor: actor}), content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
         this.close();
     }
@@ -509,7 +458,7 @@ class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
         actions: { levelUp: LevelUpApp.prototype._onLevelUp, levelUpAll: LevelUpApp.prototype._onLevelUpAll }
     };
 
-    static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/level-up.hbs" } };
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/level-up.hbs` } };
 
     async _prepareContext() {
         const players = [];

@@ -4,6 +4,9 @@
  * Supports Token Magic FX effects if the tokenmagic module is active.
  */
 
+import { MODULE_ID } from "./constants.js";
+import { buildChatCard } from "./helpers.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 // ==================================================================
@@ -18,7 +21,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         super(options);
 
         // Retrieve saved settings from user flags for persistence across sessions.
-        const savedSettings = game.user.getFlag("daggerheart-quickactions", "templateSettings") || {};
+        const savedSettings = game.user.getFlag(MODULE_ID, "templateSettings") || {};
 
         this.localState = {
             type: savedSettings.type || 'circle',
@@ -53,7 +56,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @override */
     static PARTS = {
-        form: { template: "modules/daggerheart-quickactions/templates/template-creator.hbs" }
+        form: { template: `modules/${MODULE_ID}/templates/template-creator.hbs` }
     };
 
     /**
@@ -163,25 +166,14 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const code = this._computeCodeString();
         if (!code) return;
 
-        const content = `
-        <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
-            <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
-                <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                    Template Tool
-                </h3>
-            </header>
-            <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-                <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
-                    <div style="color: #ffffff !important; font-size: 1.2em; font-weight: bold; margin-bottom: 10px; text-shadow: 0px 0px 8px #000;">
-                        ${code}
-                    </div>
-                    <div style="color: #ccc; font-size: 0.9em; font-style: italic;">
-                        Click above to place the template
-                    </div>
-                </div>
+        const content = buildChatCard("Template Tool", `
+            <div style="color: #ffffff !important; font-size: 1.2em; font-weight: bold; margin-bottom: 10px; text-shadow: 0px 0px 8px #000;">
+                ${code}
             </div>
-        </div>`;
+            <div style="color: #ccc; font-size: 0.9em; font-style: italic;">
+                Click above to place the template
+            </div>
+        `);
 
         await ChatMessage.create({
             user: game.user.id,
@@ -207,7 +199,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (checkboxEl) this.localState.hidden = checkboxEl.checked;
 
         // Persist state for next open.
-        await game.user.setFlag("daggerheart-quickactions", "templateSettings", this.localState);
+        await game.user.setFlag(MODULE_ID, "templateSettings", this.localState);
 
         const ranges = { m: 5, vc: 15, c: 30, f: 60 };
         const shapes = { circle: "circle", cone: "cone", ray: "ray", front: "cone" };

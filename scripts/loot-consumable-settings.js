@@ -4,7 +4,8 @@
  * Registered from the init hook in main.js.
  */
 
-const MODULE_ID = "daggerheart-quickactions";
+import { MODULE_ID } from "./constants.js";
+
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 /** Default coin ranges keyed by tier. */
@@ -23,7 +24,7 @@ class CoinTierSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         id: "dh-qa-coin-tier-settings-app",
         tag: "form",
-        classes: ["daggerheart-quickactions", "coin-tier-settings"],
+        classes: [MODULE_ID, "coin-tier-settings"],
         window: { title: "Coin Tier Configuration", icon: "fas fa-coins", resizable: false },
         position: { width: 460, height: "auto" }
     };
