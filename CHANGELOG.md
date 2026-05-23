@@ -6,6 +6,7 @@
 - [Fixed] Falling Damage: chat messages now render with Deal Damage / Apply Healing buttons using Daggerheart's standard foundryRoll template
 - [Changed] Scan: moved "Enable Token Scan" setting from module settings menu into Scan Configuration app under new "General" tab
 - [Added] Downtime UI: visual pip counter in GM toolbar showing consecutive short rests taken (resets on long rest). Informational only — GM can still choose any rest type regardless of counter state
+- [Fixed] Loot Consumable: removed deprecated TableResult API usage (TableResult#text, TableResult#documentId, TableResult#documentCollection) — no more console warnings on roll
 
 # 0.3.3
 

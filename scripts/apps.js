@@ -253,10 +253,9 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         
         let displayHtml = "Nothing found";
         if (drawResult) {
-            let itemName = drawResult.text || drawResult.getChatText();
-            if (drawResult.type === "document" && drawResult.documentId) {
-                const uuid = drawResult.documentCollection.includes(".") ? `Compendium.${drawResult.documentCollection}.${drawResult.documentId}` : `${drawResult.documentCollection}.${drawResult.documentId}`;
-                displayHtml = `@UUID[${uuid}]{${itemName}}`;
+            let itemName = drawResult.name || drawResult.description;
+            if (drawResult.uuid) {
+                displayHtml = `@UUID[${drawResult.uuid}]{${itemName}}`;
             } else { displayHtml = itemName; }
         }
 
