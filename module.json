@@ -2,19 +2,21 @@
   "id": "daggerheart-quickactions",
   "title": "Daggerheart: Quick Actions",
   "description": "Quick Actions",
-  "version": "0.3.3",
+
+  "version": "0.4.0",
+
   "compatibility": {
-    "minimum": "13",
-    "verified": "13"
+    "minimum": "14",
+    "verified": "14"
   },
-  
+
   "relationships": {
     "systems": [
       {
         "id": "daggerheart",
         "type": "system",
         "compatibility": {
-          "minimum": "1.7.0"
+          "minimum": "2.2.6"
         }
       }
     ],
@@ -29,14 +31,15 @@
       }
     ]
   },
-  
+
   "authors": [
     {
       "name": "Mestre Digital",
-      "url": "https://www.youtube.com/c/MestreDigital",
+      "url": "http://youtube.com/@mestredigital",
       "flags": {}
     }
   ],
+
   "packs": [
     {
       "label": "Macros",
@@ -62,26 +65,23 @@
       },
       "flags": {}
     }
-  ],  
+  ],
   "packFolders": [
     {
       "name": "⚡ Quick Actions",
       "sorting": "a",
       "color": "#5c0547",
-      "packs": [        
-        "macros",        
+      "packs": [
+        "macros",
         "items"
       ],
       "folders": []
     }
-  ],  
-  
+  ],
   "socket": true,
-
   "esmodules": [
     "scripts/main.js"
   ],
-  
   "styles": [
     "styles/app-base.css",
     "styles/falling-damage.css",
@@ -93,9 +93,10 @@
     "styles/scan-settings.css",
     "styles/template-creator.css"
   ],
-  
-  "languages": [],
+
   "url": "https://github.com/brunocalado/daggerheart-quickactions",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/module.json",
-  "download": "https://codeload.github.com/brunocalado/daggerheart-quickactions/zip/main"
+  "download": "https://codeload.github.com/brunocalado/daggerheart-quickactions/zip/main",
+  "flags": {}
+  
 }

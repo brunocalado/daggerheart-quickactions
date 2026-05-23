@@ -125,7 +125,7 @@ https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/modu
 * **Code License:** GNU GPLv3.
 
 * **System:** Designed for the [Daggerheart](https://www.daggerheart.com) system on Foundry VTT.
-* **Assets:** AI images provided are [CC0 1.0 Universal Public Domain](https://creativecommons.org/publicdomain/zero/1.0/).
+
 * **sfx-critical:** [https://pixabay.com/service/license-summary/](https://pixabay.com/service/license-summary/)
 
 **Disclaimer:** This module is an independent creation and is not affiliated with Darrington Press.
