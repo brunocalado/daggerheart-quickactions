@@ -4,6 +4,7 @@
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
+const MODULE_ID = "daggerheart-quickactions";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 // ==================================================================
@@ -175,15 +176,26 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
     };
     static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/falling.hbs" } };
 
+    /**
+     * Prepares context data with current falling damage formulas from settings.
+     * @param {object} _options - Render options (unused).
+     * @returns {Promise<object>} Template context with formulas.
+     */
+    async _prepareContext(_options) {
+        const formulas = game.settings.get(MODULE_ID, "fallingDamageFormulas");
+        return { formulas };
+    }
+
     async _onRollDamage(event, target) {
         const selection = target.dataset.height;
         if (!selection) return;
+        const formulas = game.settings.get(MODULE_ID, "fallingDamageFormulas");
         let damageFormula = "", heightText = "", damageType = "Physical Damage";
         switch (selection) {
-            case "veryclose": damageFormula = "1d10+3"; heightText = "Very Close Range"; break;
-            case "close": damageFormula = "1d20+5"; heightText = "Close Range"; break;
-            case "far": damageFormula = "1d100+15"; heightText = "Far/Very Far Range"; break;
-            case "collision": damageFormula = "1d20+5"; heightText = "Collision"; damageType = "Direct Physical Damage"; break;
+            case "veryclose": damageFormula = formulas.veryclose; heightText = "Very Close Range"; break;
+            case "close": damageFormula = formulas.close; heightText = "Close Range"; break;
+            case "far": damageFormula = formulas.far; heightText = "Far/Very Far Range"; break;
+            case "collision": damageFormula = formulas.collision; heightText = "Collision"; damageType = "Direct Physical Damage"; break;
         }
         try {
             const roll = new Roll(damageFormula);

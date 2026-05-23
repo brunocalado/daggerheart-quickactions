@@ -2,6 +2,7 @@
 
 - v14 only
 - [Changed] Hide system's "Falling And Collision Damage" menu — module's Falling Damage implementation is superior
+- [Added] Falling Damage: customizable dice formulas via module settings. GMs can change the formula for each fall height category (Very Close, Close, Far/Very Far, Collision) and reset to Daggerheart official defaults at any time
 
 # 0.3.3
 

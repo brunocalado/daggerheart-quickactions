@@ -89,6 +89,7 @@
   "styles": [
     "styles/app-base.css",
     "styles/falling-damage.css",
+    "styles/falling-damage-settings.css",
     "styles/loot-consumable.css",
     "styles/level-up.css",
     "styles/downtime-ui.css",

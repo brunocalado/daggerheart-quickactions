@@ -16,6 +16,8 @@ import { features } from "./features.js";
 import { initTokenTooltip } from "./token-tooltip.js";
 // Import Scan Settings
 import { registerScanSettings } from "./scan-settings.js";
+// Import Falling Damage Settings
+import { registerFallingDamageSettings } from "./falling-damage-settings.js";
 
 // ==================================================================
 // GLOBAL API
@@ -187,6 +189,7 @@ Hooks.once("init", () => {
     });
 
     registerScanSettings();
+    registerFallingDamageSettings();
     initTokenTooltip();
 
     globalThis.QuickActions = {
