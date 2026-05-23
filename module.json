@@ -91,6 +91,7 @@
     "styles/falling-damage.css",
     "styles/falling-damage-settings.css",
     "styles/loot-consumable.css",
+    "styles/loot-consumable-settings.css",
     "styles/level-up.css",
     "styles/downtime-ui.css",
     "styles/configure-actor.css",

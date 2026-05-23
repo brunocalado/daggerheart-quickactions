@@ -18,6 +18,8 @@ import { initTokenTooltip } from "./token-tooltip.js";
 import { registerScanSettings } from "./scan-settings.js";
 // Import Falling Damage Settings
 import { registerFallingDamageSettings } from "./falling-damage-settings.js";
+// Import Coin Tier Settings
+import { registerCoinTierSettings } from "./loot-consumable-settings.js";
 
 // ==================================================================
 // GLOBAL API
@@ -191,6 +193,7 @@ Hooks.once("init", () => {
 
     registerScanSettings();
     registerFallingDamageSettings();
+    registerCoinTierSettings();
     initTokenTooltip();
 
     globalThis.QuickActions = {

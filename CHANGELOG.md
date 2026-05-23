@@ -8,6 +8,8 @@
 - [Added] Downtime UI: visual pip counter in GM toolbar showing consecutive short rests taken (resets on long rest). Informational only — GM can still choose any rest type regardless of counter state
 - [Fixed] Loot Consumable: removed deprecated TableResult API usage (TableResult#text, TableResult#documentId, TableResult#documentCollection) — no more console warnings on roll
 - [Added] Request Roll: Loot button — reorganized top row to **None | Hope | Fear | Loot** in a single horizontal line. Selecting Loot and sending opens the Loot & Consumables screen on targeted players' clients.
+- [Added] Loot Consumable: new **Coins** type alongside Loot and Consumable. Select a tier (Tier 1–4) and click Roll to generate a random coin amount within that tier's range. Defaults: Tier 1 = 10–50, Tier 2 = 100–200, Tier 3 = 500–1,000, Tier 4 = 1,000–2,000.
+- [Added] Loot Consumable: **Coin Tier Configuration** settings menu — GMs can customize the min/max coin range for each tier and reset to defaults at any time.
 
 # 0.3.3
 

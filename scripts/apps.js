@@ -220,20 +220,65 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // 4. LOOT & CONSUMABLES APP
 // ==================================================================
 class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
-    constructor(options) { super(options); this.localState = { type: "Loot", formula: "1d12" }; }
+    constructor(options) { super(options); this.localState = { type: "Loot", formula: "1d12", coinsTier: 1 }; }
     static DEFAULT_OPTIONS = {
         tag: "form", id: "loot-consumable-app", classes: ["dh-qa-app", "loot-consumable-app"],
         window: { title: "Loot & Consumables", icon: "fas fa-treasure-chest", resizable: false, controls: [] },
         position: { width: 450, height: "auto" },
-        actions: { selectType: LootConsumableApp.prototype._onSelectType, setFormula: LootConsumableApp.prototype._onSetFormula, roll: LootConsumableApp.prototype._onRoll }
+        actions: { selectType: LootConsumableApp.prototype._onSelectType, setFormula: LootConsumableApp.prototype._onSetFormula, selectTier: LootConsumableApp.prototype._onSelectTier, roll: LootConsumableApp.prototype._onRoll }
     };
     static PARTS = { form: { template: "modules/daggerheart-quickactions/templates/lootConsumable.hbs" } };
 
-    async _prepareContext(options) { return { isLoot: this.localState.type === "Loot", isConsumable: this.localState.type === "Consumable", formula: this.localState.formula }; }
+    /**
+     * Builds context for the template, including coins mode flags and tier ranges.
+     * @param {object} options - Render options.
+     * @returns {Promise<object>} Template context.
+     */
+    async _prepareContext(options) {
+        const isCoins = this.localState.type === "Coins";
+        return {
+            isLoot: this.localState.type === "Loot",
+            isConsumable: this.localState.type === "Consumable",
+            isCoins,
+            formula: this.localState.formula,
+            coinsTier: this.localState.coinsTier
+        };
+    }
+
     _onSelectType(event, target) { this.localState.type = target.dataset.type; this.render(); }
     _onSetFormula(event, target) { this.localState.formula = target.dataset.formula; this.render(); }
 
+    /**
+     * Stores the selected coin tier in local state and re-renders.
+     * @param {PointerEvent} event - Click event.
+     * @param {HTMLElement} target - The clicked tier button.
+     */
+    _onSelectTier(event, target) { this.localState.coinsTier = Number(target.dataset.tier); this.render(); }
+
     async _onRoll(event, target) {
+        // Coins mode: pick a random integer within the configured tier range
+        if (this.localState.type === "Coins") {
+            const tiers = game.settings.get(MODULE_ID, "coinTierRanges");
+            const key = `tier${this.localState.coinsTier}`;
+            const { min, max } = tiers[key];
+            const amount = Math.floor(Math.random() * (max - min + 1)) + min;
+            const titleColor = "#C9A060";
+            const content = `
+            <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden;">
+                <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
+                    <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">Coins</h3>
+                </header>
+                <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
+                    <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center;">
+                        <div style="color: ${titleColor} !important; font-size: 2em; font-weight: bold; text-shadow: 0px 0px 12px ${titleColor}; font-family: 'Lato', sans-serif;"><i class="fas fa-coins"></i> ${amount} Coins</div>
+                    </div>
+                </div>
+            </div>`;
+            await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
+            return;
+        }
+
         const formData = new FormData(this.element);
         const rollFormula = formData.get("formula") || this.localState.formula;
         const pack = game.packs.get("daggerheart.rolltables");

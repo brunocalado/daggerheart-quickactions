@@ -1,0 +1,126 @@
+/* Daggerheart Quick Actions - Coin Tier Settings Menu */
+
+.daggerheart-quickactions.coin-tier-settings {
+    --primary-accent: #C9A060;
+    --primary-bg: rgba(0, 0, 0, 0.2);
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-main: #f0f0e0;
+    --text-dim: #aaa;
+    --input-bg: rgba(0, 0, 0, 0.3);
+
+    font-family: "Signika", sans-serif;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+
+    /* -- INPUT STYLING -- */
+    & input[type="number"] {
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        color: #fff;
+        border-radius: 4px;
+        height: 32px;
+        padding: 0 8px;
+        width: 80px;
+        text-align: center;
+        transition: border-color 0.2s;
+
+        &:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 5px rgba(201, 160, 96, 0.2);
+        }
+    }
+
+    /* -- CONFIGURATION CARD -- */
+    & .config-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+
+        & h3 {
+            padding-bottom: 5px;
+            margin: 0 0 15px 0;
+            color: var(--primary-accent);
+            font-family: "Aleo", serif;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+    }
+
+    /* -- FORM GROUPS -- */
+    & .form-group {
+        margin-bottom: 15px;
+
+        & label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #e0e0e0;
+        }
+    }
+
+    /* -- TIER RANGE ROW -- */
+    & .tier-range {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        & .range-sep {
+            color: var(--text-dim);
+            font-weight: bold;
+        }
+
+        & .range-unit {
+            color: var(--text-dim);
+            font-size: 0.9em;
+            margin-left: 2px;
+        }
+    }
+
+    /* -- RESET BUTTON -- */
+    & .reset-btn {
+        width: 100%;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px dashed rgba(255, 255, 255, 0.15);
+        color: var(--text-dim);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+
+        &:hover {
+            color: #fff;
+            border-color: var(--primary-accent);
+            background: rgba(255, 255, 255, 0.08);
+        }
+    }
+
+    /* -- FOOTER -- */
+    & .sheet-footer {
+        border-top: 1px solid var(--border-color);
+        padding-top: 15px;
+        justify-content: flex-end;
+
+        & button {
+            background: linear-gradient(to bottom, #4a4a4a, #2a2a2a);
+            border: 1px solid #000;
+            color: #e0e0e0;
+            padding: 8px 24px;
+            font-family: "Aleo";
+            font-weight: bold;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+            &:hover {
+                color: #fff;
+                box-shadow: 0 0 10px var(--primary-accent);
+                border-color: var(--primary-accent);
+            }
+        }
+    }
+}
