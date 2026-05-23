@@ -1,3 +1,8 @@
+# 0.4.0
+
+- v14 only
+- [Changed] Hide system's "Falling And Collision Damage" menu — module's Falling Damage implementation is superior
+
 # 0.3.3
 
 - Request Roll: you can pick users.

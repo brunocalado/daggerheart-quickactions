@@ -26,7 +26,7 @@
         "type": "module",
         "title": "Dice So Nice!",
         "compatibility": {
-          "minimum": "5.2.4"
+          "minimum": "6.2.3"
         }
       }
     ]
@@ -66,6 +66,7 @@
       "flags": {}
     }
   ],
+
   "packFolders": [
     {
       "name": "⚡ Quick Actions",
@@ -78,10 +79,13 @@
       "folders": []
     }
   ],
+
   "socket": true,
+
   "esmodules": [
     "scripts/main.js"
   ],
+
   "styles": [
     "styles/app-base.css",
     "styles/falling-damage.css",
@@ -98,5 +102,5 @@
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/module.json",
   "download": "https://codeload.github.com/brunocalado/daggerheart-quickactions/zip/main",
   "flags": {}
-  
+
 }

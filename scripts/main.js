@@ -284,4 +284,7 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
         element.appendChild(btnRoll);
         element.appendChild(btnLevelUp);
     }
+
+    // Remove the system's built-in falling damage fieldset — this module provides a superior replacement.
+    element.querySelector('[data-action="createFallCollisionDamage"]')?.closest('fieldset')?.remove();
 });
