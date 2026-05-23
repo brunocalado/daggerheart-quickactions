@@ -98,6 +98,14 @@ Hooks.once("init", () => {
     });
 
     // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)
+    game.settings.register("daggerheart-quickactions", "shortRestCount", {
+        name: "Short Rest Count",
+        scope: "world",
+        config: false,
+        type: Number,
+        default: 0
+    });
+
     game.settings.register("daggerheart-quickactions", "downtimeActorConfigs", {
         name: "Downtime Actor Configs",
         scope: "world",

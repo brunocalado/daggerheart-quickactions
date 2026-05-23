@@ -151,6 +151,33 @@
         }
     }
 
+    /* Short Rest Pip Counter */
+    & .dui-short-rest-counter {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0 6px;
+
+        & .dui-rest-pip {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1.5px solid var(--dui-gold);
+            background: transparent;
+            transition: background 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+
+            &.dui-rest-pip--filled {
+                background: var(--dui-gold);
+            }
+
+            &.dui-rest-pip--warn {
+                border-color: var(--color-level-warning, #e8a030);
+                background: var(--color-level-warning, #e8a030);
+            }
+        }
+    }
+
     /* Player List Container */
     & .dui-player-list {
         display: flex;

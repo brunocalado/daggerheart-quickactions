@@ -593,6 +593,10 @@ async function _applyDowntimeEffects() {
     </div>`;
     await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content });
 
+    // Update consecutive short rest counter (resets on long rest)
+    const currentCount = game.settings.get("daggerheart-quickactions", "shortRestCount") ?? 0;
+    await game.settings.set("daggerheart-quickactions", "shortRestCount", isLong ? 0 : currentCount + 1);
+
     // Broadcast close to all players, then close GM instance and clear state
     await game.settings.set("daggerheart-quickactions", "downtimeUIClosed", { timestamp: Date.now() });
     DowntimeUIApp._instance?.close();
@@ -1414,11 +1418,18 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
+        const shortRestCount = game.settings.get("daggerheart-quickactions", "shortRestCount") ?? 0;
+        const shortRestPips = Array.from({ length: 3 }, (_, i) => ({
+            filled: i < shortRestCount,
+            warn: shortRestCount >= 3
+        }));
+
         return {
             rows, isGM, hasAnyActor: rows.length > 0,
             restType: globalRestType, isLong, isShort: !isLong,
             restLabel: isLong ? "Long Rest" : "Short Rest",
-            foragerOptions: FORAGER_OPTIONS
+            foragerOptions: FORAGER_OPTIONS,
+            shortRestCount, shortRestPips
         };
     }
 
