@@ -200,22 +200,16 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
         try {
             const roll = new Roll(damageFormula);
             await roll.evaluate();
-            const content = `
-            <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden;">
-                <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid #C9A060;">
-                    <h3 class="noborder" style="margin: 0; font-weight: bold; color: #C9A060 !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">The Fall Ends</h3>
-                </header>
-                <div class="card-content" style="background-image: url('modules/daggerheart-quickactions/assets/chat-messages/skull.webp'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 20px; min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; position: relative;">
-                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); z-index: 0;"></div>
-                    <div style="position: relative; z-index: 1; width: 100%;">
-                        <div style="color: #ffffff; font-size: 1.5em; font-weight: 800; margin-bottom: 5px; text-transform: uppercase; font-family: 'Aleo', serif; text-shadow: 2px 2px 0 #000;">${heightText}</div>
-                        <div style="color: #e0e0e0; font-size: 1.1em; margin-bottom: 15px; font-weight: bold; background: rgba(0,0,0,0.5); display: inline-block; padding: 2px 10px; border-radius: 4px;">${damageType} <span style="color: #C9A060;">(${damageFormula})</span></div>
-                        <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px #ff0000, 2px 2px 0px #000; font-family: 'Lato', sans-serif; line-height: 1;">${roll.total}</div>
-                        <div style="color: #ff6b6b; font-size: 1.0em; font-weight: bold; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px;">DAMAGE</div>
-                    </div>
-                </div>
-            </div>`;
-            await roll.toMessage({ speaker: ChatMessage.getSpeaker(), flavor: `<strong>${heightText}</strong>`, content: content });
+            // BaseRoll class is required so Foundry uses foundryRoll.hbs, which renders the Deal Damage / Apply Healing buttons.
+            const rollJSON = roll.toJSON();
+            rollJSON.class = 'BaseRoll';
+            await foundry.documents.ChatMessage.implementation.create({
+                author: game.user.id,
+                speaker: foundry.documents.ChatMessage.implementation.getSpeaker(),
+                flavor: `${heightText} — ${damageType} (${damageFormula})`,
+                rolls: [rollJSON],
+                sound: CONFIG.sounds.dice
+            });
             this.close();
         } catch (error) { console.error("Falling Damage Error:", error); ui.notifications.error("Error calculating falling damage."); }
     }
