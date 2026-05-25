@@ -236,16 +236,30 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
     _onSelectTier(event, target) { this.localState.coinsTier = Number(target.dataset.tier); this.render(); }
 
     async _onRoll(event, target) {
+        // Whisper to GM(s) and the rolling user only — deduplicate in case the roller is also GM.
+        const gmIds = ChatMessage.getWhisperRecipients("GM").map(u => u.id);
+        const whisper = [...new Set([...gmIds, game.user.id])];
+
         // Coins mode: pick a random integer within the configured tier range
         if (this.localState.type === "Coins") {
             const tiers = game.settings.get(MODULE_ID, "coinTierRanges");
             const key = `tier${this.localState.coinsTier}`;
             const { min, max } = tiers[key];
             const amount = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            // Add coins to the rolling user's linked actor if system.gold.coins exists.
+            const linkedActor = game.user.character;
+            if (linkedActor) {
+                const currentCoins = foundry.utils.getProperty(linkedActor, "system.gold.coins");
+                if (currentCoins !== undefined) {
+                    await linkedActor.update({ "system.gold.coins": currentCoins + amount });
+                }
+            }
+
             const content = buildChatCard("Coins", `
                 <div style="color: #C9A060 !important; font-size: 2em; font-weight: bold; text-shadow: 0px 0px 12px #C9A060; font-family: 'Lato', sans-serif;"><i class="fas fa-coins"></i> ${amount} Coins</div>
             `);
-            await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
+            await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
             return;
         }
 
@@ -253,7 +267,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const rollFormula = formData.get("formula") || this.localState.formula;
         const pack = game.packs.get("daggerheart.rolltables");
         if (!pack) { ui.notifications.error(`Compendium 'daggerheart.rolltables' not found.`); return; }
-        
+
         let tableName = this.localState.type === "Consumable" ? "Consumables" : this.localState.type;
         const documents = await pack.getDocuments();
         const table = documents.find(d => d.name === tableName);
@@ -265,7 +279,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         let rollTotal = Math.max(1, Math.min(60, roll.total));
         const drawResult = table.results.find(r => rollTotal >= r.range[0] && rollTotal <= r.range[1]);
-        
+
         let displayHtml = "Nothing found";
         if (drawResult) {
             let itemName = drawResult.name || drawResult.description;
@@ -274,13 +288,28 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             } else { displayHtml = itemName; }
         }
 
+        // Automatically add the rolled item to the linked actor's inventory.
+        // In V14, TableResult#uuid returns the referenced document's UUID directly.
+        const linkedActor = game.user.character;
+        if (linkedActor && drawResult) {
+            try {
+                const sourceDoc = await fromUuid(drawResult.uuid);
+                // Guard: only embed if the resolved document is actually an Item.
+                if (sourceDoc instanceof Item) {
+                    await linkedActor.createEmbeddedDocuments("Item", [sourceDoc.toObject()]);
+                }
+            } catch (err) {
+                console.error(`${MODULE_ID} | Failed to add rolled item to actor inventory:`, err);
+            }
+        }
+
         const content = buildChatCard(`${this.localState.type} Roll`, `
             <div style="color: #ffffff; font-size: 0.9em;">Result: <strong>${rollTotal}</strong> (${rollFormula})</div>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.3); width: 80%; margin: 10px 0;">
             <div style="color: #ffffff !important; font-size: 1.5em; font-weight: bold; text-shadow: 0px 0px 10px #C9A060; font-family: 'Lato', sans-serif; line-height: 1.2;">${displayHtml}</div>
             ${drawResult && drawResult.img ? `<img src="${drawResult.img}" style="margin-top: 10px; max-width: 48px; border: none;" />` : ''}
         `);
-        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
+        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
     }
 }
 

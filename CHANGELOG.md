@@ -1,5 +1,9 @@
 # 0.4.2
 
+- [Added] Loot Consumable: rolled items are now automatically added to the rolling user's linked actor's inventory (if one exists)
+- [Added] Loot Consumable: rolled coin amounts are automatically added to the linked actor's `system.gold.coins` field
+- [Changed] Loot Consumable: chat messages are now whispered to GM(s) and the rolling user only — no longer visible to all players
+- [Fixed] Loot Consumable: use V14-compliant `TableResult#uuid` API; no more deprecation warnings for `documentId` / `documentCollection`
 - [Fixed] Request Roll: Cinematic mode now uses Daggerheart's native enriched roll buttons (`.duality-roll-button` / `.fate-roll-button`) instead of `ui.chat.processMessage()`, eliminating the `SYSTEM is not defined` crash. `CinematicRollPrompt` refactored to use `HandlebarsApplicationMixin` and template rendering via `_prepareContext`, allowing Daggerheart's `enricherRenderSetup` hook to wire click handlers automatically.
 
 # 0.4.1
