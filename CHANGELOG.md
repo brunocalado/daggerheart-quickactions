@@ -1,3 +1,7 @@
+# 0.4.2
+
+- [Fixed] Request Roll: Cinematic mode now uses Daggerheart's native enriched roll buttons (`.duality-roll-button` / `.fate-roll-button`) instead of `ui.chat.processMessage()`, eliminating the `SYSTEM is not defined` crash. `CinematicRollPrompt` refactored to use `HandlebarsApplicationMixin` and template rendering via `_prepareContext`, allowing Daggerheart's `enricherRenderSetup` hook to wire click handlers automatically.
+
 # 0.4.1
 
 - [Changed] Refactor: extracted `MODULE_ID` to `scripts/constants.js` as the single source of truth — all 11 scripts now import the constant instead of declaring it locally or using string literals

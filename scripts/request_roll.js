@@ -287,7 +287,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // ==================================================================
 // CINEMATIC ROLL PROMPT APP
 // ==================================================================
-export class CinematicRollPrompt extends ApplicationV2 {
+export class CinematicRollPrompt extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(data, options = {}) {
         super(options);
         this.data = data;
@@ -298,136 +298,68 @@ export class CinematicRollPrompt extends ApplicationV2 {
         id: "cinematic-roll-prompt",
         classes: ["dh-qa-app"],
         window: { title: "Action Required", icon: "fas fa-dice-d20", resizable: false, controls: [] },
-        position: { width: 500, height: "auto" }, // Increased to 500 to fit larger image
-        actions: {
-            resolveRoll: CinematicRollPrompt.prototype._onResolveRoll
-        }
+        position: { width: 500, height: "auto" },
+        actions: {}
     };
 
-    async _renderHTML(context, options) {
-        // ... (HTML generation logic remains the same as in apps.js, omitted for brevity but included in file) ...
-        // For the sake of the diff, I will assume the user wants the full content here.
-        // Since I am creating a new file, I will paste the full content of CinematicRollPrompt from apps.js
-        // See apps.js content in context for the implementation.
-        // I will use the exact implementation from apps.js.
-        
-        // Check Text Logic (Trait or Duality Roll or Hope/Fear)
-        let checkLabel = this.data.trait;
-        if (!checkLabel || checkLabel === "Roll") {
-            checkLabel = "Duality Roll";
-        }
+    static PARTS = {
+        form: { template: `modules/${MODULE_ID}/templates/cinematic-roll-prompt.hbs` }
+    };
 
-        // Image Logic
-        let imageHtml = "";
-        
-        // Checks if images should be displayed (default is true if undefined)
+    /**
+     * Builds the context passed to the Handlebars template.
+     * Uses HandlebarsApplicationMixin so the `renderHandlebarsApplication` hook fires,
+     * which triggers Daggerheart's `enricherRenderSetup` to wire `.duality-roll-button`
+     * and `.fate-roll-button` click handlers automatically.
+     * @override
+     * @returns {Promise<object>}
+     */
+    async _prepareContext(_options) {
+        // Resolve the display label for the roll type
+        let checkLabel = this.data.trait;
+        if (!checkLabel || checkLabel === "Roll") checkLabel = "Duality Roll";
+
+        // Resolve the trait image path (images optional via showImages flag)
+        let imagePath = null;
         if (this.data.showImages !== false) {
             let imageName = "";
-            
             if (this.data.rawTrait) {
-                // If rawTrait exists, it is a normal attribute (agility, strength, etc)
+                // Normal attribute roll (agility, strength, etc.) — use rawTrait directly
                 imageName = this.data.rawTrait.toLowerCase();
             } else {
-                // If no rawTrait, check the processed label
-                if (checkLabel === "Hope") imageName = "hope";
-                else if (checkLabel === "Fear") imageName = "fear";
-                else if (checkLabel === "Duality Roll") imageName = "none";
+                // Special roll — map processed label to image name
+                const specialImageMap = { Hope: "hope", Fear: "fear", "Duality Roll": "none" };
+                imageName = specialImageMap[checkLabel] ?? "";
             }
-
-            if (imageName) {
-                const imagePath = `modules/${MODULE_ID}/assets/requestroll/${imageName}.webp`;
-                imageHtml = `<img src="${imagePath}" style="max-width: 400px; border: none; filter: drop-shadow(0 0 10px rgba(201, 160, 96, 0.5)); margin-bottom: 10px;" />`;
-            }
+            if (imageName) imagePath = `modules/${MODULE_ID}/assets/requestroll/${imageName}.webp`;
         }
 
-        // Difficulty Logic (Do not display if empty)
-        let difficultyHtml = "";
-        if (this.data.difficulty) {
-            difficultyHtml = `Difficulty: <span style="color: #C9A060; font-weight: bold;">${this.data.difficulty}</span><br>`;
-        }
+        // Enrich the roll command into a native Daggerheart enriched button.
+        // `renderHandlebarsApplication` (fired by HandlebarsApplicationMixin) triggers
+        // Daggerheart's enricherRenderSetup, which wires the click handler on the result.
+        const TextEditorImpl = foundry.applications.ux.TextEditor.implementation;
+        const enrichedRoll = await TextEditorImpl.enrichHTML(`[[${this.data.command}]]`);
 
-        return `
-        <style>
-            .cinematic-wrapper {
-                background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
-                border: 2px solid #C9A060;
-                padding: 25px;
-                text-align: center;
-                color: #fff;
-                display: flex;
-                flex-direction: column;
-                gap: 15px;
-                align-items: center;
-            }
-            .cinematic-title { font-family: 'Aleo', serif; font-size: 1.8em; color: #C9A060; text-transform: uppercase; text-shadow: 0 0 10px #C9A060; margin: 0; }
-            .cinematic-details { font-size: 1.1em; color: #ccc; margin-bottom: 10px; }
-            
-            /* BUTTON STYLE */
-            .cinematic-btn {
-                background: #C9A060 !important;
-                color: #000 !important;
-                border: 2px solid #8a6d3b !important;
-                /* Padding removed as requested to fix alignment */
-                font-size: 1.4em !important;
-                font-family: 'Aleo', serif !important;
-                font-weight: bold !important;
-                text-transform: uppercase !important;
-                cursor: pointer;
-                border-radius: 4px;
-                text-decoration: none !important;
-                display: inline-block !important;
-                box-shadow: 0 0 15px rgba(201, 160, 96, 0.6) !important;
-                transition: transform 0.1s, box-shadow 0.2s;
-                animation: pulse-gold 2s infinite;
-                width: 100%;
-            }
-            .cinematic-btn i { margin-right: 8px; }
-            .cinematic-btn:hover {
-                transform: scale(1.05);
-                box-shadow: 0 0 25px rgba(201, 160, 96, 0.8) !important;
-                color: #000 !important;
-            }
-            @keyframes pulse-gold {
-                0% { box-shadow: 0 0 0 0 rgba(201, 160, 96, 0.4); }
-                70% { box-shadow: 0 0 0 10px rgba(201, 160, 96, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(201, 160, 96, 0); }
-            }
-        </style>
-        <div class="cinematic-wrapper">
-            <h1 class="cinematic-title">${this.data.label}</h1>
-            
-            <div class="cinematic-details">
-                ${difficultyHtml}
-                Check: <span style="color: #C9A060; font-weight: bold;">${checkLabel}</span>
-            </div>
-
-            <!-- Imagem do Trait -->
-            ${imageHtml}
-            
-            <div style="margin-top: 10px; width: 100%;">
-                <button type="button" class="cinematic-btn" data-action="resolveRoll" data-command="${this.data.command}">
-                    <i class="fas fa-dice-d20"></i> ROLL NOW
-                </button>
-            </div>
-        </div>
-        `;
+        return {
+            label: this.data.label,
+            checkLabel,
+            difficulty: this.data.difficulty,
+            hasDifficulty: !!this.data.difficulty,
+            imagePath,
+            enrichedRoll
+        };
     }
 
-    _replaceHTML(result, content, options) {
-        content.innerHTML = result;
-        return content;
-    }
-
-    _onResolveRoll(event, target) {
-        // Retrieves stored command (e.g., "/dr trait=strength difficulty=15")
-        // Preference for button data-command if it exists (ensures it matches HTML)
-        const commandToExecute = target.dataset.command || this.data.command;
-
-        if (commandToExecute) {
-            ui.chat.processMessage(commandToExecute);
-        }
-
-        this.close();
+    /**
+     * Attaches a click listener on the roll container to close the dialog after the
+     * enriched button fires its roll. Called after every render.
+     * @override
+     */
+    _onRender(_context, _options) {
+        const container = this.element.querySelector(".cinematic-roll-container");
+        if (!container) return;
+        // Short delay lets Daggerheart's handler execute before the window closes
+        container.addEventListener("click", () => setTimeout(() => this.close(), 100));
     }
 }
 

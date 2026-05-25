@@ -1,0 +1,81 @@
+/* Daggerheart Quick Actions — Cinematic Roll Prompt
+   Scoped under .dh-qa-app, the module-wide CSS namespace.
+   Overrides Daggerheart's enriched roll buttons to fit the cinematic gold aesthetic.
+*/
+
+@keyframes pulse-gold {
+    0%   { box-shadow: 0 0 0 0   rgba(201, 160, 96, 0.4); }
+    70%  { box-shadow: 0 0 0 10px rgba(201, 160, 96, 0);   }
+    100% { box-shadow: 0 0 0 0   rgba(201, 160, 96, 0);   }
+}
+
+.dh-qa-app {
+    .cinematic-wrapper {
+        background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+        border: 2px solid #C9A060;
+        padding: 25px;
+        text-align: center;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .cinematic-title {
+        font-family: 'Aleo', serif;
+        font-size: 1.8em;
+        color: #C9A060;
+        text-transform: uppercase;
+        text-shadow: 0 0 10px #C9A060;
+        margin: 0;
+    }
+
+    .cinematic-details {
+        font-size: 1.1em;
+        color: #ccc;
+        margin-bottom: 10px;
+    }
+
+    .cinematic-highlight {
+        color: #C9A060;
+        font-weight: bold;
+    }
+
+    .cinematic-trait-image {
+        max-width: 400px;
+        border: none;
+        filter: drop-shadow(0 0 10px rgba(201, 160, 96, 0.5));
+        margin-bottom: 10px;
+    }
+
+    .cinematic-roll-container {
+        margin-top: 10px;
+        width: 100%;
+
+        /* Override Daggerheart's enriched roll buttons to match the cinematic gold style */
+        & .duality-roll-button,
+        & .fate-roll-button {
+            background: #C9A060 !important;
+            color: #000 !important;
+            border: 2px solid #8a6d3b !important;
+            font-size: 1.4em !important;
+            font-family: 'Aleo', serif !important;
+            font-weight: bold !important;
+            text-transform: uppercase !important;
+            cursor: pointer;
+            border-radius: 4px;
+            display: inline-block !important;
+            box-shadow: 0 0 15px rgba(201, 160, 96, 0.6) !important;
+            transition: transform 0.1s, box-shadow 0.2s;
+            animation: pulse-gold 2s infinite;
+            width: 100%;
+
+            &:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 25px rgba(201, 160, 96, 0.8) !important;
+                color: #000 !important;
+            }
+        }
+    }
+}

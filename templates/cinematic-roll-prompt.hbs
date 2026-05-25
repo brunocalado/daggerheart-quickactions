@@ -1,0 +1,19 @@
+<div class="cinematic-wrapper">
+    <h1 class="cinematic-title">{{label}}</h1>
+
+    <div class="cinematic-details">
+        {{#if hasDifficulty}}
+            Difficulty: <span class="cinematic-highlight">{{difficulty}}</span><br>
+        {{/if}}
+        Check: <span class="cinematic-highlight">{{checkLabel}}</span>
+    </div>
+
+    {{#if imagePath}}
+        <img src="{{imagePath}}" class="cinematic-trait-image" alt="{{checkLabel}}" />
+    {{/if}}
+
+    {{!-- Daggerheart's renderHandlebarsApplication hook wires the click handler here --}}
+    <div class="cinematic-roll-container">
+        {{{enrichedRoll}}}
+    </div>
+</div>

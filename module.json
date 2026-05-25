@@ -3,7 +3,7 @@
   "title": "Daggerheart: Quick Actions",
   "description": "Quick Actions",
 
-  "version": "0.4.1",
+  "version": "0.4.2",
 
   "compatibility": {
     "minimum": "14",
@@ -88,6 +88,7 @@
 
   "styles": [
     "styles/app-base.css",
+    "styles/cinematic-roll-prompt.css",
     "styles/falling-damage.css",
     "styles/falling-damage-settings.css",
     "styles/loot-consumable.css",
