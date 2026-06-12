@@ -1,3 +1,8 @@
+# 0.4.3
+
+- [Changed] Party Sheet: removed Short Rest and Long Rest buttons from the party sheet actions bar — they are replaced by the Downtime UI button
+- [Added] Party Sheet: Downtime button injected into the party sheet actions bar (GM only) — opens the Downtime UI directly from the party sheet
+
 # 0.4.2
 
 - [Added] Loot Consumable: rolled items are now automatically added to the rolling user's linked actor's inventory (if one exists)

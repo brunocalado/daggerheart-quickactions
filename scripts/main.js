@@ -233,6 +233,33 @@ Hooks.on("ready", async () => {
 });
 
 // ==================================================================
+// PARTY SHEET HOOK — Replace rest buttons with Downtime button (GM only)
+// ==================================================================
+Hooks.on("renderParty", (app, html) => {
+    // Always remove Short Rest and Long Rest buttons — this module replaces them
+    html.querySelectorAll('button[data-action="triggerRest"]').forEach(btn => btn.remove());
+
+    if (!game.user.isGM) return;
+    if (html.querySelector(".dqa-downtime-party-btn")) return;
+
+    const actionsSection = html.querySelector(".actions-section");
+    if (!actionsSection) return;
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("dqa-downtime-party-btn");
+    btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>Downtime</span>`;
+
+    btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        activateDowntimeUI();
+    });
+
+    actionsSection.appendChild(btn);
+});
+
+// ==================================================================
 // RENDER MENU HOOK
 // ==================================================================
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
