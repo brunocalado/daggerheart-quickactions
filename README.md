@@ -4,9 +4,9 @@
 
 This module streamlines the flow of gameplay by providing quick access to common mechanics like Falling Damage, Downtime moves, Scar Checks, and Loot rolling, integrated directly into the Daggerheart system interface.
 
-<p align="center"><img width="900" src="docs/preview.webp" alt="Preview"></p>
+<p align="center"><img width="1000" src="docs/preview.webp" alt="Preview"></p>
 
-<p align="center"><img width="900" src="docs/downtime.webp"></p>
+<p align="center"><img width="800" src="docs/downtime.webp"></p>
 
 <p align="center"><img width="900" src="docs/feature.webp"></p>
 
