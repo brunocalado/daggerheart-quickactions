@@ -1,6 +1,7 @@
 # 0.4.4
 
 - [Fixed] Templates: eliminated V14 deprecation warnings (`MeasuredTemplateDocument`, `getConeShape`, `core.coneTemplateType`) by migrating to native V14 Region API. Preview now uses raw PIXI.Graphics instead of the deprecated `MeasuredTemplate` placeable; template creation now calls `createEmbeddedDocuments("Region", ...)` directly with `flags.core.MeasuredTemplate = true` instead of the deprecated `MeasuredTemplate` compat shim.
+- [Added] Templates: new **Rect** shape type — places a square Region centered on the click point, sized to the selected range. Generates `@Template[type:rect|range:...]` code. Fixed **Front** code string to correctly emit `@Template[type:front|...]` instead of `rect`.
 
 
 # 0.4.3

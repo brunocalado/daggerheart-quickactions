@@ -41,6 +41,11 @@ function buildRegionDataFromTemplate(data) {
         case "ray":
             shape = { type: "line", x, y, length: distance * dp, width: width * dp, rotation: direction, gridBased: false };
             break;
+        case "rect": {
+            const size = Math.round(distance * dp);
+            shape = { type: "rectangle", x: x - Math.round(size / 2), y: y - Math.round(size / 2), width: size, height: size, rotation: 0, gridBased: false };
+            break;
+        }
         default:
             shape = { type: "circle", x, y, radius: distance * dp, gridBased: false };
     }
@@ -62,7 +67,7 @@ function buildRegionDataFromTemplate(data) {
         restriction: { enabled: false, type: "move", priority: 0 },
         attachment: { token: null },
         behaviors: [],
-        visibility: hidden ? CONST.REGION_VISIBILITY.OBSERVER : CONST.REGION_VISIBILITY.ALWAYS,
+        visibility: hidden ? CONST.REGION_VISIBILITY.GAMEMASTER : CONST.REGION_VISIBILITY.ALWAYS,
         highlightMode: "coverage",
         displayMeasurements: true,
         hidden: false,
@@ -131,6 +136,11 @@ function drawPreviewShape(g, t, distance, direction, angle, width, fillColor) {
             g.drawPolygon([px, py, cos * len + px, sin * len + py, cos * len - px, sin * len - py, -px, -py]);
             break;
         }
+        case "rect": {
+            const size = distance * dp;
+            g.drawRect(-size / 2, -size / 2, size, size);
+            break;
+        }
     }
 
     g.endFill();
@@ -177,7 +187,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
             resizable: false,
             controls: []
         },
-        position: { width: 420, height: "auto" },
+        position: { width: 460, height: "auto" },
         actions: {
             selectType: TemplateCreatorApp.#onSelectType,
             selectRange: TemplateCreatorApp.#onSelectRange,
@@ -218,7 +228,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @returns {string} The template enricher code, e.g. "@Template[type:circle|range:vc]".
      */
     _computeCodeString() {
-        const shapeMap = { circle: "circle", cone: "cone", front: "rect", ray: "ray" };
+        const shapeMap = { circle: "circle", cone: "cone", front: "front", ray: "ray", rect: "rect" };
         const shapeText = shapeMap[this.localState.type] ?? "circle";
         return `@Template[type:${shapeText}|range:${this.localState.range}]`;
     }
@@ -337,7 +347,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.user.setFlag(MODULE_ID, "templateSettings", this.localState);
 
         const ranges = { m: 5, vc: 15, c: 30, f: 60 };
-        const shapes = { circle: "circle", cone: "cone", ray: "ray", front: "cone" };
+        const shapes = { circle: "circle", cone: "cone", ray: "ray", front: "cone", rect: "rect" };
 
         const dist = ranges[this.localState.range] ?? 5;
         const selectedType = this.localState.type;

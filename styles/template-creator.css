@@ -5,6 +5,10 @@
     margin-top: 5px;
 }
 
+.dh-trait-grid--5 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
 .dh-trait-btn {
     background: #2b2b2b;
     color: #999;

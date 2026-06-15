@@ -1,6 +1,6 @@
 <div class="dh-rr-container">
     <label class="dh-rr-label">Shape</label>
-    <div class="dh-trait-grid">
+    <div class="dh-trait-grid dh-trait-grid--5">
         <button type="button" class="dh-trait-btn {{#if (eq type 'circle')}}active{{/if}}" data-action="selectType" data-value="circle">
             <i class="fas fa-circle" style="margin-right:4px"></i>Circle
         </button>
@@ -12,6 +12,9 @@
         </button>
         <button type="button" class="dh-trait-btn {{#if (eq type 'ray')}}active{{/if}}" data-action="selectType" data-value="ray">
             <i class="fas fa-bolt" style="margin-right:4px"></i>Ray
+        </button>
+        <button type="button" class="dh-trait-btn {{#if (eq type 'rect')}}active{{/if}}" data-action="selectType" data-value="rect">
+            <i class="fas fa-square" style="margin-right:4px"></i>Rect
         </button>
     </div>
 
