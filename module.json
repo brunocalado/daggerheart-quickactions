@@ -2,7 +2,9 @@
   "id": "daggerheart-quickactions",
   "title": "Daggerheart: Quick Actions",
   "description": "Essential tools and automations for Daggerheart in Foundry VTT. Provides quick access to common mechanics directly from the sidebar and party sheet: a full Downtime UI with automated resource recovery, feature support (Efficient, Forager, Recovery, Armorer, and more), Falling and Collision Damage, Roll Requests with cinematic prompts, Level Up, Loot and Consumable rolling, Scar Check, Help an Ally, Spotlight Token, and Token Hover Tooltips. The Downtime button replaces Short and Long Rest on the party sheet (GM only) and drives the entire rest workflow including Fear gain, per-actor move limits, and chat summaries.",
-  "version": "0.4.3",
+  
+  "version": "0.4.4",
+  
   "compatibility": {
     "minimum": "14",
     "verified": "14"
@@ -61,6 +63,7 @@
       "flags": {}
     }
   ],
+  
   "packFolders": [
     {
       "name": "⚡ Quick Actions",
@@ -74,6 +77,7 @@
     }
   ],
   "socket": true,
+  
   "esmodules": [
     "scripts/main.js"
   ],
@@ -92,8 +96,9 @@
     "styles/scan-settings.css",
     "styles/template-creator.css"
   ],
-
+  
   "url": "https://github.com/brunocalado/daggerheart-quickactions",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/module.json",
-  "download": "https://codeload.github.com/brunocalado/daggerheart-quickactions/zip/main"
+  "download": "https://codeload.github.com/brunocalado/daggerheart-quickactions/zip/main",
+  "flags": {}
 }

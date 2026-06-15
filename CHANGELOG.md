@@ -1,3 +1,8 @@
+# 0.4.4
+
+- [Fixed] Templates: eliminated V14 deprecation warnings (`MeasuredTemplateDocument`, `getConeShape`, `core.coneTemplateType`) by migrating to native V14 Region API. Preview now uses raw PIXI.Graphics instead of the deprecated `MeasuredTemplate` placeable; template creation now calls `createEmbeddedDocuments("Region", ...)` directly with `flags.core.MeasuredTemplate = true` instead of the deprecated `MeasuredTemplate` compat shim.
+
+
 # 0.4.3
 
 - [Changed] Party Sheet: removed Short Rest and Long Rest buttons from the party sheet actions bar — they are replaced by the Downtime UI button

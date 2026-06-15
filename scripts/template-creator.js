@@ -10,6 +10,141 @@ import { buildChatCard } from "./helpers.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 // ==================================================================
+// V14 REGION HELPERS
+// ==================================================================
+
+/**
+ * Converts template-style data into a V14 RegionDocument data object.
+ * In V14, measured templates are stored as Region documents with the flag
+ * flags.core.MeasuredTemplate = true. Direct Region creation avoids the
+ * deprecated MeasuredTemplateDocument constructor and createDocuments shim.
+ * @param {object} data - Template data (t, x, y, distance, direction, angle, width, fillColor, hidden, user, flags)
+ * @returns {object} Region document data ready for createEmbeddedDocuments("Region", [...])
+ */
+function buildRegionDataFromTemplate(data) {
+    const dp = canvas.dimensions.distancePixels;
+    const x = Math.round(data.x || 0);
+    const y = Math.round(data.y || 0);
+    const distance = Math.abs(data.distance || 0);
+    const direction = Math.normalizeDegrees(data.direction || 0);
+    const angle = Math.clamp(data.angle == null ? 90 : (data.angle || 0), 0, 360);
+    const width = Math.abs(data.width || 0);
+    const fillColor = data.fillColor || "#ff0000";
+    const hidden = !!data.hidden;
+    const userId = data.user ?? game.user.id;
+
+    let shape;
+    switch (data.t) {
+        case "cone":
+            shape = { type: "cone", x, y, radius: distance * dp, angle, rotation: direction, curvature: "round", gridBased: false };
+            break;
+        case "ray":
+            shape = { type: "line", x, y, length: distance * dp, width: width * dp, rotation: direction, gridBased: false };
+            break;
+        default:
+            shape = { type: "circle", x, y, radius: distance * dp, gridBased: false };
+    }
+
+    const shapeName = shape.type.charAt(0).toUpperCase() + shape.type.slice(1);
+    const userName = game.users.get(userId)?.name;
+    const name = userName ? `${shapeName} Template [${userName}]` : `${shapeName} Template`;
+    const ownership = { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE };
+    ownership[userId] = CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER;
+    const flags = foundry.utils.deepClone(data.flags || {});
+    foundry.utils.setProperty(flags, "core.MeasuredTemplate", true);
+
+    return {
+        name,
+        color: fillColor,
+        shapes: [shape],
+        elevation: { bottom: data.elevation || 0, top: null },
+        levels: [],
+        restriction: { enabled: false, type: "move", priority: 0 },
+        attachment: { token: null },
+        behaviors: [],
+        visibility: hidden ? CONST.REGION_VISIBILITY.OBSERVER : CONST.REGION_VISIBILITY.ALWAYS,
+        highlightMode: "coverage",
+        displayMeasurements: true,
+        hidden: false,
+        locked: false,
+        ownership,
+        flags
+    };
+}
+
+/**
+ * Draws a template preview shape onto a PIXI.Graphics object.
+ * Replicates the visual output of the deprecated MeasuredTemplate.getConeShape /
+ * getCircleShape / getRayShape static methods without calling them.
+ * @param {PIXI.Graphics} g - Graphics context (cleared on each call)
+ * @param {string} t - Template type: "circle" | "cone" | "ray"
+ * @param {number} distance - Distance in grid units
+ * @param {number} direction - Direction in degrees
+ * @param {number} angle - Cone angle in degrees
+ * @param {number} width - Ray width in grid units
+ * @param {string} fillColor - Hex color string
+ */
+function drawPreviewShape(g, t, distance, direction, angle, width, fillColor) {
+    const dp = canvas.dimensions.distancePixels;
+    const s = canvas.dimensions.uiScale ?? 1;
+    const hexColor = foundry.utils.Color.from(fillColor || "#C9A060").valueOf();
+
+    g.clear();
+    g.lineStyle(3 * s, 0x000000, 0.75).beginFill(hexColor, 0.3);
+
+    switch (t) {
+        case "circle": {
+            g.drawCircle(0, 0, distance * dp);
+            break;
+        }
+        case "cone": {
+            const d = distance * dp;
+            const a = Math.min(angle || 90, 360);
+            if (d > 0 && a > 0) {
+                if (a >= 360) {
+                    g.drawCircle(0, 0, d);
+                } else {
+                    // Round cone: approximate with a ray every 3 degrees (same logic as old getConeShape)
+                    const da = Math.min(a, 3);
+                    const steps = Math.floor(a / da);
+                    const angles = Array.from({ length: steps }, (_, i) => (a / -2) + i * da).concat([a / 2]);
+                    const pts = [0, 0];
+                    for (const deg of angles) {
+                        const rad = Math.toRadians(direction + deg);
+                        pts.push(Math.cos(rad) * d, Math.sin(rad) * d);
+                    }
+                    pts.push(0, 0);
+                    g.drawPolygon(pts);
+                }
+            }
+            break;
+        }
+        case "ray": {
+            const len = distance * dp;
+            const hw = ((width || 5) * dp) / 2;
+            const dirRad = Math.toRadians(direction);
+            const cos = Math.cos(dirRad);
+            const sin = Math.sin(dirRad);
+            // Perpendicular offset (90° CCW)
+            const px = -sin * hw;
+            const py = cos * hw;
+            g.drawPolygon([px, py, cos * len + px, sin * len + py, cos * len - px, sin * len - py, -px, -py]);
+            break;
+        }
+    }
+
+    g.endFill();
+
+    // Origin and direction-endpoint markers
+    const dirRad = Math.toRadians(direction);
+    const d = distance * dp;
+    g.lineStyle(2 * s, 0x000000).beginFill(0x000000, 0.5)
+        .drawCircle(0, 0, 6 * s)
+        .drawCircle(Math.cos(dirRad) * d, Math.sin(dirRad) * d, 6 * s)
+        .endFill();
+}
+
+// ==================================================================
 // TEMPLATE CREATOR APP
 // ==================================================================
 class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -465,20 +600,27 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * Activates the interactive canvas preview mode for template placement.
      * Supports mouse movement for positioning, wheel for rotation,
      * left-click to confirm, and right-click to cancel.
-     * @param {object} data - The initial template document data.
+     *
+     * Uses a raw PIXI.Container preview (instead of the deprecated MeasuredTemplate
+     * placeable) and creates the final document as a Region (V14 native storage).
+     * @param {object} data - The initial template data object.
      */
     async _activatePreviewTool(data) {
         const safeEffect = data.effect;
 
         if (!canvas.templates) canvas.templates.activate();
 
-        const doc = new foundry.documents.MeasuredTemplateDocument(data, { parent: canvas.scene });
-        const template = new foundry.canvas.placeables.MeasuredTemplate(doc);
+        // Custom PIXI preview — avoids deprecated MeasuredTemplateDocument constructor
+        // and the deprecated getConeShape / getCircleShape / getRayShape static methods.
+        const previewContainer = new PIXI.Container();
+        const previewGraphics = new PIXI.Graphics();
+        previewContainer.addChild(previewGraphics);
+        previewContainer.eventMode = "none";
 
-        template.eventMode = "none";
+        const previewState = { x: 0, y: 0, direction: data.direction ?? 0 };
 
-        canvas.templates.preview.addChild(template);
-        template.draw();
+        canvas.templates.preview.addChild(previewContainer);
+        drawPreviewShape(previewGraphics, data.t, data.distance, previewState.direction, data.angle, data.width, data.fillColor);
 
         const _onMouseMove = (event) => {
             const pos = event.data.getLocalPosition(canvas.app.stage);
@@ -488,9 +630,9 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 snapped = canvas.grid.getSnappedPoint({ x: pos.x, y: pos.y }, { mode: 3 });
             }
 
-            template.document.x = snapped.x;
-            template.document.y = snapped.y;
-            template.refresh();
+            previewState.x = snapped.x;
+            previewState.y = snapped.y;
+            previewContainer.position.set(snapped.x, snapped.y);
         };
 
         const _onMouseWheel = (event) => {
@@ -498,17 +640,17 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
             event.stopPropagation();
 
             const delta = Math.sign(event.deltaY);
-            template.document.direction += (delta * 15);
-            template.refresh();
+            previewState.direction = Math.normalizeDegrees(previewState.direction + delta * 15);
+            drawPreviewShape(previewGraphics, data.t, data.distance, previewState.direction, data.angle, data.width, data.fillColor);
         };
 
         const _onClickLeft = async (event) => {
             if (event.data.originalEvent.button !== 0) return;
 
-            const finalX = template.document.x;
-            const finalY = template.document.y;
-            const finalDirection = template.document.direction;
-            const finalFillColor = template.document.fillColor;
+            const finalX = previewState.x;
+            const finalY = previewState.y;
+            const finalDirection = previewState.direction;
+            const finalFillColor = data.fillColor;
 
             _cleanup();
 
@@ -531,14 +673,14 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 }
             }
 
-            const finalData = {
+            const templateData = {
                 t: data.t,
                 user: game.user.id,
                 x: finalX,
                 y: finalY,
                 direction: finalDirection,
                 distance: data.distance,
-                fillColor: data.fillColor,
+                fillColor: finalFillColor,
                 angle: data.angle,
                 width: data.width,
                 hidden: data.hidden,
@@ -546,7 +688,9 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
             };
 
             try {
-                await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", [finalData]);
+                // V14: templates are stored as Region documents with flags.core.MeasuredTemplate = true.
+                // Creating via "Region" avoids the deprecated MeasuredTemplate compat shim entirely.
+                await canvas.scene.createEmbeddedDocuments("Region", [buildRegionDataFromTemplate(templateData)]);
             } catch (e) {
                 console.error("[DH-ERROR] Failed to create template:", e);
             }
@@ -562,8 +706,8 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
             canvas.stage.off("rightdown", _onClickRight);
             canvas.app.view.removeEventListener("wheel", _onMouseWheel);
 
-            canvas.templates.preview.removeChild(template);
-            template.destroy({ children: true });
+            canvas.templates.preview.removeChild(previewContainer);
+            previewContainer.destroy({ children: true });
         };
 
         canvas.stage.on("mousemove", _onMouseMove);
