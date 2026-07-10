@@ -96,9 +96,9 @@ export async function features(featureName, ...args) {
 // ==================================================================
 
 /**
- * Recharges the "Unleash Chaos" item by spending 1 Stress or 1 HP.
- * If Stress is not full, spends 1 Stress automatically.
- * If Stress is already full, prompts via DialogV2 to spend 1 HP instead.
+ * Recharges the "Unleash Chaos" item, prompting the player for the cost to pay.
+ * The three options are 1 Stress (default, the most common case), 1 HP, or
+ * nothing at all (used for the free recharge at the start of a session).
  * Posts a styled chat message summarising the cost and the recharge result.
  *
  * @param {Token} token - The controlled token whose actor owns Unleash Chaos.
@@ -131,65 +131,82 @@ async function executeUnleashChaos(token) {
         return;
     }
 
+    // Ask which cost to pay. "Stress" is the default since it's the usual case;
+    // "Nothing" covers the free recharge at the start of a session.
+    const costType = await foundry.applications.api.DialogV2.wait({
+        window: { title: "Unleash Chaos — Recharge Cost" },
+        content: `
+            <p>What cost do you want to pay to recharge <strong>Unleash Chaos</strong>?</p>
+            <p style="color: var(--color-text-secondary); font-size: 0.9em;">At the start of a session, you may recover it for free — choose "Nothing" in that case.</p>
+        `,
+        buttons: [
+            { action: "stress", label: "1 Stress", icon: "fas fa-brain", default: true },
+            { action: "hp", label: "1 HP", icon: "fas fa-heart" },
+            { action: "none", label: "Nothing", icon: "fas fa-hourglass-start" }
+        ],
+        rejectClose: false
+    });
+
+    if (!costType) {
+        ui.notifications.warn("Action cancelled.");
+        return;
+    }
+
     const stress = actor.system.resources.stress;
     const hp = actor.system.resources.hitPoints;
 
-    /**
-     * Applies the recharge to the item and posts the chat message.
-     * @param {"stress"|"hp"} costType - Which resource was spent.
-     * @returns {Promise<void>}
-     */
-    const recharge = async (costType) => {
-        await targetItem.update({ "system.resource.value": maxTokens });
-        await _createUnleashChaosChatMessage(token, costType, maxTokens - currentTokens, maxTokens);
-    };
-
-    if (stress.value < stress.max) {
-        await actor.update({ "system.resources.stress.value": stress.value + 1 });
-        await recharge("stress");
-    } else {
-        // Stress is full — ask the player if they want to pay with HP instead
-        const proceed = await foundry.applications.api.DialogV2.confirm({
-            window: { title: "Stress at Maximum" },
-            content: "<p>Your <strong>Stress</strong> limit has been reached. Do you want to mark <strong>1 HP</strong> to recharge Unleash Chaos?</p>",
-            rejectClose: false
-        });
-
-        if (!proceed) {
-            ui.notifications.warn("Action cancelled.");
+    if (costType === "stress") {
+        if (stress.value >= stress.max) {
+            ui.notifications.error("Your Stress is already at maximum — you cannot pay this cost.");
             return;
         }
-
+        await actor.update({ "system.resources.stress.value": stress.value + 1 });
+    } else if (costType === "hp") {
         if (hp.value >= hp.max) {
             ui.notifications.error("Your Hit Points are already at maximum — you cannot pay this cost.");
             return;
         }
-
         // In Daggerheart, marking HP means adding to the current value (damage track)
         await actor.update({ "system.resources.hitPoints.value": hp.value + 1 });
-        await recharge("hp");
     }
+    // costType === "none": free session-start recovery, no resource is spent
+
+    await targetItem.update({ "system.resource.value": maxTokens });
+    await _createUnleashChaosChatMessage(token, costType, maxTokens - currentTokens, maxTokens);
 }
 
 /**
  * Creates a styled chat message summarising the Unleash Chaos recharge.
  * Follows the same visual style used throughout this module.
  *
- * @param {Token} token             - The token used as the chat speaker.
- * @param {"stress"|"hp"} costType  - Which resource was spent.
- * @param {number} tokensGained     - How many tokens were added.
- * @param {number} newTotal         - The new total charge after recharge.
+ * @param {Token} token                    - The token used as the chat speaker.
+ * @param {"stress"|"hp"|"none"} costType  - Which resource was spent, or "none" for a free session-start recovery.
+ * @param {number} tokensGained            - How many tokens were added.
+ * @param {number} newTotal                - The new total charge after recharge.
  * @returns {Promise<void>}
  */
 async function _createUnleashChaosChatMessage(token, costType, tokensGained, newTotal) {
     const titleColor = "#C9A060";
     const bgImage = CHAT_CARD_BG;
-
-    const isStress = costType === "stress";
-    const costColor  = isStress ? "#9d80ff" : "#ff6b6b";
-    const costLabel  = isStress ? "Stress" : "Hit Points";
-    const costIcon   = isStress ? "fas fa-brain" : "fas fa-heart";
     const restoreColor = "#4CAF50";
+
+    let costColor, costLabel, costIcon;
+    switch (costType) {
+        case "stress":
+            costColor = "#9d80ff";
+            costLabel = "1 Stress";
+            costIcon = "fas fa-brain";
+            break;
+        case "hp":
+            costColor = "#ff6b6b";
+            costLabel = "1 Hit Point";
+            costIcon = "fas fa-heart";
+            break;
+        default:
+            costColor = "#4a90e2";
+            costLabel = "Session Start Recovery";
+            costIcon = "fas fa-hourglass-start";
+    }
 
     const content = `
     <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
@@ -206,7 +223,7 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
                 <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${costColor};">
                     <i class="${costIcon}" style="color: ${costColor}; width: 16px; text-align: center;"></i>
                     <span style="color: #ccc; font-size: 0.95em;">Cost paid:</span>
-                    <strong style="color: ${costColor}; font-size: 1em;">1 ${costLabel}</strong>
+                    <strong style="color: ${costColor}; font-size: 1em;">${costLabel}</strong>
                 </div>
 
                 <!-- Restore Row -->
