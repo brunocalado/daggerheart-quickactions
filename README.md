@@ -48,6 +48,8 @@ Available through `QuickActions.Features()`, meant to be wired up to specific su
 
 ### 🕹️ Interface Integration
 
+<p align="center"><img src="docs/daggerheart-menu.webp"></p>
+
 * **Sidebar Menu:** Adds a "Quick Actions" section to the Daggerheart System Menu in the sidebar, with one-click buttons for Downtime, Falling Damage, Request Roll, and Level Up.
 * **Party Sheet:** Replaces the built-in Short Rest and Long Rest buttons with a single **Downtime** button (GM only) that opens the full Downtime UI directly from the party sheet.
 * **Macro Palette:** Build your own palette of buttons for any macro using `QuickActions.ShowMacros()`.
