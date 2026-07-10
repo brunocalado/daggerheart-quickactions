@@ -2,7 +2,7 @@
 
 **Essential tools and automations for Daggerheart in Foundry VTT.**
 
-This module streamlines the flow of gameplay by providing quick access to common mechanics like Falling Damage, Downtime moves, Scar Checks, and Loot rolling, integrated directly into the Daggerheart system interface.
+This module streamlines the flow of gameplay by putting the most common Daggerheart mechanics — Downtime, Falling Damage, Roll Requests, Loot, Scar Checks, and more — one click away, integrated directly into the Daggerheart system interface.
 
 <p align="center"><img width="1000" src="docs/preview.webp" alt="Preview"></p>
 
@@ -10,45 +10,81 @@ This module streamlines the flow of gameplay by providing quick access to common
 
 <p align="center"><img width="900" src="docs/feature.webp"></p>
 
+<p align="center"><img width="600" src="docs/token-tooltips.webp"></p>
+
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-Donate-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/mestredigital) [![More Modules](https://img.shields.io/badge/Foundry%20VTT-More%20Modules-red?style=for-the-badge&logo=gamepad)](https://mestredigital.online/pages/projetos-en)
 
 ## 🌟 Features
 
-### 🛠️ Core Utilities
+### 🛌 Downtime
 
-* **🛌 Downtime:** Manage downtime activities for players, automatically calculating results and resource costs.
-* **� Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far", and "Collision" damage tiers with automatic dice calculations.
-* **🎲 Request Roll:** A GM tool to quickly request rolls from players to the chat, configuring Difficulty, Traits, Advantage/Disadvantage, and context labels.
-* **🆙 Level Up:** Easily level up player characters directly from the menu.
+* **Downtime UI:** A full-screen manager for downtime moves. Players pick their moves (Tend to Wounds, Prepare, Work a Trade, and more, including any homebrew moves the GM adds), the same move can be chosen more than once when the rules allow it, and the GM resolves everything — resource costs, Fear gained, and rest results — with one click. Automatically handles class/subclass features that hook into downtime, such as Efficient, Forager, Recovery, Armorer, Celestial Trance, Premium Bedroll, Eloquent, and Soothing Speech.
+* **Quick Earn Fear:** A lightweight "Short Rest / Long Rest" dialog for GMs who just want to roll Fear without opening the full Downtime UI.
+
+### 🛠️ GM Utilities
+
+* **🪂 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far/Very Far", and "Collision" tiers, with dice formulas the GM can fully customize.
+* **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label; optionally send it as a "cinematic" full-screen prompt.
+* **🆙 Level Up:** Walk a player character through leveling up directly from the menu.
+* **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving player's character sheet when possible.
+* **✨ Spend Hope:** A quick picker for spending 1–6 Hope from the selected token's actor.
+* **📐 Templates:** Place attack templates (cone, line, circle, rectangle, and more) on the scene using Daggerheart's `@Template[...]` chat code syntax.
 
 ### 🎭 Token Macros
 
-* **🔍 Scan:** Reveal a target's physical and mental state with immersive descriptions (requires GM setting).
-* **🤝 Help an Ally:** Checks the selected token's **Hope** resource. If available, consumes 1 Hope and rolls the Help Die (1d6) to the chat.
-* **❤️ Scar Check:** Automatically checks the actor's Level against a 1d12 roll to determine if they are Safe or take a Scar.
-* **🔦 Spotlight Token:** Instantly changes the active combat turn to the selected token (requires active combat).
+* **🔍 Scan:** Reveal a target's physical and mental state through immersive, non-numeric descriptions instead of exact HP/Stress values (GM must enable this in settings). Great for "I look at the goblin, how does it look?" moments.
+* **🤝 Help an Ally:** Spends 1 Hope from the selected token (if available) and rolls the Help Die (1d6) to the chat.
+* **❤️ Scar Check:** Rolls 1d12 against the actor's Level to determine whether they stay Safe or take a Scar.
+* **🔦 Spotlight Token:** Instantly hands the active combat turn to the selected token (requires an active combat).
+* **🖱️ Token Hover Tooltip:** Hovering over a token shows a quick stat summary (HP, Stress, and more). Can be toggled on/off and resized per user in the settings.
+
+### ⚡ Class Feature Macros
+
+Available through `QuickActions.Features()`, meant to be wired up to specific subclass items/macros:
+
+* **Unleash Chaos:** Recharges the "Unleash Chaos" item's charge to its maximum (based on the actor's spellcasting trait). Asks what the player wants to pay — 1 Stress (default), 1 HP, or nothing (for the free recharge at the start of a session) — and posts a chat summary of the result.
+* **Chain Lightning:** Opens a configuration window (Difficulty, damage formula, options) and then rolls saves and chained damage against nearby hostile adversaries, posting a full results card to chat.
 
 ### 🕹️ Interface Integration
 
-* **Sidebar Menu:** Adds a "Quick Actions" section to the Daggerheart System Menu for easy access.
-* **Party Sheet:** Replaces the built-in Short Rest and Long Rest buttons with a **Downtime** button (visible to the GM only) that opens the full Downtime UI directly from the party sheet.
-* **Macro Palette:** Create custom palettes of macros using `QuickActions.ShowMacros()`.
+* **Sidebar Menu:** Adds a "Quick Actions" section to the Daggerheart System Menu in the sidebar, with one-click buttons for Downtime, Falling Damage, Request Roll, and Level Up.
+* **Party Sheet:** Replaces the built-in Short Rest and Long Rest buttons with a single **Downtime** button (GM only) that opens the full Downtime UI directly from the party sheet.
+* **Macro Palette:** Build your own palette of buttons for any macro using `QuickActions.ShowMacros()`.
+
+## ⚙️ Settings
+
+Most features work out of the box, but a few can be tuned from **Configure Settings → Module Settings → Daggerheart: Quick Actions**:
+
+* **Token Hover Tooltip:** enable/disable and choose its size (Small to Massive).
+* **Scan Configuration:** enable the Scan macro for players and customize the labels/descriptions it shows.
+* **Falling Damage Formulas:** customize the dice formula for each fall height tier, with a one-click reset to the official defaults.
+* **Coin Tier Configuration:** customize the min/max coin range rolled for each Loot coin tier.
+* **Cinematic Request Roll:** toggle whether Request Roll uses the full-screen cinematic prompt.
 
 ## ⚙️ Usage
 
 ### Via Sidebar
 Go to the **Daggerheart Menu** in the sidebar. You will see a new section titled **Quick Actions** with buttons for:
-* Earn Fear (Downtime)
+* Downtime
 * Falling Damage
 * Request Roll
+* Level Up Players
+
+### Via Party Sheet
+GMs will find a **Downtime** button on the party sheet's action bar, in place of the default Short Rest / Long Rest buttons. It opens the full Downtime UI for the whole party.
 
 ### Via API / Macros
 You can trigger any function programmatically or via Foundry Macros using the global `QuickActions` object:
 
 ```javascript
-// Opens the Downtime interface
+// Opens the full Downtime UI
 QuickActions.DowntimeUI();
+```
+
+```javascript
+// Opens the lightweight "Earn Fear" (Short/Long Rest) dialog
+QuickActions.Downtime();
 ```
 
 ```javascript
@@ -58,7 +94,7 @@ QuickActions.FallingDamage();
 
 ```javascript
 // Opens the Roll Request dialog
-// You can use QuickActions.RequestRoll(false); to prevent it from show images.
+// You can use QuickActions.RequestRoll(false); to prevent it from showing images.
 QuickActions.RequestRoll();
 ```
 
@@ -83,13 +119,31 @@ QuickActions.SpotlightToken();
 ```
 
 ```javascript
-// Choose a number of hope to spend
+// Choose a number of Hope to spend on the selected token
 QuickActions.SpendHope();
 ```
 
 ```javascript
-// Add an template to scene
+// Adds a template to the scene
 QuickActions.Templates();
+```
+
+```javascript
+// Opens a level-up flow for a player character
+QuickActions.LevelUp();
+```
+
+```javascript
+// Rolls a Hope/Fear Duality die with a cinematic animation
+// rollType: "hope" or "fear" | mode: "default" (animated), "ask" (choose the die), "system" (use the system's own roll)
+QuickActions.Fate("hope");
+```
+
+```javascript
+// Runs one of the built-in class feature macros (e.g. subclass abilities)
+// See "Class Feature Macros" above for the available names.
+QuickActions.Features("Unleash Chaos");
+QuickActions.Features("Chain Lightning");
 ```
 
 ```javascript
