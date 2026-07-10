@@ -1,3 +1,7 @@
+# 0.4.5
+
+- [Fixed] Downtime UI: "Repair Armor" (Short and Long Rest) was a silent no-op — the Daggerheart system moved armor tracking from `item.system.marks` to `item.system.armor.current`/`.max`, so the module's lookup never matched any armor item. Now uses the system's own `actor.system.updateArmorValue()` API to reduce or fully clear Armor Slots, matching native rest behavior and also covering armor bonuses granted by Active Effects (e.g. domain cards), not just the equipped item.
+
 # 0.4.4
 
 - [Fixed] Templates: eliminated V14 deprecation warnings (`MeasuredTemplateDocument`, `getConeShape`, `core.coneTemplateType`) by migrating to native V14 Region API. Preview now uses raw PIXI.Graphics instead of the deprecated `MeasuredTemplate` placeable; template creation now calls `createEmbeddedDocuments("Region", ...)` directly with `flags.core.MeasuredTemplate = true` instead of the deprecated `MeasuredTemplate` compat shim.

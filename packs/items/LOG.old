@@ -1,7 +1,7 @@
-2026/06/12-09:02:50.651 57d0 Recovering log #2501
-2026/06/12-09:02:50.655 57d0 Delete type=0 #2501
-2026/06/12-09:02:50.655 57d0 Delete type=3 #2499
-2026/06/12-09:03:03.877 6934 Level-0 table #2506: started
-2026/06/12-09:03:03.877 6934 Level-0 table #2506: 0 bytes OK
-2026/06/12-09:03:03.879 6934 Delete type=0 #2504
-2026/06/12-09:03:03.889 6934 Manual compaction at level-0 from '!folders!vzkqqM5n5jTmVLU4' @ 72057594037927935 : 1 .. '!items.effects!vPGhnT1C84fwNiYf.gf1xRR8CW84VngW6' @ 0 : 0; will stop at (end)
+2026/07/02-12:34:23.442 c18 Recovering log #2636
+2026/07/02-12:34:23.445 c18 Delete type=0 #2636
+2026/07/02-12:34:23.445 c18 Delete type=3 #2634
+2026/07/02-13:34:17.899 10a4 Level-0 table #2641: started
+2026/07/02-13:34:17.899 10a4 Level-0 table #2641: 0 bytes OK
+2026/07/02-13:34:17.900 10a4 Delete type=0 #2639
+2026/07/02-13:34:17.900 10a4 Manual compaction at level-0 from '!folders!vzkqqM5n5jTmVLU4' @ 72057594037927935 : 1 .. '!items.effects!vPGhnT1C84fwNiYf.gf1xRR8CW84VngW6' @ 0 : 0; will stop at (end)

@@ -42,59 +42,13 @@ function _getActorTier(actor) {
     return 1;
 }
 
-function _getArmorItems(actor) {
-    return actor.items.filter(i => i.system?.equipped === true && i.system?.marks !== undefined);
-}
-
-function _getTotalMarks(item) {
-    const m = item.system.marks;
-    if (typeof m === "number") return m;
-    if (Array.isArray(m)) return m.filter(Boolean).length;
-    if (typeof m === "object" && m !== null) return Object.values(m).filter(Boolean).length;
-    return 0;
-}
-
-async function _setMarks(item, newCount) {
-    const marks = item.system.marks;
-    if (typeof marks === "number") {
-        await item.update({ "system.marks": Math.max(0, newCount) });
-    } else if (Array.isArray(marks)) {
-        const newArray = [...marks];
-        const truthyIndices = newArray.reduce((acc, v, i) => { if (v) acc.push(i); return acc; }, []);
-        const toRemove = truthyIndices.length - Math.max(0, newCount);
-        for (let i = 0; i < toRemove; i++) {
-            newArray[truthyIndices[truthyIndices.length - 1 - i]] = false;
-        }
-        await item.update({ "system.marks": newArray });
-    } else if (typeof marks === "object" && marks !== null) {
-        const newObj = { ...marks };
-        const truthyKeys = Object.entries(newObj).filter(([, v]) => Boolean(v)).map(([k]) => k);
-        const toRemove = truthyKeys.length - Math.max(0, newCount);
-        for (let i = 0; i < toRemove; i++) {
-            newObj[truthyKeys[truthyKeys.length - 1 - i]] = false;
-        }
-        await item.update({ "system.marks": newObj });
-    }
-}
-
 async function _reduceArmorMarks(actor, reduction) {
-    const items = _getArmorItems(actor);
-    let remaining = reduction;
-    for (const item of items) {
-        if (remaining <= 0) break;
-        const current = _getTotalMarks(item);
-        if (current <= 0) continue;
-        const removeFromThis = Math.min(current, remaining);
-        await _setMarks(item, current - removeFromThis);
-        remaining -= removeFromThis;
-    }
+    if (reduction <= 0) return;
+    await actor.system.updateArmorValue({ value: -reduction });
 }
 
 async function _clearAllArmorMarks(actor) {
-    const items = _getArmorItems(actor);
-    for (const item of items) {
-        await _setMarks(item, 0);
-    }
+    await actor.system.updateArmorValue({ clear: true });
 }
 
 /**
