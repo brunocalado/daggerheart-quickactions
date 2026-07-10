@@ -42,6 +42,76 @@ function _getActorTier(actor) {
     return 1;
 }
 
+/**
+ * Canonical empty downtime choices record (instance-based model).
+ * @returns {object} A fresh choices object with no selections.
+ */
+function _emptyDowntimeChoices() {
+    return {
+        actions: [],
+        efficientSlot: null,
+        recoverySlot: null,
+        recoveryGrantedSlot: null,
+        foragerChoice: null,
+        eloquentBeneficiary: null,
+        recoveryBeneficiary: null
+    };
+}
+
+/**
+ * Normalizes a raw `downtimeChoices` flag into the instance-based model.
+ * Each selected move is one `{ id, key, target }` instance, so the same move can
+ * appear multiple times. Migrates the legacy shape — `actions` as an array of
+ * move-key strings with a parallel `targets` map and slot fields referencing move
+ * keys — by wrapping each key as an instance and remapping every slot key to the
+ * id of the first instance carrying that key.
+ * @param {object|null|undefined} raw - The stored flag value.
+ * @returns {object} A choices object in the current instance-based shape.
+ */
+function _normalizeChoices(raw) {
+    const base = _emptyDowntimeChoices();
+    if (!raw || !Array.isArray(raw.actions)) return base;
+
+    // New shape has no `targets` map and stores action instances as objects.
+    const isLegacy = raw.targets !== undefined || raw.actions.some(a => typeof a === "string");
+    if (!isLegacy) {
+        return {
+            ...base,
+            ...raw,
+            actions: raw.actions.map(a => ({
+                id: a.id ?? foundry.utils.randomID(),
+                key: a.key,
+                target: a.target ?? null
+            }))
+        };
+    }
+
+    const legacyTargets = raw.targets ?? {};
+    const actions = raw.actions
+        .filter(k => typeof k === "string")
+        .map(k => ({ id: foundry.utils.randomID(), key: k, target: legacyTargets[k] ?? null }));
+    const idForKey = (key) => (key == null ? null : (actions.find(i => i.key === key)?.id ?? null));
+
+    return {
+        actions,
+        efficientSlot: idForKey(raw.efficientSlot),
+        recoverySlot: idForKey(raw.recoverySlot),
+        recoveryGrantedSlot: idForKey(raw.recoveryGrantedSlot),
+        foragerChoice: raw.foragerChoice ?? null,
+        eloquentBeneficiary: raw.eloquentBeneficiary ?? null,
+        recoveryBeneficiary: raw.recoveryBeneficiary ?? null
+    };
+}
+
+/**
+ * Reads and normalizes a user's downtime choices.
+ * @param {User} user - The user whose choices to read.
+ * @returns {object} Instance-based choices (empty record when unset).
+ */
+function _readDowntimeChoices(user) {
+    return _normalizeChoices(user?.getFlag(MODULE_ID, "downtimeChoices"));
+}
+
 async function _reduceArmorMarks(actor, reduction) {
     if (reduction <= 0) return;
     await actor.system.updateArmorValue({ value: -reduction });
@@ -171,7 +241,7 @@ async function _applyDowntimeEffects() {
         const actor = game.actors.get(actorId);
         if (!actor) continue;
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
-        const playerChoices = ownerUser?.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {} };
+        const playerChoices = _readDowntimeChoices(ownerUser);
         includedActors.push({ actor, actorState: { ...gmState, ...playerChoices } });
     }
 
@@ -195,7 +265,7 @@ async function _applyDowntimeEffects() {
     await game.settings.set(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Resources.Fear, newFear);
 
     // Prepare bonus calculation
-    const preparers = includedActors.filter(a => a.actorState.actions.includes("prepare"));
+    const preparers = includedActors.filter(a => a.actorState.actions.some(i => i.key === "prepare"));
     const prepareBonus = preparers.length >= 2 ? 2 : 1;
 
     // Per-actor effects
@@ -205,7 +275,6 @@ async function _applyDowntimeEffects() {
         if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
         const actorEvents = resultsByActor.get(actor.id).events;
         const tier = _getActorTier(actor);
-        const targets = actorState.targets ?? {};
 
         // Read per-actor modifiers from GM state
         const gmActorState = state.actors?.[actor.id] ?? {};
@@ -234,13 +303,16 @@ async function _applyDowntimeEffects() {
             ? (recoveryGrantor.actor.system.resources?.hope?.value ?? 0)
             : 0;
 
-        for (const action of actorState.actions) {
-            const targetActor = targets[action] ? (game.actors.get(targets[action]) ?? actor) : actor;
+        for (const instance of actorState.actions) {
+            // Keep `action` = the move key so every branch below (tendWounds, custom_, …) is unchanged.
+            const action = instance.key;
+            const targetActor = instance.target ? (game.actors.get(instance.target) ?? actor) : actor;
             const isSelf = targetActor.id === actor.id;
+            // Slots reference an instance id, so an upgrade applies to exactly one repeat.
             const effectiveLong = isLong
-                || (hasEfficient && action === efficientSlot)
-                || (hasRecovery && action === recoverySlot)
-                || (recoveryGrantedSlot !== null && action === recoveryGrantedSlot && grantorCurrentHope >= 1);
+                || (hasEfficient && instance.id === efficientSlot)
+                || (hasRecovery && instance.id === recoverySlot)
+                || (recoveryGrantedSlot !== null && instance.id === recoveryGrantedSlot && grantorCurrentHope >= 1);
 
             if (action === "tendWounds") {
                 // Read the target actor's modifier (when healing others, use target's modifier)
@@ -435,7 +507,7 @@ async function _applyDowntimeEffects() {
     // Skip if the actor chose Clear Stress (bedroll bonus is already integrated into that roll)
     for (const { actor, actorState } of includedActors) {
         if (!_hasPremiumBedrollFeature(actor)) continue;
-        if (actorState.actions.includes("clearStress")) continue;
+        if (actorState.actions.some(i => i.key === "clearStress")) continue;
         const currentStress = actor.system.resources?.stress?.value ?? 0;
         if (currentStress <= 0) continue;
         const newStress = Math.max(0, currentStress - 1);
@@ -447,7 +519,7 @@ async function _applyDowntimeEffects() {
     // Armorer bonus: when an actor with Armorer uses Repair Armor, all other included actors clear 1 Armor Slot
     for (const { actor, actorState } of includedActors) {
         if (!_hasArmorerFeature(actor)) continue;
-        if (!actorState.actions.includes("repairArmor")) continue;
+        if (!actorState.actions.some(i => i.key === "repairArmor")) continue;
         for (const { actor: ally } of includedActors) {
             if (ally.id === actor.id) continue;
             await _reduceArmorMarks(ally, 1);
@@ -1087,7 +1159,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleIncluded: DowntimeUIApp.prototype._onToggleIncluded,
             configMaxChoices: DowntimeUIApp.prototype._onConfigMaxChoices,
             setRestType: DowntimeUIApp.prototype._onSetRestType,
-            toggleAction: DowntimeUIApp.prototype._onToggleAction,
+            addAction: DowntimeUIApp.prototype._onAddAction,
+            removeAction: DowntimeUIApp.prototype._onRemoveAction,
             toggleEfficientSlot: DowntimeUIApp.prototype._onToggleEfficientSlot,
             toggleRecoverySlot: DowntimeUIApp.prototype._onToggleRecoverySlot,
             toggleRecoveryGrantedSlot: DowntimeUIApp.prototype._onToggleRecoveryGrantedSlot,
@@ -1136,7 +1209,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 maxChoices += 1;
             }
             // Eloquent bonus: +1 move if chosen by another party member
-            const playerChoices = user.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
+            const playerChoices = _readDowntimeChoices(user);
             const eloquentGiver = allActors.find(a => a.id !== actorId && _hasEloquentFeature(a.actor));
             const eloquentGiverChoices = eloquentGiver ? game.users.find(u => u.character?.id === eloquentGiver.id)?.getFlag(MODULE_ID, "downtimeChoices") : null;
             if (eloquentGiverChoices?.eloquentBeneficiary === actorId) {
@@ -1144,7 +1217,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
 
             // Exclude bonus moves (e.g. Forager) from the move count
-            const selectedCount = playerChoices.actions.filter(a => a !== "core_forager").length;
+            const selectedCount = playerChoices.actions.filter(i => i.key !== "core_forager").length;
             const isOverLimit = selectedCount > maxChoices;
 
             // Build craft downtime actions from global setting
@@ -1235,18 +1308,33 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 allActions.push({ key: "core_forager", label: "Forage", hasTarget: false, isBonusMove: true });
             }
 
-            const annotatedActions = allActions.map(a => ({
-                ...a,
-                selected: playerChoices.actions.includes(a.key),
-                targetActorId: playerChoices.targets?.[a.key] ?? "",
-                cannotSelect: false,
-                isEfficientSlot: a.key === efficientSlot,
-                canBeEfficientSlot: hasEfficient && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key),
-                isRecoverySlot: a.key === recoverySlot,
-                canBeRecoverySlot: hasRecovery && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key),
-                isRecoveryGrantedSlot: a.key === recoveryGrantedSlot,
-                canBeRecoveryGrantedSlot: hasRecoveryGrant && grantorHasHope && !isLong && a.key !== "prepare" && playerChoices.actions.includes(a.key)
-            }));
+            // Each available move carries the list of its selected instances so the
+            // same move can be queued multiple times, each with its own target/slot.
+            const annotatedActions = allActions.map(a => {
+                const canBeEfficientSlot = hasEfficient && !isLong && a.key !== "prepare";
+                const canBeRecoverySlot = hasRecovery && !isLong && a.key !== "prepare";
+                const canBeRecoveryGrantedSlot = hasRecoveryGrant && grantorHasHope && !isLong && a.key !== "prepare";
+                const instances = playerChoices.actions
+                    .filter(inst => inst.key === a.key)
+                    .map(inst => ({
+                        id: inst.id,
+                        targetActorId: inst.target ?? "",
+                        isEfficientSlot: inst.id === efficientSlot,
+                        canBeEfficientSlot,
+                        isRecoverySlot: inst.id === recoverySlot,
+                        canBeRecoverySlot,
+                        isRecoveryGrantedSlot: inst.id === recoveryGrantedSlot,
+                        canBeRecoveryGrantedSlot
+                    }));
+                return {
+                    ...a,
+                    count: instances.length,
+                    selected: instances.length > 0,
+                    // Move-level gate so standalone moves without any slot skip per-instance rows.
+                    hasSlots: canBeEfficientSlot || canBeRecoverySlot || canBeRecoveryGrantedSlot,
+                    instances
+                };
+            });
 
             // Target options: "Yourself" + all other actors
             const targetOptions = [{ id: "", name: "Yourself" }];
@@ -1257,7 +1345,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
             const isOwnRow = userId === game.user.id;
 
-            const hasPrepare = playerChoices.actions.includes("prepare");
+            const hasPrepare = playerChoices.actions.some(i => i.key === "prepare");
 
             const forceEffectiveLong = hasEfficient && efficientSlot !== null && !isLong;
             const refreshFeatures = _getRefreshableFeatures(actor, globalRestType, forceEffectiveLong).map(f => f.itemName);
@@ -1454,9 +1542,21 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }, true);
     }
 
-    // Player writes own choices to user flag
-    async _savePlayerChoices(actions, targets, efficientSlot = null, foragerChoice = null, eloquentBeneficiary = null, recoverySlot = null, recoveryBeneficiary = null, recoveryGrantedSlot = null) {
-        await game.user.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
+    /**
+     * Persists a full instance-based choices object for the given actor's owner.
+     * The GM may write any user's flag and re-renders directly; a player writes only
+     * their own flag (the flag-change hook in main.js re-renders other clients).
+     * @param {User} ownerUser - The user who owns the actor being edited.
+     * @param {object} choices - A complete instance-based choices object.
+     * @returns {Promise<void>}
+     */
+    async _writeChoices(ownerUser, choices) {
+        if (game.user.isGM) {
+            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", choices);
+            this.render();
+        } else {
+            await game.user.setFlag(MODULE_ID, "downtimeChoices", choices);
+        }
     }
 
     async _onStartDowntime() {
@@ -1527,260 +1627,152 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     }
 
-    async _onToggleAction(event, target) {
+    /**
+     * Adds one instance of a move to the actor's choices. The same move may be added
+     * multiple times; each instance gets a unique id and its own independent target.
+     * @param {Event} event - The originating click event.
+     * @param {HTMLElement} target - The add button (data-actor-id / data-action-key).
+     * @returns {Promise<void>}
+     */
+    async _onAddAction(event, target) {
         const actorId = target.dataset.actorId;
         const actionKey = target.dataset.actionKey;
 
-        // Find the user who owns this actor to read their current choices
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const actor = ownerUser.character;
+        const choices = _readDowntimeChoices(ownerUser);
+        const instance = { id: foundry.utils.randomID(), key: actionKey, target: null };
+        choices.actions = [...choices.actions, instance];
+
+        // workOnProject is long-rest-only: auto-assign the new instance to an upgrade
+        // slot when selected during a short rest so it gains Long Rest quality.
         const state = game.settings.get(MODULE_ID, "downtimeUIState");
-        let maxChoices = state?.actors?.[actorId]?.maxChoices ?? 2;
-        // Celestial Trance bonus: +1 move
-        if (actor && _hasCelestialTranceFeature(actor)) {
-            maxChoices += 1;
-        }
-        // Eloquent bonus: +1 move if chosen by another party member
-        if (actor) {
-            const eloquentGiver = game.users.find(u => {
-                if (u.isGM || u.id === ownerUser.id) return false;
-                return u.character != null && _hasEloquentFeature(u.character);
-            });
-            if (eloquentGiver) {
-                const eloquentGiverChoices = eloquentGiver.getFlag(MODULE_ID, "downtimeChoices");
-                if (eloquentGiverChoices?.eloquentBeneficiary === actorId) {
-                    maxChoices += 1;
-                }
-            }
-        }
-
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, eloquentBeneficiary: null };
-        const actions = [...currentChoices.actions];
-        const targets = { ...(currentChoices.targets ?? {}) };
-        const idx = actions.indexOf(actionKey);
-
-        if (idx >= 0) {
-            actions.splice(idx, 1);
-            delete targets[actionKey];
-        } else {
-            actions.push(actionKey);
-        }
-
-        // If deselecting the action that was the efficient slot, clear it
-        const currentEfficientSlot = currentChoices.efficientSlot ?? null;
-        let efficientSlot = (idx >= 0 && currentEfficientSlot === actionKey) ? null : currentEfficientSlot;
-
-        // If deselecting the action that was the recovery slot, clear it
-        const currentRecoverySlot = currentChoices.recoverySlot ?? null;
-        let recoverySlot = (idx >= 0 && currentRecoverySlot === actionKey) ? null : currentRecoverySlot;
-
-        // If deselecting the action that was the recovery granted slot (ally side), clear it
-        const currentRecoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
-        let recoveryGrantedSlot = (idx >= 0 && currentRecoveryGrantedSlot === actionKey) ? null : currentRecoveryGrantedSlot;
-
-        // workOnProject is long-rest-only: auto-set as efficient/recovery slot when selected during short rest
         const restType = state?.restType || "short";
         if (actionKey === "workOnProject" && restType === "short") {
-            if (idx < 0) {
-                // Prefer recoverySlot if actor has Recovery but not Efficient
-                const actor = ownerUser.character;
-                if (actor && _hasRecoveryFeature(actor) && !_hasEfficientFeature(actor)) {
-                    recoverySlot = "workOnProject";
-                } else {
-                    efficientSlot = "workOnProject";
+            const actor = ownerUser.character;
+            // Prefer the Recovery slot if the actor has Recovery but not Efficient.
+            if (actor && _hasRecoveryFeature(actor) && !_hasEfficientFeature(actor)) {
+                choices.recoverySlot = instance.id;
+            } else {
+                choices.efficientSlot = instance.id;
+            }
+        }
+
+        await this._writeChoices(ownerUser, choices);
+    }
+
+    /**
+     * Removes the most recently added instance of a move. Any upgrade slot that
+     * referenced the removed instance is cleared.
+     * @param {Event} event - The originating click event.
+     * @param {HTMLElement} target - The remove button (data-actor-id / data-action-key).
+     * @returns {Promise<void>}
+     */
+    async _onRemoveAction(event, target) {
+        const actorId = target.dataset.actorId;
+        const actionKey = target.dataset.actionKey;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const choices = _readDowntimeChoices(ownerUser);
+        // Remove the last instance carrying this key.
+        let removedId = null;
+        for (let i = choices.actions.length - 1; i >= 0; i--) {
+            if (choices.actions[i].key === actionKey) {
+                removedId = choices.actions[i].id;
+                choices.actions = [...choices.actions.slice(0, i), ...choices.actions.slice(i + 1)];
+                break;
+            }
+        }
+        if (removedId === null) return;
+
+        if (choices.efficientSlot === removedId) choices.efficientSlot = null;
+        if (choices.recoverySlot === removedId) choices.recoverySlot = null;
+        if (choices.recoveryGrantedSlot === removedId) choices.recoveryGrantedSlot = null;
+
+        await this._writeChoices(ownerUser, choices);
+    }
+
+    /**
+     * Shared toggle logic for the three upgrade-slot badges (Efficient, Recovery,
+     * Recovery-granted). Each badge marks one move *instance* to gain Long Rest
+     * quality during a short rest. Because a workOnProject instance is only valid
+     * while it holds a slot, moving this slot off such an instance during a short
+     * rest also removes it.
+     * @param {HTMLElement} target - The badge button (data-actor-id / data-instance-id).
+     * @param {"efficientSlot"|"recoverySlot"|"recoveryGrantedSlot"} slotField - Which slot to toggle.
+     * @returns {Promise<void>}
+     */
+    async _toggleSlot(target, slotField) {
+        const actorId = target.dataset.actorId;
+        const instanceId = target.dataset.instanceId;
+
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        if (!ownerUser) return;
+
+        const choices = _readDowntimeChoices(ownerUser);
+        const prevId = choices[slotField];
+        const newId = prevId === instanceId ? null : instanceId;
+        choices[slotField] = newId;
+
+        // If this slot moved off a workOnProject instance during a short rest, remove it.
+        if (prevId && prevId !== newId) {
+            const prev = choices.actions.find(i => i.id === prevId);
+            if (prev?.key === "workOnProject") {
+                const state = game.settings.get(MODULE_ID, "downtimeUIState");
+                if ((state?.restType || "short") === "short") {
+                    choices.actions = choices.actions.filter(i => i.id !== prevId);
                 }
             }
         }
 
-        // Players write their own flag; GM can write any user's flag
-        const foragerChoice = currentChoices.foragerChoice ?? null;
-        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
-        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
-            this.render();
-        } else {
-            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
-        }
-    }
-
-    async _onToggleEfficientSlot(event, target) {
-        const actorId = target.dataset.actorId;
-        const actionKey = target.dataset.actionKey;
-
-        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
-        if (!ownerUser) return;
-
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null };
-        // Toggle: if already this slot, clear it; otherwise set it
-        const newEfficientSlot = currentChoices.efficientSlot === actionKey ? null : actionKey;
-        const foragerChoice = currentChoices.foragerChoice ?? null;
-
-        // If workOnProject loses the efficient slot during short rest, deselect it
-        // (either by un-starring it directly or by switching the star to another action)
-        let actions = [...currentChoices.actions];
-        let targets = { ...(currentChoices.targets ?? {}) };
-        const oldSlot = currentChoices.efficientSlot;
-        if (oldSlot === "workOnProject" && newEfficientSlot !== "workOnProject") {
-            const state = game.settings.get(MODULE_ID, "downtimeUIState");
-            const restType = state?.restType || "short";
-            if (restType === "short") {
-                actions = actions.filter(a => a !== "workOnProject");
-                delete targets.workOnProject;
-            }
-        }
-
-        const recoverySlot = currentChoices.recoverySlot ?? null;
-        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
-        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
-        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
-
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
-                actions,
-                targets,
-                efficientSlot: newEfficientSlot,
-                foragerChoice,
-                eloquentBeneficiary,
-                recoverySlot,
-                recoveryBeneficiary,
-                recoveryGrantedSlot
-            });
-            this.render();
-        } else {
-            await this._savePlayerChoices(actions, targets, newEfficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
-        }
+        await this._writeChoices(ownerUser, choices);
     }
 
     /**
-     * Toggles the Recovery upgrade slot for the actor's own Recovery feature.
-     * Mirrors _onToggleEfficientSlot but operates on recoverySlot.
-     * If workOnProject loses the recovery slot during short rest, it is also deselected.
+     * Toggles the Efficient upgrade slot for a move instance.
      * @param {Event} event
      * @param {HTMLElement} target
+     * @returns {Promise<void>}
+     */
+    async _onToggleEfficientSlot(event, target) {
+        await this._toggleSlot(target, "efficientSlot");
+    }
+
+    /**
+     * Toggles the Recovery upgrade slot for a move instance (actor's own Recovery feature).
+     * @param {Event} event
+     * @param {HTMLElement} target
+     * @returns {Promise<void>}
      */
     async _onToggleRecoverySlot(event, target) {
-        const actorId = target.dataset.actorId;
-        const actionKey = target.dataset.actionKey;
-
-        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
-        if (!ownerUser) return;
-
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, recoverySlot: null };
-        const newRecoverySlot = currentChoices.recoverySlot === actionKey ? null : actionKey;
-        const foragerChoice = currentChoices.foragerChoice ?? null;
-        const efficientSlot = currentChoices.efficientSlot ?? null;
-        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
-        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
-        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
-
-        // If workOnProject loses its recovery slot during short rest, deselect it
-        let actions = [...currentChoices.actions];
-        let targets = { ...(currentChoices.targets ?? {}) };
-        const oldSlot = currentChoices.recoverySlot;
-        if (oldSlot === "workOnProject" && newRecoverySlot !== "workOnProject") {
-            const state = game.settings.get(MODULE_ID, "downtimeUIState");
-            const restType = state?.restType || "short";
-            if (restType === "short") {
-                actions = actions.filter(a => a !== "workOnProject");
-                delete targets.workOnProject;
-            }
-        }
-
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
-                actions,
-                targets,
-                efficientSlot,
-                foragerChoice,
-                eloquentBeneficiary,
-                recoverySlot: newRecoverySlot,
-                recoveryBeneficiary,
-                recoveryGrantedSlot
-            });
-            this.render();
-        } else {
-            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, newRecoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
-        }
+        await this._toggleSlot(target, "recoverySlot");
     }
 
     /**
-     * Toggles the Recovery grant slot for the beneficiary actor.
-     * The beneficiary marks which of their selected actions benefits from the ally's Recovery grant.
+     * Toggles the Recovery grant slot for a move instance (beneficiary of an ally's Recovery).
      * @param {Event} event
      * @param {HTMLElement} target
+     * @returns {Promise<void>}
      */
     async _onToggleRecoveryGrantedSlot(event, target) {
-        const actorId = target.dataset.actorId;
-        const actionKey = target.dataset.actionKey;
-
-        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
-        if (!ownerUser) return;
-
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, recoveryGrantedSlot: null };
-        const newRecoveryGrantedSlot = currentChoices.recoveryGrantedSlot === actionKey ? null : actionKey;
-        const foragerChoice = currentChoices.foragerChoice ?? null;
-        const efficientSlot = currentChoices.efficientSlot ?? null;
-        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
-        const recoverySlot = currentChoices.recoverySlot ?? null;
-        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
-
-        // If workOnProject loses its granted slot during short rest, deselect it
-        let actions = [...currentChoices.actions];
-        let targets = { ...(currentChoices.targets ?? {}) };
-        const oldGrantedSlot = currentChoices.recoveryGrantedSlot;
-        if (oldGrantedSlot === "workOnProject" && newRecoveryGrantedSlot !== "workOnProject") {
-            const state = game.settings.get(MODULE_ID, "downtimeUIState");
-            const restType = state?.restType || "short";
-            if (restType === "short") {
-                actions = actions.filter(a => a !== "workOnProject");
-                delete targets.workOnProject;
-            }
-        }
-
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
-                actions,
-                targets,
-                efficientSlot,
-                foragerChoice,
-                eloquentBeneficiary,
-                recoverySlot,
-                recoveryBeneficiary,
-                recoveryGrantedSlot: newRecoveryGrantedSlot
-            });
-            this.render();
-        } else {
-            await this._savePlayerChoices(actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, newRecoveryGrantedSlot);
-        }
+        await this._toggleSlot(target, "recoveryGrantedSlot");
     }
 
     async _onSetTarget(event) {
         const select = event.target;
         const actorId = select.dataset.actorId;
-        const actionKey = select.dataset.actionKey;
-        const targetId = select.value;
+        const instanceId = select.dataset.instanceId;
+        const targetId = select.value || null;
 
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {} };
-        const targets = { ...(currentChoices.targets ?? {}), [actionKey]: targetId || null };
-        const efficientSlot = currentChoices.efficientSlot ?? null;
-        const foragerChoice = currentChoices.foragerChoice ?? null;
-        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
-        const recoverySlot = currentChoices.recoverySlot ?? null;
-        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
-        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
-
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions: currentChoices.actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
-            this.render();
-        } else {
-            await this._savePlayerChoices(currentChoices.actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
-        }
+        const choices = _readDowntimeChoices(ownerUser);
+        choices.actions = choices.actions.map(i => (i.id === instanceId ? { ...i, target: targetId } : i));
+        await this._writeChoices(ownerUser, choices);
     }
 
     async _onSetForagerChoice(event) {
@@ -1791,28 +1783,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {} };
-        const efficientSlot = currentChoices.efficientSlot ?? null;
-        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
-        const recoverySlot = currentChoices.recoverySlot ?? null;
-        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
-        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
-
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", {
-                actions: currentChoices.actions,
-                targets: currentChoices.targets ?? {},
-                efficientSlot,
-                foragerChoice: choiceValue,
-                eloquentBeneficiary,
-                recoverySlot,
-                recoveryBeneficiary,
-                recoveryGrantedSlot
-            });
-            this.render();
-        } else {
-            await this._savePlayerChoices(currentChoices.actions, currentChoices.targets ?? {}, efficientSlot, choiceValue, eloquentBeneficiary, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot);
-        }
+        const choices = _readDowntimeChoices(ownerUser);
+        choices.foragerChoice = choiceValue;
+        await this._writeChoices(ownerUser, choices);
     }
 
     async _onSetEloquentBeneficiary(event) {
@@ -1823,21 +1796,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
-        const actions = currentChoices.actions ?? [];
-        const targets = currentChoices.targets ?? {};
-        const efficientSlot = currentChoices.efficientSlot ?? null;
-        const foragerChoice = currentChoices.foragerChoice ?? null;
-        const recoverySlot = currentChoices.recoverySlot ?? null;
-        const recoveryBeneficiary = currentChoices.recoveryBeneficiary ?? null;
-        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
-
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
-            this.render();
-        } else {
-            await game.user.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary: beneficiaryId, recoverySlot, recoveryBeneficiary, recoveryGrantedSlot });
-        }
+        const choices = _readDowntimeChoices(ownerUser);
+        choices.eloquentBeneficiary = beneficiaryId;
+        await this._writeChoices(ownerUser, choices);
     }
 
     /**
@@ -1853,21 +1814,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
         if (!ownerUser) return;
 
-        const currentChoices = ownerUser.getFlag(MODULE_ID, "downtimeChoices") ?? { actions: [], targets: {}, efficientSlot: null, foragerChoice: null };
-        const actions = currentChoices.actions ?? [];
-        const targets = currentChoices.targets ?? {};
-        const efficientSlot = currentChoices.efficientSlot ?? null;
-        const foragerChoice = currentChoices.foragerChoice ?? null;
-        const eloquentBeneficiary = currentChoices.eloquentBeneficiary ?? null;
-        const recoverySlot = currentChoices.recoverySlot ?? null;
-        const recoveryGrantedSlot = currentChoices.recoveryGrantedSlot ?? null;
-
-        if (game.user.isGM) {
-            await ownerUser.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
-            this.render();
-        } else {
-            await game.user.setFlag(MODULE_ID, "downtimeChoices", { actions, targets, efficientSlot, foragerChoice, eloquentBeneficiary, recoverySlot, recoveryBeneficiary: beneficiaryId, recoveryGrantedSlot });
-        }
+        const choices = _readDowntimeChoices(ownerUser);
+        choices.recoveryBeneficiary = beneficiaryId;
+        await this._writeChoices(ownerUser, choices);
     }
 
     _onClose(options) {

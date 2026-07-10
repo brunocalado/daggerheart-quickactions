@@ -1,6 +1,12 @@
+# 0.4.6
+
+- [Added] Downtime UI: the same downtime move can now be chosen more than once, as the rules allow. Each move shows a `×N` count badge with add (`+`) / remove (`−`) controls, and every repeat is an independent instance — targeted moves (Tend to Wounds, Repair Armor) can point each repeat at a different ally, and Efficient/Recovery upgrade slots apply to exactly one instance instead of every copy. Selection is stored as a list of move instances (with a migration for choices saved in the previous format).
+- https://github.com/brunocalado/daggerheart-quickactions/issues/2
+
 # 0.4.5
 
 - [Fixed] Downtime UI: "Repair Armor" (Short and Long Rest) was a silent no-op — the Daggerheart system moved armor tracking from `item.system.marks` to `item.system.armor.current`/`.max`, so the module's lookup never matched any armor item. Now uses the system's own `actor.system.updateArmorValue()` API to reduce or fully clear Armor Slots, matching native rest behavior and also covering armor bonuses granted by Active Effects (e.g. domain cards), not just the equipped item.
+- https://github.com/brunocalado/daggerheart-quickactions/issues/1
 
 # 0.4.4
 

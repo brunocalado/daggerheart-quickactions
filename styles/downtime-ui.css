@@ -567,18 +567,17 @@
         flex: 1;
     }
 
-    /* Group: Button + Select Wrapper */
+    /* Group: one move — head row (add/count/remove) stacked over instance rows */
     & .dui-action-group {
-        display: flex;
-        align-items: center;
-        gap: 0;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 3px;
         background: rgba(255,255,255,0.03);
         border-radius: 4px;
         border: 1px solid #444;
         transition: 0.2s;
-        height: 30px !important;
-        display: inline-flex;
-        align-items: center;
+        padding: 3px;
 
         &.active {
             border-color: var(--dui-gold);
@@ -590,6 +589,81 @@
         }
         &.active:hover {
              border-color: var(--dui-gold);
+        }
+    }
+
+    /* Head row: add button + count badge + remove control */
+    & .dui-action-head {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Count badge (×N) */
+    & .dui-action-count {
+        color: var(--dui-gold);
+        font-weight: bold;
+        font-size: 12px;
+        min-width: 18px;
+        text-align: center;
+    }
+
+    /* Remove-one control */
+    & .dui-action-remove {
+        background: transparent;
+        border: 1px solid #555;
+        border-radius: 3px;
+        color: var(--dui-text-dim);
+        cursor: pointer;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        line-height: 1;
+        font-size: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover:not(:disabled) {
+            border-color: #E08080;
+            color: #E08080;
+        }
+        &:disabled {
+            cursor: default;
+            opacity: 0.4;
+        }
+    }
+
+    /* Per-instance row: target select + slot badges, one per queued move */
+    & .dui-action-instance {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        height: 26px;
+        padding: 0 2px;
+        border: 1px solid transparent;
+        border-radius: 3px;
+
+        &.efficient {
+            border-color: var(--dui-gold-bright, #ffd700);
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
+        }
+        &.recovery {
+            border-color: #5BC8AF;
+            box-shadow: 0 0 6px rgba(91, 200, 175, 0.35);
+        }
+        &.recovery-granted {
+            border-color: #E08080;
+            box-shadow: 0 0 6px rgba(224, 128, 128, 0.35);
+        }
+
+        & .dui-target-select {
+            border: 1px solid #555;
+            border-radius: 3px;
+            height: 22px;
+            flex: 1;
+            min-width: 90px;
+            max-width: none;
         }
     }
 
@@ -608,23 +682,6 @@
         height: 30px !important;
         display: inline-flex !important;
         justify-content: center;
-
-        /* Standalone button style */
-        &.standalone {
-            border: 1px solid #444;
-            background: rgba(255,255,255,0.03);
-            border-radius: 4px;
-
-            &:hover {
-                border-color: var(--dui-gold);
-                color: #fff;
-            }
-            &.selected {
-                border-color: var(--dui-gold);
-                color: var(--dui-gold);
-                background: rgba(203, 163, 87, 0.15);
-            }
-        }
 
         &:hover {
             border-color: #C9A060 !important;
@@ -681,17 +738,6 @@
             cursor: default;
             opacity: 0.4;
         }
-    }
-
-    /* Efficient slot glow */
-    & .dui-action-group.efficient {
-        border-color: var(--dui-gold-bright, #ffd700);
-        box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
-    }
-
-    & .dui-action-btn.standalone.efficient {
-        border-color: var(--dui-gold-bright, #ffd700);
-        box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
     }
 
     /* Recovery Slot Badge — teal, mirrors efficient badge */
@@ -752,78 +798,6 @@
         }
     }
 
-    /* Recovery slot glow — teal border */
-    & .dui-action-group.recovery {
-        border-color: #5BC8AF;
-        box-shadow: 0 0 6px rgba(91, 200, 175, 0.35);
-    }
-
-    & .dui-action-btn.standalone.recovery {
-        border-color: #5BC8AF;
-        box-shadow: 0 0 6px rgba(91, 200, 175, 0.35);
-    }
-
-    /* Recovery granted slot glow — rose border */
-    & .dui-action-group.recovery-granted {
-        border-color: #E08080;
-        box-shadow: 0 0 6px rgba(224, 128, 128, 0.35);
-    }
-
-    & .dui-action-btn.standalone.recovery-granted {
-        border-color: #E08080;
-        box-shadow: 0 0 6px rgba(224, 128, 128, 0.35);
-    }
-
-    & .dui-action-wrapper {
-        display: inline-flex;
-        align-items: center;
-        gap: 0;
-
-        &:has(.dui-efficient-badge, .dui-recovery-badge, .dui-recovery-granted-badge) {
-            background: rgba(255,255,255,0.03);
-            border-radius: 4px;
-            border: 1px solid #444;
-            height: 30px !important;
-            transition: 0.2s;
-        }
-
-        &:has(.dui-efficient-badge, .dui-recovery-badge, .dui-recovery-granted-badge) > .dui-action-btn.standalone {
-            border: none;
-            border-radius: 4px 0 0 4px;
-            background: none;
-            box-shadow: none;
-        }
-
-        /* Selected state: wrapper mirrors the button's selected look */
-        &:has(.dui-efficient-badge, .dui-recovery-badge, .dui-recovery-granted-badge):has(.dui-action-btn.selected) {
-            border-color: var(--dui-gold);
-            background: rgba(203, 163, 87, 0.15);
-        }
-
-        &:has(.dui-efficient-badge, .dui-recovery-badge, .dui-recovery-granted-badge):has(.dui-action-btn.selected) > .dui-action-btn.standalone {
-            color: var(--dui-gold);
-        }
-
-        /* Efficient slot active glow */
-        &:has(.dui-efficient-badge.active) {
-            border-color: var(--dui-gold-bright, #ffd700);
-            box-shadow: 0 0 6px rgba(255, 215, 0, 0.35);
-        }
-
-        /* Recovery slot active glow — teal */
-        &:has(.dui-recovery-badge.active) {
-            border-color: #5BC8AF;
-            box-shadow: 0 0 6px rgba(91, 200, 175, 0.35);
-        }
-
-        /* Recovery granted slot active glow — rose */
-        &:has(.dui-recovery-granted-badge.active) {
-            border-color: #E08080;
-            box-shadow: 0 0 6px rgba(224, 128, 128, 0.35);
-        }
-    }
-
-
     /* Bonus Move */
     & .dui-bonus-move {
         border-style: dashed;
@@ -837,14 +811,13 @@
     & .dui-forager-select {
         background-color: var(--dui-input-bg);
         color: var(--dui-input-text);
-        border: none;
-        border-left: 1px solid #999;
-        height: 100%;
+        border: 1px solid #555;
+        height: 24px;
         padding: 0 5px;
         font-size: 11px;
         font-family: inherit;
         outline: none;
-        border-radius: 0 3px 3px 0;
+        border-radius: 3px;
         max-width: 120px;
         cursor: pointer;
     }
