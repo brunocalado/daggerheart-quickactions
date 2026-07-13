@@ -59,6 +59,8 @@ Available through `QuickActions.Features()`, meant to be wired up to specific su
 Most features work out of the box, but a few can be tuned from **Configure Settings → Module Settings → Daggerheart: Quick Actions**:
 
 * **Token Hover Tooltip:** enable/disable and choose its size (Small to Massive).
+* **Biography Tab Visibility (GM):** decide how the Biography tab behaves on character sheets — *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
+* **Hide Biography Tab (per user):** hides the Biography tab on character sheets for you only (off by default). Honored only while the GM leaves the world setting on *Each user decides*.
 * **Scan Configuration:** enable the Scan macro for players and customize the labels/descriptions it shows.
 * **Falling Damage Formulas:** customize the dice formula for each fall height tier, with a one-click reset to the official defaults.
 * **Coin Tier Configuration:** customize the min/max coin range rolled for each Loot coin tier.

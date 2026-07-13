@@ -22,6 +22,8 @@ import { registerScanSettings } from "./scan-settings.js";
 import { registerFallingDamageSettings } from "./falling-damage-settings.js";
 // Import Coin Tier Settings
 import { registerCoinTierSettings } from "./loot-consumable-settings.js";
+// Import Biography Tab visibility
+import { registerBiographyTabSettings, initBiographyTab } from "./biography-tab.js";
 
 // ==================================================================
 // GLOBAL API
@@ -196,7 +198,9 @@ Hooks.once("init", () => {
     registerScanSettings();
     registerFallingDamageSettings();
     registerCoinTierSettings();
+    registerBiographyTabSettings();
     initTokenTooltip();
+    initBiographyTab();
 
     globalThis.QuickActions = {
         Downtime: activateDowntime,

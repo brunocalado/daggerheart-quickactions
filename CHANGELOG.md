@@ -1,3 +1,8 @@
+# 0.4.8
+
+- [Added] Character Sheet: **Hide Biography Tab** — a per-user setting (off by default) that hides the Biography tab on character sheets for that user only.
+- [Added] Character Sheet: **Biography Tab Visibility** — a world setting for the GM that decides whether each user picks their own choice (default), or the tab is forced visible or hidden for everyone. Changing either setting updates open character sheets immediately, and if Biography is the active tab when it gets hidden the sheet falls back to Features.
+
 # 0.4.7
 
 - [Changed] Unleash Chaos: recharge cost is now chosen explicitly via a dialog — **1 Stress** (default), **1 HP**, or **Nothing** (for the free recovery at the start of a session) — instead of being decided automatically.
