@@ -24,6 +24,8 @@ import { registerFallingDamageSettings } from "./falling-damage-settings.js";
 import { registerCoinTierSettings } from "./loot-consumable-settings.js";
 // Import Biography Tab visibility
 import { registerBiographyTabSettings, initBiographyTab } from "./biography-tab.js";
+// Import Quick Actions macro list (settings menu + character sheet header button)
+import { registerQuickActionsMacrosSettings, initQuickActionsButton, showQuickActionsMacros } from "./quick-actions-macros.js";
 
 // ==================================================================
 // GLOBAL API
@@ -199,8 +201,10 @@ Hooks.once("init", () => {
     registerFallingDamageSettings();
     registerCoinTierSettings();
     registerBiographyTabSettings();
+    registerQuickActionsMacrosSettings();
     initTokenTooltip();
     initBiographyTab();
+    initQuickActionsButton();
 
     globalThis.QuickActions = {
         Downtime: activateDowntime,
@@ -211,6 +215,7 @@ Hooks.once("init", () => {
         LootConsumable: activateLootConsumable,
         SpotlightToken: spotlightToken,
         ShowMacros: showMacros,
+        QuickActionsMenu: showQuickActionsMacros,
         Fate: fateRoll,
         SpendHope: activateSpendHope, 
         Templates: activateTemplateCreator,

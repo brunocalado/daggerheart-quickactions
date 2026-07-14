@@ -14,6 +14,38 @@ export const MODULE_ID = "daggerheart-quickactions";
 export const CHAT_CARD_BG = `modules/${MODULE_ID}/assets/chat-messages/skull.webp`;
 
 /**
+ * World setting key holding the macro list shown by the character sheet "Quick Actions" button.
+ * Stored as an array of { uuid, name, img } snapshots — name/img are only fallbacks for
+ * documents that can no longer be resolved (deleted macro, disabled compendium).
+ * @type {string}
+ */
+export const QUICK_ACTIONS_MACROS = "quickActionsMacros";
+
+/**
+ * World setting key holding the on/off switch for the character sheet "Quick Actions" button.
+ * @type {string}
+ */
+export const QUICK_ACTIONS_ENABLED = "quickActionsEnabled";
+
+/**
+ * Macros shipped on the Quick Actions list out of the box — all live in this module's own
+ * Macros compendium. Names and images are resolved at render time from the documents themselves.
+ * @type {Readonly<Array<{uuid: string}>>}
+ */
+export const DEFAULT_QUICK_ACTIONS_MACROS = Object.freeze([
+    { uuid: `Compendium.${MODULE_ID}.macros.Macro.K5yVyJyKhg5XGRWP` },
+    { uuid: `Compendium.${MODULE_ID}.macros.Macro.0MbYehILeRnuPP8u` },
+    { uuid: `Compendium.${MODULE_ID}.macros.Macro.SWYDWH9nXi7idHrR` },
+    { uuid: `Compendium.${MODULE_ID}.macros.Macro.MrVaunevxMfD1jiI` }
+]);
+
+/**
+ * Fallback artwork used whenever a macro has no image of its own.
+ * @type {string}
+ */
+export const DEFAULT_MACRO_IMG = "icons/svg/dice-target.svg";
+
+/**
  * Setting keys for the Biography tab visibility feature.
  * @type {Readonly<{POLICY: string, HIDE: string}>}
  */

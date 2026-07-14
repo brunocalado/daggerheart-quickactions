@@ -1,0 +1,182 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* Quick Actions Macros — settings menu (drag & drop macro list) and the character sheet header button. */
+
+.daggerheart-quickactions {
+    --daggerheart-quickactions-accent: #C9A060;
+    --daggerheart-quickactions-border: rgba(255, 255, 255, 0.1);
+    --daggerheart-quickactions-row-bg: rgba(255, 255, 255, 0.03);
+
+    /* Header button injected into the character sheet window header.
+       Core sizes .header-control as a square icon button, so width/padding are reset for the label. */
+    &.dqa-quick-actions-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex: 0 0 auto;
+        width: auto;
+        padding: 0 0.4rem;
+        white-space: nowrap;
+        font-size: var(--font-size-12);
+        color: var(--daggerheart-quickactions-accent);
+
+        &:hover {
+            color: var(--color-light-1);
+            text-shadow: 0 0 6px var(--daggerheart-quickactions-accent);
+        }
+    }
+
+    & .dqa-qam-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 100%;
+    }
+
+    & .dqa-qam-hint {
+        font-size: var(--font-size-13);
+        text-align: left;
+        margin: 0;
+    }
+
+    & .dqa-drop-zone {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex: 0 0 auto;
+        padding: 14px;
+        border: 2px dashed var(--daggerheart-quickactions-accent);
+        border-radius: 4px;
+        color: var(--daggerheart-quickactions-accent);
+        text-transform: uppercase;
+        font-weight: bold;
+        transition: all 0.2s;
+
+        &.dqa-dragging {
+            background: rgba(201, 160, 96, 0.15);
+            box-shadow: 0 0 8px var(--daggerheart-quickactions-accent) inset;
+        }
+    }
+
+    & .dqa-macro-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    & .dqa-macro-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 5px 8px;
+        background: var(--daggerheart-quickactions-row-bg);
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px;
+
+        & img {
+            flex: 0 0 32px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            object-fit: cover;
+        }
+
+        &.dqa-missing {
+            border-color: var(--color-level-error, #e7442e);
+            opacity: 0.75;
+        }
+    }
+
+    & .dqa-macro-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+    }
+
+    & .dqa-macro-name {
+        color: var(--daggerheart-quickactions-accent);
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    & .dqa-macro-source {
+        font-size: var(--font-size-11);
+        color: var(--color-text-secondary, #999);
+    }
+
+    & .dqa-icon-btn {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px;
+        color: var(--daggerheart-quickactions-accent);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--color-level-error, #e7442e);
+            color: #fff;
+        }
+    }
+
+    & .dqa-empty {
+        padding: 10px;
+        text-align: center;
+        font-style: italic;
+        color: var(--color-text-secondary, #999);
+    }
+
+    & .dqa-qam-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 0 0 auto;
+        padding-top: 8px;
+        border-top: 1px solid var(--daggerheart-quickactions-border);
+    }
+
+    & .dqa-qam-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+
+        /* Three labels compete for the footer width — let them shrink before wrapping. */
+        & .dh-btn {
+            padding: 8px 10px;
+            white-space: nowrap;
+        }
+    }
+
+    & .dqa-toggle-btn {
+        width: 100%;
+
+        &.dqa-off {
+            border-color: var(--color-level-error, #e7442e);
+            color: var(--color-level-error, #e7442e);
+        }
+    }
+
+    & .dqa-qam-status {
+        margin: 0;
+        text-align: center;
+        font-size: var(--font-size-11);
+        color: var(--color-text-secondary, #999);
+    }
+}

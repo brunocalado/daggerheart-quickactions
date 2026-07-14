@@ -1,3 +1,9 @@
+# 0.4.9
+
+- [Added] Character Sheet: **Quick Actions** button in the window header of every character sheet, right next to the controls (three dots) button. It opens the same macro palette as `QuickActions.ShowMacros()`, but over a list the GM curates — so players get one-click access to the macros the table actually uses.
+- [Added] **Quick Actions Macros** settings menu (GM only) — drag macros in from the Macro directory or from any compendium, remove them one by one, **Preview** the resulting palette, **Reset to Default** to restore the module's four built-in macros, **Clear All** to empty the list, and a button to turn the whole feature off (the header button then disappears from open character sheets immediately, on every client).
+- [Added] API: `QuickActions.QuickActionsMenu()` opens the curated macro palette from a macro or script.
+
 # 0.4.8
 
 - [Added] Character Sheet: **Hide Biography Tab** — a per-user setting (off by default) that hides the Biography tab on character sheets for that user only.

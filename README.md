@@ -52,12 +52,14 @@ Available through `QuickActions.Features()`, meant to be wired up to specific su
 
 * **Sidebar Menu:** Adds a "Quick Actions" section to the Daggerheart System Menu in the sidebar, with one-click buttons for Downtime, Falling Damage, Request Roll, and Level Up.
 * **Party Sheet:** Replaces the built-in Short Rest and Long Rest buttons with a single **Downtime** button (GM only) that opens the full Downtime UI directly from the party sheet.
+* **Character Sheet:** Adds a **Quick Actions** button to the header of every character sheet, next to the controls (three dots) button. It opens a palette with the macros the GM picked in the settings — the same window `QuickActions.ShowMacros()` produces, one click away for every player. The GM can turn the button off entirely.
 * **Macro Palette:** Build your own palette of buttons for any macro using `QuickActions.ShowMacros()`.
 
 ## ⚙️ Settings
 
 Most features work out of the box, but a few can be tuned from **Configure Settings → Module Settings → Daggerheart: Quick Actions**:
 
+* **Quick Actions Macros (GM):** choose which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the four macros the module ships with, and **Clear All** empties the list. The button at the bottom turns the whole feature off — open character sheets lose the button immediately, for every user.
 * **Token Hover Tooltip:** enable/disable and choose its size (Small to Massive).
 * **Biography Tab Visibility (GM):** decide how the Biography tab behaves on character sheets — *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
 * **Hide Biography Tab (per user):** hides the Biography tab on character sheets for you only (off by default). Honored only while the GM leaves the world setting on *Each user decides*.
@@ -77,6 +79,9 @@ Go to the **Daggerheart Menu** in the sidebar. You will see a new section titled
 
 ### Via Party Sheet
 GMs will find a **Downtime** button on the party sheet's action bar, in place of the default Short Rest / Long Rest buttons. It opens the full Downtime UI for the whole party.
+
+### Via Character Sheet
+Every character sheet has a **Quick Actions** button in its header. Clicking it opens a palette with the macros configured in **Configure Settings → Daggerheart: Quick Actions → Quick Actions Macros**, ready to run. The list starts with the module's own macros; the GM can drag in any world or compendium macro, or switch the button off.
 
 ### Via API / Macros
 You can trigger any function programmatically or via Foundry Macros using the global `QuickActions` object:
@@ -155,6 +160,12 @@ QuickActions.Features("Chain Lightning");
 // To use the macro name it requires the macros to exist in the 'daggerheart-quickactions.macros' compendium. You can use the UUID to add any macro from world or any compendium.
 // 
 QuickActions.ShowMacros("Macro Name 1", "Macro Name 2", "Macro.CDcmq4UiZMqs6pbs", "Compendium.daggerheart-quickactions.macros.Macro.5SyMBdCHM5TZXqGz");
+```
+
+```javascript
+// Opens the same palette as the "Quick Actions" button on character sheets,
+// listing the macros the GM curated in Configure Settings → Quick Actions Macros.
+QuickActions.QuickActionsMenu();
 ```
 
 ```javascript

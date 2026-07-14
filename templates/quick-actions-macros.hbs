@@ -1,0 +1,63 @@
+<div class="dqa-qam-wrapper">
+    <p class="dqa-qam-hint">
+        Drag macros here from the Macro directory or from a compendium. They will be listed by the
+        <strong>Quick Actions</strong> button on character sheets.
+    </p>
+
+    <div class="dqa-drop-zone">
+        <i class="fas fa-bolt"></i>
+        <span>Drop a Macro here</span>
+    </div>
+
+    <ol class="dqa-macro-list">
+        {{#each macros}}
+        <li class="dqa-macro-row {{#if this.missing}}dqa-missing{{/if}}">
+            <img src="{{this.img}}" alt="{{this.name}}">
+            <div class="dqa-macro-info">
+                <span class="dqa-macro-name">{{this.name}}</span>
+                <span class="dqa-macro-source">
+                    {{#if this.missing}}Not found — the macro was deleted or its compendium is unavailable{{else}}{{this.source}}{{/if}}
+                </span>
+            </div>
+            <button type="button" class="dqa-icon-btn" data-action="removeMacro" data-uuid="{{this.uuid}}"
+                    data-tooltip="Remove" aria-label="Remove {{this.name}}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </li>
+        {{/each}}
+
+        {{#unless hasMacros}}
+        <li class="dqa-empty">No macros configured yet.</li>
+        {{/unless}}
+    </ol>
+
+    <footer class="dqa-qam-footer">
+        <div class="dqa-qam-actions">
+            <button type="button" class="dh-btn" data-action="previewMacros" {{#unless hasMacros}}disabled{{/unless}}>
+                <i class="fas fa-play-circle"></i> Preview
+            </button>
+            <button type="button" class="dh-btn" data-action="resetMacros">
+                <i class="fas fa-rotate-left"></i> Reset to Default
+            </button>
+            <button type="button" class="dh-btn" data-action="clearMacros" {{#unless hasMacros}}disabled{{/unless}}>
+                <i class="fas fa-trash"></i> Clear All
+            </button>
+        </div>
+
+        <button type="button" class="dh-btn dqa-toggle-btn {{#unless enabled}}dqa-off{{/unless}}" data-action="toggleFeature">
+            {{#if enabled}}
+            <i class="fas fa-power-off"></i> Disable Quick Actions
+            {{else}}
+            <i class="fas fa-power-off"></i> Enable Quick Actions
+            {{/if}}
+        </button>
+
+        <p class="dqa-qam-status">
+            {{#if enabled}}
+            The <strong>Quick Actions</strong> button is shown on every character sheet.
+            {{else}}
+            The feature is <strong>off</strong> — no button is shown on character sheets.
+            {{/if}}
+        </p>
+    </footer>
+</div>
