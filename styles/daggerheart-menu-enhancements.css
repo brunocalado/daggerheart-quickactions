@@ -1,0 +1,117 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* Daggerheart Menu Enhancer — search/filter toolbar, collapsible fieldsets and the
+   compact "Quick Actions" grid injected into the Daggerheart system's own GM menu.
+   Lives inside a foreign application, so it follows the host's own theme via core
+   variables instead of this module's dark/gold dialog palette. */
+
+.daggerheart-quickactions {
+    /* The system's own scrollable container (div[data-application-part]) sets the
+       shorthand `overflow: auto` at higher selector specificity than anything reachable
+       from here, so !important is the only way to defeat just its x-axis: whenever the
+       vertical scrollbar appears it narrows the available width by its own size, and any
+       contributed content sized to fit exactly (ours or another module's) can tip over
+       into triggering a horizontal scrollbar too. Vertical scrolling still works normally. */
+    & div[data-application-part] {
+        overflow-x: hidden !important;
+    }
+
+    /* Repeats what the sidebar tab icon already says — hidden to reclaim vertical space. */
+    & .dqa-menu-heading {
+        display: none;
+    }
+
+    & .dqa-menu-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-block: 4px 8px;
+
+        & .dqa-menu-search {
+            flex: 1;
+            min-width: 0;
+        }
+
+        & button {
+            flex: 0 0 auto;
+            width: var(--input-height, 2rem);
+            height: var(--input-height, 2rem);
+        }
+    }
+
+    /* The system's own fieldset only sets padding-inline, leaving the browser default
+       block padding (top/bottom) in place — that default is what makes every section's
+       header bar so tall, especially once collapsed and there is nothing left to pad. */
+    & fieldset {
+        margin-block: 0 4px;
+        padding-block: 4px;
+    }
+
+    & legend {
+        line-height: 1.2;
+    }
+
+    & .dqa-collapsible-legend {
+        cursor: pointer;
+        user-select: none;
+
+        &::before {
+            content: "▾";
+            display: inline-block;
+            width: 1em;
+        }
+    }
+
+    & fieldset.dqa-collapsed {
+        padding-block: 2px;
+
+        & > *:not(legend) {
+            display: none;
+        }
+    }
+
+    & fieldset.dqa-collapsed > .dqa-collapsible-legend::before {
+        content: "▸";
+    }
+
+    /* A search match inside a collapsed section is forced visible without touching its
+       persisted collapsed state — clearing the search restores the original layout. */
+    & fieldset.dqa-collapsed.dqa-search-expanded {
+        padding-block: 4px;
+
+        & > *:not(legend) {
+            display: revert;
+        }
+    }
+
+    & fieldset.dqa-search-hidden {
+        display: none;
+    }
+
+    & .dqa-menu-quick-actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    /* min-width: 0 lets grid items shrink below their label's natural width instead of
+       forcing the column (and the whole scroll container) wider — without it, the vertical
+       scrollbar taking a few pixels away from the available width was enough to make the
+       longer labels ("Falling Damage", "Level Up Players") force a horizontal scrollbar too. */
+    & .dqa-menu-grid-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        min-width: 0;
+        white-space: normal;
+        text-align: center;
+    }
+}

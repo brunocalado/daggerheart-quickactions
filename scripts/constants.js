@@ -68,3 +68,22 @@ export const BIOGRAPHY_POLICY = Object.freeze({
     /** Tab is hidden from everyone, ignoring personal settings. */
     HIDDEN: "hidden"
 });
+
+/**
+ * World setting keys toggling the visibility of each button in the "Quick Actions"
+ * fieldset injected into the Daggerheart system's sidebar menu (renderDaggerheartMenu).
+ * @type {Readonly<{DOWNTIME: string, FALLING_DAMAGE: string, REQUEST_ROLL: string, LEVEL_UP: string}>}
+ */
+export const QUICK_ACTIONS_MENU_SETTINGS = Object.freeze({
+    DOWNTIME: "quickActionsMenuShowDowntime",
+    FALLING_DAMAGE: "quickActionsMenuShowFallingDamage",
+    REQUEST_ROLL: "quickActionsMenuShowRequestRoll",
+    LEVEL_UP: "quickActionsMenuShowLevelUp"
+});
+
+/**
+ * Client-scope setting key holding the collapsed/expanded state of every fieldset in the
+ * Daggerheart system's sidebar menu, keyed by a slug of each fieldset's legend text.
+ * @type {string}
+ */
+export const MENU_COLLAPSED_SECTIONS = "menuCollapsedSections";

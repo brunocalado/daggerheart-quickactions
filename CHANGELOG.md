@@ -1,3 +1,9 @@
+# 0.5.1
+
+- [Added] GM Menu (sidebar "GM Tools" tab): search/filter bar, deterministic section ordering (the system's own "Refresh Features" always first, everything else alphabetical), and collapsible sections with state remembered per user — makes the shared menu usable even with many modules contributing their own sections.
+- [Changed] GM Menu: "Quick Actions" section is now a compact 2x2 button grid instead of 4 stacked full-width buttons, and each of the 4 buttons (Downtime, Falling Damage, Request Roll, Level Up) can be hidden individually via new module settings.
+- [Fixed] GM Menu: the system's own "Falling And Collision Damage" section is now only removed when this module's own Falling Damage button is actually shown — previously it was always removed, which could leave the GM with no way to roll falling damage if the replacement button was hidden.
+
 # 0.5.0
 
 - [Added] **Light Sources** integration: on `ready`, the module registers all 14 light-bearing items from its Items compendium (Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, Emergency Flare) with the optional **Light Sources** module's API, so they light up automatically from the Token HUD with no manual configuration. No-op if Light Sources isn't installed.
