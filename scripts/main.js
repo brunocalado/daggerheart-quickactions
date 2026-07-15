@@ -3,7 +3,7 @@
  * Main module that injects buttons into the menu and exposes the global API.
  */
 
-import { MODULE_ID, QUICK_ACTIONS_MENU_SETTINGS } from "./constants.js";
+import { MODULE_ID } from "./constants.js";
 
 // Import all functions from consolidated files
 import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
@@ -201,43 +201,6 @@ Hooks.once("init", () => {
         }
     });
 
-    // 9. Quick Actions Menu Buttons — per-button visibility in the Daggerheart system's GM menu
-    game.settings.register(MODULE_ID, QUICK_ACTIONS_MENU_SETTINGS.DOWNTIME, {
-        name: "Quick Actions Menu: Show Downtime Button",
-        hint: "Show the Downtime button in the Quick Actions section of the Daggerheart system's GM menu.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true
-    });
-
-    game.settings.register(MODULE_ID, QUICK_ACTIONS_MENU_SETTINGS.FALLING_DAMAGE, {
-        name: "Quick Actions Menu: Show Falling Damage Button",
-        hint: "Show the Falling Damage button in the Quick Actions section of the Daggerheart system's GM menu.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true
-    });
-
-    game.settings.register(MODULE_ID, QUICK_ACTIONS_MENU_SETTINGS.REQUEST_ROLL, {
-        name: "Quick Actions Menu: Show Request Roll Button",
-        hint: "Show the Request Roll button in the Quick Actions section of the Daggerheart system's GM menu.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true
-    });
-
-    game.settings.register(MODULE_ID, QUICK_ACTIONS_MENU_SETTINGS.LEVEL_UP, {
-        name: "Quick Actions Menu: Show Level Up Button",
-        hint: "Show the Level Up button in the Quick Actions section of the Daggerheart system's GM menu.",
-        scope: "world",
-        config: true,
-        type: Boolean,
-        default: true
-    });
-
     registerScanSettings();
     registerFallingDamageSettings();
     registerCoinTierSettings();
@@ -318,17 +281,12 @@ Hooks.on("renderParty", (app, html) => {
 // ==================================================================
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
 
-    // Each entry only becomes a button when its visibility setting is on — lets the GM
-    // hide the ones they don't use instead of always seeing all 4.
     const buttonDefs = [
-        { setting: QUICK_ACTIONS_MENU_SETTINGS.DOWNTIME, icon: "fa-bed", label: "Downtime", onClick: activateDowntimeUI },
-        { setting: QUICK_ACTIONS_MENU_SETTINGS.FALLING_DAMAGE, icon: "fa-skull-crossbones", label: "Falling Damage", onClick: activateFallingDamage },
-        { setting: QUICK_ACTIONS_MENU_SETTINGS.REQUEST_ROLL, icon: "fa-dice-d20", label: "Request Roll", onClick: activateRequestRoll },
-        { setting: QUICK_ACTIONS_MENU_SETTINGS.LEVEL_UP, icon: "fa-arrow-up", label: "Level Up Players", onClick: activateLevelUp }
+        { icon: "fa-bed", label: "Downtime", onClick: activateDowntimeUI },
+        { icon: "fa-skull-crossbones", label: "Fall Damage", onClick: activateFallingDamage },
+        { icon: "fa-dice-d20", label: "Request Roll", onClick: activateRequestRoll },
+        { icon: "fa-arrow-up", label: "Level Up", onClick: activateLevelUp }
     ];
-
-    const enabledButtons = buttonDefs.filter(def => game.settings.get(MODULE_ID, def.setting));
-    if (!enabledButtons.length) return;
 
     const newFieldset = document.createElement("fieldset");
     newFieldset.classList.add(MODULE_ID, "dqa-menu-quick-actions-grid");
@@ -337,7 +295,7 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     legend.innerText = "Quick Actions";
     newFieldset.appendChild(legend);
 
-    for (const { icon, label, onClick } of enabledButtons) {
+    for (const { icon, label, onClick } of buttonDefs) {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.innerHTML = `<i class="fas ${icon}"></i> ${label}`;
@@ -352,9 +310,6 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
     if (fieldset) fieldset.after(newFieldset);
     else element.appendChild(newFieldset);
 
-    // Remove the system's built-in falling damage fieldset only when our own replacement
-    // button is shown — otherwise the GM would be left with no way to roll falling damage.
-    if (enabledButtons.some(def => def.setting === QUICK_ACTIONS_MENU_SETTINGS.FALLING_DAMAGE)) {
-        element.querySelector('[data-action="createFallCollisionDamage"]')?.closest('fieldset')?.remove();
-    }
+    // This module's Falling Damage button always replaces the system's built-in one.
+    element.querySelector('[data-action="createFallCollisionDamage"]')?.closest('fieldset')?.remove();
 });
