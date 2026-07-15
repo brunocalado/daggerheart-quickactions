@@ -50,10 +50,15 @@ Available through `QuickActions.Features()`, meant to be wired up to specific su
 
 <p align="center"><img src="docs/daggerheart-menu.webp"></p>
 
-* **Sidebar Menu:** Adds a "Quick Actions" section to the Daggerheart System Menu in the sidebar, with one-click buttons for Downtime, Falling Damage, Request Roll, and Level Up.
+* **Sidebar Menu:** Adds a "Quick Actions" section — a compact 2×2 button grid — to the Daggerheart System Menu ("GM Tools") in the sidebar, with one-click access to Downtime, Fall Damage, Request Roll, and Level Up.
+* **GM Tools Menu Upgrade:** With several modules installed, the shared "GM Tools" sidebar menu can grow into a long, hard-to-scan list of sections. This module adds a search/filter bar, collapsible sections (state remembered per user), and deterministic ordering (the system's own "Refresh Features" always first, everything else alphabetical) to the *entire* menu — including sections contributed by other modules, not just this one's.
 * **Party Sheet:** Replaces the built-in Short Rest and Long Rest buttons with a single **Downtime** button (GM only) that opens the full Downtime UI directly from the party sheet.
 * **Character Sheet:** Adds a **Quick Actions** button to the header of every character sheet, next to the controls (three dots) button. It opens a palette with the macros the GM picked in the settings — the same window `QuickActions.ShowMacros()` produces, one click away for every player. The GM can turn the button off entirely.
 * **Macro Palette:** Build your own palette of buttons for any macro using `QuickActions.ShowMacros()`.
+
+### 🔦 Optional Integrations
+
+* **Light Sources:** If the [Light Sources](https://github.com/brunocalado/light-sources) module is installed and active, every light-bearing item in this module's Items compendium — Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, and Emergency Flare — is registered with it automatically. Equip one from the Token HUD and it lights up, no manual configuration needed.
 
 ## ⚙️ Settings
 
@@ -71,11 +76,13 @@ Most features work out of the box, but a few can be tuned from **Configure Setti
 ## ⚙️ Usage
 
 ### Via Sidebar
-Go to the **Daggerheart Menu** in the sidebar. You will see a new section titled **Quick Actions** with buttons for:
+Go to the **Daggerheart Menu** in the sidebar (a.k.a. "GM Tools"). You will see a **Quick Actions** section with buttons for:
 * Downtime
-* Falling Damage
+* Fall Damage
 * Request Roll
-* Level Up Players
+* Level Up
+
+The whole menu also gets a search bar plus collapsible, alphabetically ordered sections — handy once several modules are contributing to it. Click a section's title to collapse/expand it (remembered per user), or use the search box to jump straight to what you need.
 
 ### Via Party Sheet
 GMs will find a **Downtime** button on the party sheet's action bar, in place of the default Short Rest / Long Rest buttons. It opens the full Downtime UI for the whole party.
