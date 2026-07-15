@@ -26,6 +26,8 @@ import { registerCoinTierSettings } from "./loot-consumable-settings.js";
 import { registerBiographyTabSettings, initBiographyTab } from "./biography-tab.js";
 // Import Quick Actions macro list (settings menu + character sheet header button)
 import { registerQuickActionsMacrosSettings, initQuickActionsButton, showQuickActionsMacros } from "./quick-actions-macros.js";
+// Import Light Sources module integration
+import { registerLightSources } from "./light-sources-integration.js";
 
 // ==================================================================
 // GLOBAL API
@@ -231,6 +233,9 @@ Hooks.once("init", () => {
 // READY HOOK: AUTOMATION
 // ==================================================================
 Hooks.on("ready", async () => {
+    // Register this module's compendium light sources with the Light Sources module, if active.
+    registerLightSources();
+
     // Re-render DowntimeUI when any user's flags change (player choices via setFlag)
     Hooks.on("updateUser", (user, change) => {
         if (change?.flags?.[MODULE_ID]?.downtimeChoices !== undefined ||

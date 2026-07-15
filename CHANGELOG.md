@@ -1,3 +1,7 @@
+# 0.5.0
+
+- [Added] **Light Sources** integration: on `ready`, the module registers all 14 light-bearing items from its Items compendium (Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, Emergency Flare) with the optional **Light Sources** module's API, so they light up automatically from the Token HUD with no manual configuration. No-op if Light Sources isn't installed.
+
 # 0.4.9
 
 - [Added] Character Sheet: **Quick Actions** button in the window header of every character sheet, right next to the controls (three dots) button. It opens the same macro palette as `QuickActions.ShowMacros()`, but over a list the GM curates — so players get one-click access to the macros the table actually uses.
