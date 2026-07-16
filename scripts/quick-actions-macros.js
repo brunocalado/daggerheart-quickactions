@@ -165,7 +165,15 @@ class QuickActionsMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _prepareContext(_options) {
         const macros = await resolveMacros(getStoredMacros());
-        return { macros, hasMacros: macros.length > 0, enabled: isEnabled() };
+        const enabled = isEnabled();
+
+        // Markup survives the trip: Handlebars escapes it into the attribute, the HTML parser decodes
+        // it back, and the tooltip manager runs the result through cleanHTML.
+        const statusHint = enabled
+            ? "The <strong>Quick Actions</strong> button is shown on every character sheet."
+            : "The feature is <strong>off</strong> — no button is shown on character sheets.";
+
+        return { macros, hasMacros: macros.length > 0, enabled, statusHint };
     }
 
     /**
