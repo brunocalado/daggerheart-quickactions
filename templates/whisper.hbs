@@ -1,0 +1,36 @@
+<div class="dqa-whisper-layout">
+
+    <!-- MESSAGE -->
+    <div class="dqa-whisper-main">
+        <label class="dqa-whisper-field">
+            <span class="dqa-whisper-label-row">
+                <span class="dqa-whisper-label">Message</span>
+                <span class="dqa-whisper-hint">Ctrl+Enter sends</span>
+            </span>
+            <textarea name="message" class="dqa-whisper-input" rows="9"
+                      placeholder="Type your private message..."></textarea>
+        </label>
+        <button type="button" class="dqa-whisper-cancel" data-action="cancel">Cancel</button>
+    </div>
+
+    <!-- RECIPIENTS -->
+    <div class="dqa-whisper-side">
+        <div class="dqa-whisper-side-title">Send To</div>
+        <div class="dqa-user-list">
+            {{#if hasUsers}}
+            {{#each users}}
+            <button type="button" class="dqa-user-btn" data-action="toggleUser" data-user-id="{{this.id}}"
+                    style="color: {{this.color}};">
+                {{#if this.isGM}}<i class="fas fa-crown"></i> {{/if}}{{this.name}}
+            </button>
+            {{/each}}
+            {{else}}
+            <span class="dqa-whisper-empty">No other users are connected.</span>
+            {{/if}}
+        </div>
+        <button type="button" class="dqa-whisper-send" data-action="send" disabled>
+            <i class="fas fa-paper-plane"></i> Send Whisper
+        </button>
+    </div>
+
+</div>

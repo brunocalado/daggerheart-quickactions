@@ -1,3 +1,9 @@
+# 0.5.2
+
+- [Added] **Whisper**: new window listing every connected user as a toggle button (GMs flagged with a crown, each name in the user's own color). Pick any number of recipients, type a message, and it goes out as a whispered chat card in the module's visual style, visible only to them. The message is plain text — everything typed is escaped, so pasted markup is delivered literally instead of rendered, and only line breaks are carried over. Ctrl+Enter sends.
+- [Added] API: `QuickActions.Whisper()` opens the Whisper window from a macro or script.
+- [Added] Quick Actions Macros: the **Whisper** macro now ships on the suggested default list, so it shows up on the character sheet palette in new worlds and after **Reset to Default**.
+
 # 0.5.1
 
 - [Added] GM Menu (sidebar "GM Tools" tab): search/filter bar, deterministic section ordering (the system's own "Refresh Features" always first, everything else alphabetical), and collapsible sections with state remembered per user — makes the shared menu usable even with many modules contributing their own sections.

@@ -10,6 +10,8 @@ import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activat
 import { activateTemplateCreator } from "./template-creator.js";
 import { activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } from "./downtime_ui.js";
 import { activateRequestRoll, showCinematicPrompt } from "./request_roll.js";
+// Import Whisper (send a plain-text private message to selected connected users)
+import { activateWhisper } from "./whisper.js";
 // Import Scan
 import { scan } from "./scan.js";
 // Import Features
@@ -215,6 +217,7 @@ Hooks.once("init", () => {
         Downtime: activateDowntime,
         FallingDamage: activateFallingDamage,
         RequestRoll: activateRequestRoll,
+        Whisper: activateWhisper,
         HelpAnAlly: helpAnAlly,
         ScarCheck: scarCheck,
         LootConsumable: activateLootConsumable,

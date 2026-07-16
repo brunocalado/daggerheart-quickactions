@@ -26,6 +26,7 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 
 * **🪂 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far/Very Far", and "Collision" tiers, with dice formulas the GM can fully customize.
 * **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label; optionally send it as a "cinematic" full-screen prompt.
+* **💬 Whisper:** Send a private message to any number of connected users, via `QuickActions.Whisper()`. Pick the recipients from the list (GMs are flagged with a crown), type the message, and hit send — it arrives as a whispered chat card visible only to them. The text is plain: anything you type is delivered literally, so pasted HTML shows up as text instead of being rendered. Ctrl+Enter sends without leaving the keyboard.
 * **🆙 Level Up:** Walk a player character through leveling up directly from the menu.
 * **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving player's character sheet when possible.
 * **✨ Spend Hope:** A quick picker for spending 1–6 Hope from the selected token's actor.
@@ -64,7 +65,7 @@ Available through `QuickActions.Features()`, meant to be wired up to specific su
 
 Most features work out of the box, but a few can be tuned from **Configure Settings → Module Settings → Daggerheart: Quick Actions**:
 
-* **Quick Actions Macros (GM):** choose which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the four macros the module ships with, and **Clear All** empties the list. The button at the bottom turns the whole feature off — open character sheets lose the button immediately, for every user.
+* **Quick Actions Macros (GM):** choose which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the macros the module ships with (Fate Roll – Hope, Fate Roll – Fear, Help an Ally, Roll Loot/Consumable, and Whisper), and **Clear All** empties the list. The button at the bottom turns the whole feature off — open character sheets lose the button immediately, for every user.
 * **Token Hover Tooltip:** enable/disable and choose its size (Small to Massive).
 * **Biography Tab Visibility (GM):** decide how the Biography tab behaves on character sheets — *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
 * **Hide Biography Tab (per user):** hides the Biography tab on character sheets for you only (off by default). Honored only while the GM leaves the world setting on *Each user decides*.
@@ -112,6 +113,11 @@ QuickActions.FallingDamage();
 // Opens the Roll Request dialog
 // You can use QuickActions.RequestRoll(false); to prevent it from showing images.
 QuickActions.RequestRoll();
+```
+
+```javascript
+// Opens the Whisper window — pick connected users and send them a plain-text private message.
+QuickActions.Whisper();
 ```
 
 ```javascript
