@@ -42,6 +42,33 @@ export function initDaggerheartMenuEnhancer() {
         // asynchronously would simply miss this pass until the menu is reopened.
         requestAnimationFrame(() => enhanceMenu(element));
     });
+
+    // The menu's sidebar tab button is rebuilt whenever the sidebar re-renders, so re-apply
+    // the skull swap on every render. Also runs once on ready for the initial sidebar already
+    // present before this hook was registered.
+    Hooks.on("renderSidebar", (app, element) => swapMenuTabIcon(element));
+    Hooks.once("ready", () => {
+        if (ui.sidebar?.element) swapMenuTabIcon(ui.sidebar.element);
+    });
+}
+
+/**
+ * Replaces the Daggerheart menu sidebar tab's FoundryBorne logo image with a purple skull icon.
+ * The tab button belongs to the system's sidebar navigation, so this is called on every sidebar
+ * render. Idempotent: it no-ops once the skull is already in place.
+ * @param {HTMLElement} element - Root element of the rendered sidebar.
+ * @returns {void}
+ */
+function swapMenuTabIcon(element) {
+    const button = element.querySelector('button[data-action="tab"][data-tab="daggerheartMenu"]');
+    if (!button || button.querySelector(".dqa-menu-tab-skull")) return;
+
+    const icon = document.createElement("i");
+    icon.className = "fa-solid fa-skull dqa-menu-tab-skull";
+
+    const img = button.querySelector("img");
+    if (img) img.replaceWith(icon);
+    else button.appendChild(icon);
 }
 
 /**

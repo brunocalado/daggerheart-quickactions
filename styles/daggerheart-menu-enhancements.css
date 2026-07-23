@@ -115,3 +115,16 @@
         text-align: center;
     }
 }
+
+/* Purple skull for the Daggerheart menu sidebar tab. The <i> element itself is injected by
+   swapMenuTabIcon() in daggerheart-menu-enhancer.js (replacing the system's FoundryBorne logo
+   <img>) — using the Font Awesome class there guarantees the glyph renders regardless of the
+   build's FA font-family. This rule only colors it. It targets a SYSTEM-owned sidebar tab that
+   lives outside this module's own application, so it intentionally sits OUTSIDE the
+   .daggerheart-quickactions scope block above (§12 scoping applies to our own app surfaces);
+   the class is module-prefixed and set only by our own JS, so it cannot leak. */
+.dqa-menu-tab-skull {
+    /* Not a Foundry core value, so defined locally to stay easy to tweak. */
+    color: #a335ee;
+    font-size: var(--font-size-20, 1.25rem);
+}
