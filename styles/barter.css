@@ -1,0 +1,440 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* Barter — two-column trade window: your inventory on the left, the partner's offer on the right. */
+
+.daggerheart-quickactions {
+    --daggerheart-quickactions-accent: #C9A060;
+    --daggerheart-quickactions-accent-dark: #b8893e;
+    --daggerheart-quickactions-panel: #2b2b2b;
+    --daggerheart-quickactions-border: #555;
+    --daggerheart-quickactions-selected: #4caf50;
+    --daggerheart-quickactions-tile: 58px;
+
+    & .dqa-barter-layout {
+        display: flex;
+        gap: 12px;
+        height: 100%;
+        min-height: 0;
+    }
+
+    & .dqa-barter-side {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    & .dqa-barter-theirs {
+        padding-left: 12px;
+        border-left: 1px solid #444;
+    }
+
+    /* --- Header --- */
+
+    & .dqa-barter-header {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 8px;
+    }
+
+    & .dqa-barter-portrait {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 auto;
+        border: 1px solid var(--daggerheart-quickactions-accent);
+        border-radius: 4px;
+        object-fit: cover;
+    }
+
+    & .dqa-barter-heading {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    & .dqa-barter-title {
+        color: var(--daggerheart-quickactions-accent);
+        font-weight: bold;
+        font-size: var(--font-size-14);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    & .dqa-barter-subtitle {
+        color: var(--color-text-secondary, #999);
+        font-size: var(--font-size-12);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    & .dqa-barter-badge {
+        flex: 0 0 auto;
+        padding: 3px 8px;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 10px;
+        background: var(--daggerheart-quickactions-panel);
+        color: var(--color-light-1, #e0e0e0);
+        font-size: var(--font-size-11);
+        white-space: nowrap;
+
+        &.confirmed {
+            border-color: var(--daggerheart-quickactions-selected);
+            color: var(--daggerheart-quickactions-selected);
+        }
+    }
+
+    /* --- Inventory tabs --- */
+
+    & .dqa-barter-tabs {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 4px;
+    }
+
+    & .dqa-barter-tab {
+        flex: 1;
+        padding: 5px 2px;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px 4px 0 0;
+        background: var(--daggerheart-quickactions-panel);
+        color: var(--color-text-secondary, #999);
+        font-size: var(--font-size-11);
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+            color: var(--color-light-1, #e0e0e0);
+            border-color: var(--daggerheart-quickactions-accent);
+        }
+
+        &.active {
+            border-color: var(--daggerheart-quickactions-accent);
+            border-bottom-color: transparent;
+            background: #1f1f1f;
+            color: var(--daggerheart-quickactions-accent);
+            font-weight: bold;
+        }
+    }
+
+    /* --- Item grids --- */
+
+    & .dqa-barter-grid {
+        display: none;
+        flex: 1;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 6px;
+        min-height: 0;
+        padding: 8px;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 0 4px 4px 4px;
+        background: rgba(0, 0, 0, 0.25);
+        overflow-y: auto;
+
+        &.active {
+            display: flex;
+        }
+    }
+
+    & .dqa-barter-peer-items {
+        display: flex;
+        flex: 1;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 6px;
+        min-height: 0;
+        padding: 8px;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.25);
+        overflow-y: auto;
+    }
+
+    & .dqa-barter-tile {
+        position: relative;
+        width: var(--daggerheart-quickactions-tile);
+        height: var(--daggerheart-quickactions-tile);
+        border: 2px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px;
+        background: #1a1a1a;
+        cursor: pointer;
+        transition: border-color 0.15s, box-shadow 0.15s;
+
+        &:hover {
+            border-color: var(--daggerheart-quickactions-accent);
+        }
+
+        /* The green border is the selection signal called for by the trade UI. */
+        &.selected {
+            border-color: var(--daggerheart-quickactions-selected);
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.7);
+        }
+
+        &.offered {
+            border-color: var(--daggerheart-quickactions-selected);
+            cursor: default;
+        }
+
+        & img {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 2px;
+            object-fit: cover;
+        }
+    }
+
+    & .dqa-barter-owned {
+        position: absolute;
+        right: 1px;
+        bottom: 1px;
+        padding: 0 3px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.85);
+        color: var(--color-light-1, #e0e0e0);
+        font-size: var(--font-size-10);
+        line-height: 1.4;
+        pointer-events: none;
+    }
+
+    & .dqa-barter-check {
+        position: absolute;
+        top: 1px;
+        left: 2px;
+        color: var(--daggerheart-quickactions-selected);
+        font-size: var(--font-size-11);
+        text-shadow: 0 0 3px #000;
+        pointer-events: none;
+    }
+
+    & .dqa-barter-stepper {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(0, 0, 0, 0.85);
+        color: var(--color-light-1, #e0e0e0);
+        font-size: var(--font-size-11);
+
+        & button {
+            width: 16px;
+            padding: 0;
+            border: none;
+            background: none;
+            color: var(--daggerheart-quickactions-accent);
+            line-height: 1;
+            cursor: pointer;
+        }
+    }
+
+    & .dqa-barter-empty {
+        width: 100%;
+        margin: 0;
+        padding: 10px;
+        color: var(--color-text-secondary, #999) !important;
+        font-size: var(--font-size-12);
+        font-style: italic;
+        text-align: center;
+    }
+
+    /* --- Currency --- */
+
+    & .dqa-barter-gold {
+        display: flex;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 6px;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.25);
+    }
+
+    & .dqa-barter-gold-entry {
+        display: flex;
+        flex: 1 1 45%;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 0;
+        color: var(--daggerheart-quickactions-accent) !important;
+        font-size: var(--font-size-11) !important;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    & .dqa-barter-gold-input {
+        width: 52px;
+        padding: 2px 4px;
+        border: 1px solid #7a6e5d;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.95);
+        color: #000;
+        font-size: var(--font-size-12);
+        text-align: right;
+    }
+
+    & .dqa-barter-gold-owned {
+        color: var(--color-text-secondary, #999);
+    }
+
+    /* --- Partner picker --- */
+
+    & .dqa-barter-users {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 5px;
+        min-height: 0;
+        padding: 6px;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.25);
+        overflow-y: auto;
+    }
+
+    & .dqa-barter-user {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 8px;
+        padding: 6px;
+        border: 1px solid var(--daggerheart-quickactions-border);
+        border-radius: 4px;
+        background: var(--daggerheart-quickactions-panel);
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+            border-color: var(--daggerheart-quickactions-accent);
+        }
+
+        &.selected {
+            border-color: var(--daggerheart-quickactions-selected);
+            box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
+        }
+
+        & img {
+            width: 32px;
+            height: 32px;
+            flex: 0 0 auto;
+            border: none;
+            border-radius: 3px;
+            object-fit: cover;
+        }
+    }
+
+    & .dqa-barter-user-names {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        & small {
+            color: var(--color-text-secondary, #999);
+            font-size: var(--font-size-11);
+        }
+    }
+
+    /* --- Waiting state --- */
+
+    & .dqa-barter-waiting {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: var(--daggerheart-quickactions-accent);
+        font-size: var(--font-size-24);
+        text-align: center;
+
+        & p {
+            margin: 0;
+            font-size: var(--font-size-13);
+        }
+    }
+
+    /* --- Footer actions --- */
+
+    & .dqa-barter-footer {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 6px;
+    }
+
+    & .dqa-barter-status {
+        margin: 0 !important;
+        color: var(--color-text-secondary, #999) !important;
+        font-size: var(--font-size-11) !important;
+        font-style: italic;
+        text-align: center;
+    }
+
+    & .dqa-barter-confirm,
+    & .dqa-barter-start {
+        flex: 1;
+        padding: 9px;
+        border: 2px solid #8a6d3b;
+        border-radius: 4px;
+        background: var(--daggerheart-quickactions-accent);
+        color: #191919;
+        font-weight: bold;
+        font-size: var(--font-size-12);
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover:not(:disabled) {
+            background: var(--daggerheart-quickactions-accent-dark);
+            box-shadow: 0 0 8px rgba(201, 160, 96, 0.5);
+        }
+
+        &:disabled {
+            border-color: #444;
+            background: #444;
+            color: #666;
+            cursor: not-allowed;
+        }
+    }
+
+    & .dqa-barter-confirm.locked {
+        border-color: #2e7d32;
+        background: var(--daggerheart-quickactions-selected);
+        color: #0d200e;
+    }
+
+    & .dqa-barter-cancel {
+        flex: 0 0 90px;
+        padding: 9px;
+        border: 1px solid #777;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--color-light-1, #e0e0e0);
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+            border-color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+    }
+}

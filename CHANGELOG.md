@@ -1,3 +1,10 @@
+# 0.5.3
+
+- [Added] **Barter**: player-to-player trading between two users who each have a linked `character` actor. The window shows your own inventory on the left as an icon grid split into Weapons / Armor / Consumables / Loot tabs — clicking an icon puts it on the table with a green border, and stacked items get a quantity stepper. Coins can be offered alongside items, honoring whichever currencies the world has enabled. Pick a connected player, press **Start Trade**, and the same window opens on their screen showing your offer; they can add items and coins of their own or accept as-is. Editing an offer revokes both confirmations, so an agreed trade can never be swapped out from under either side.
+- [Added] Barter settlement runs on a connected GM client through a registered User query, and writes every item create/update/delete and both purses in a single `foundry.documents.modifyBatch` call — the trade either applies in full or not at all. The GM re-validates the whole session against live actor data first, so nothing arriving over the socket is trusted. Completed trades are posted to chat as a receipt.
+- [Added] API: `QuickActions.Barter()` opens the Barter window from a macro or script.
+- [Added] Quick Actions Macros: the **Barter** macro now ships on the suggested default list, so it shows up on the character sheet palette in new worlds and after **Reset to Default**.
+
 # 0.5.2
 
 - [Added] **Whisper**: new window listing every connected user as a toggle button (GMs flagged with a crown, each name in the user's own color). Pick any number of recipients, type a message, and it goes out as a whispered chat card in the module's visual style, visible only to them. The message is plain text — everything typed is escaped, so pasted markup is delivered literally instead of rendered, and only line breaks are carried over. Ctrl+Enter sends.

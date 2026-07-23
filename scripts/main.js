@@ -12,6 +12,8 @@ import { activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } fr
 import { activateRequestRoll, showCinematicPrompt } from "./request_roll.js";
 // Import Whisper (send a plain-text private message to selected connected users)
 import { activateWhisper } from "./whisper.js";
+// Import Barter (peer-to-peer item and currency trading between two linked characters)
+import { activateBarter, registerBarter } from "./barter.js";
 // Import Scan
 import { scan } from "./scan.js";
 // Import Features
@@ -212,12 +214,14 @@ Hooks.once("init", () => {
     initBiographyTab();
     initQuickActionsButton();
     initDaggerheartMenuEnhancer();
+    registerBarter();
 
     globalThis.QuickActions = {
         Downtime: activateDowntime,
         FallingDamage: activateFallingDamage,
         RequestRoll: activateRequestRoll,
         Whisper: activateWhisper,
+        Barter: activateBarter,
         HelpAnAlly: helpAnAlly,
         ScarCheck: scarCheck,
         LootConsumable: activateLootConsumable,

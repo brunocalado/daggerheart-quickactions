@@ -37,7 +37,8 @@ export const DEFAULT_QUICK_ACTIONS_MACROS = Object.freeze([
     { uuid: `Compendium.${MODULE_ID}.macros.Macro.0MbYehILeRnuPP8u` },
     { uuid: `Compendium.${MODULE_ID}.macros.Macro.SWYDWH9nXi7idHrR` },
     { uuid: `Compendium.${MODULE_ID}.macros.Macro.MrVaunevxMfD1jiI` },
-    { uuid: `Compendium.${MODULE_ID}.macros.Macro.HEBUf4x3GIvjNKJd` }
+    { uuid: `Compendium.${MODULE_ID}.macros.Macro.HEBUf4x3GIvjNKJd` },
+    { uuid: `Compendium.${MODULE_ID}.macros.Macro.SuzCTTVwiBW1x22f` }
 ]);
 
 /**

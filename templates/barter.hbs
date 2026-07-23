@@ -1,0 +1,172 @@
+<div class="dqa-barter-layout">
+
+    <!-- ============ LEFT: WHAT YOU OWN AND HAVE SELECTED ============ -->
+    <section class="dqa-barter-side dqa-barter-mine">
+
+        <header class="dqa-barter-header">
+            <img class="dqa-barter-portrait" src="{{actorImg}}" alt="{{actorName}}">
+            <div class="dqa-barter-heading">
+                <span class="dqa-barter-title">Your Offer</span>
+                <span class="dqa-barter-subtitle">{{actorName}}</span>
+            </div>
+            <span class="dqa-barter-badge">{{myOfferCount}} selected</span>
+        </header>
+
+        <nav class="dqa-barter-tabs">
+            {{#each tabs}}
+            <button type="button" class="dqa-barter-tab {{#if this.active}}active{{/if}}"
+                    data-action="selectTab" data-tab="{{this.type}}">
+                <i class="{{this.icon}}"></i> {{this.label}}
+            </button>
+            {{/each}}
+        </nav>
+
+        {{#each tabs}}
+        <div class="dqa-barter-grid {{#if this.active}}active{{/if}}" data-tab="{{this.type}}">
+            {{#each this.items}}
+            <div class="dqa-barter-tile {{#if this.selected}}selected{{/if}}"
+                 data-action="toggleItem" data-item-id="{{this.id}}"
+                 data-tooltip="{{this.name}}" aria-label="{{this.name}}">
+                <img src="{{this.img}}" alt="{{this.name}}">
+                {{#if this.stackable}}<span class="dqa-barter-owned">×{{this.owned}}</span>{{/if}}
+                {{#if this.selected}}
+                {{#if this.stackable}}
+                <div class="dqa-barter-stepper">
+                    <button type="button" data-action="stepQuantity" data-item-id="{{this.id}}" data-delta="-1">−</button>
+                    <span>{{this.quantity}}</span>
+                    <button type="button" data-action="stepQuantity" data-item-id="{{this.id}}" data-delta="1">+</button>
+                </div>
+                {{/if}}
+                <i class="fa-solid fa-check dqa-barter-check"></i>
+                {{/if}}
+            </div>
+            {{else}}
+            <p class="dqa-barter-empty">No {{this.label}} carried.</p>
+            {{/each}}
+        </div>
+        {{/each}}
+
+        {{#if myGold.length}}
+        <div class="dqa-barter-gold">
+            {{#each myGold}}
+            <label class="dqa-barter-gold-entry" data-tooltip="You hold {{this.owned}}">
+                <span><i class="{{this.icon}}"></i> {{this.label}}</span>
+                <input type="number" class="dqa-barter-gold-input" min="0" max="{{this.owned}}" step="1"
+                       value="{{this.offered}}" data-currency="{{this.key}}" data-owned="{{this.owned}}">
+                <span class="dqa-barter-gold-owned">/ {{this.owned}}</span>
+            </label>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        <footer class="dqa-barter-footer">
+            {{#if isInitiator}}
+            <button type="button" class="dqa-barter-confirm" data-action="approve" {{#unless canApprove}}disabled{{/unless}}>
+                <i class="fa-solid fa-handshake"></i> Approve Trade
+            </button>
+            {{else}}
+            <button type="button" class="dqa-barter-confirm {{#if myLocked}}locked{{/if}}" data-action="toggleLock">
+                {{#if myLocked}}
+                <i class="fa-solid fa-lock"></i> Offer Confirmed — Click to Edit
+                {{else}}
+                <i class="fa-solid fa-check"></i> Confirm Offer
+                {{/if}}
+            </button>
+            {{/if}}
+            <button type="button" class="dqa-barter-cancel" data-action="cancel">Cancel</button>
+        </footer>
+    </section>
+
+    <!-- ============ RIGHT: WHAT THE OTHER USER OFFERS ============ -->
+    <section class="dqa-barter-side dqa-barter-theirs">
+
+        {{#if isDraft}}
+        <header class="dqa-barter-header">
+            <div class="dqa-barter-heading">
+                <span class="dqa-barter-title">Trade With</span>
+                <span class="dqa-barter-subtitle">Pick a connected player</span>
+            </div>
+        </header>
+
+        <div class="dqa-barter-users">
+            {{#each users}}
+            <button type="button" class="dqa-barter-user {{#if (eq this.id ../selectedUserId)}}selected{{/if}}"
+                    data-action="selectUser" data-user-id="{{this.id}}">
+                <img src="{{this.actorImg}}" alt="{{this.actorName}}">
+                <span class="dqa-barter-user-names">
+                    <strong style="color: {{this.color}};">{{this.name}}</strong>
+                    <small>{{this.actorName}}</small>
+                </span>
+            </button>
+            {{else}}
+            <p class="dqa-barter-empty">No other connected player has a linked character.</p>
+            {{/each}}
+        </div>
+
+        <footer class="dqa-barter-footer">
+            <button type="button" class="dqa-barter-start" data-action="startTrade" {{#unless canStart}}disabled{{/unless}}>
+                <i class="fa-solid fa-right-left"></i> Start Trade
+            </button>
+        </footer>
+        {{/if}}
+
+        {{#if isPending}}
+        <div class="dqa-barter-waiting">
+            <i class="fa-solid fa-hourglass-half fa-fade"></i>
+            <p>Waiting for <strong>{{peerName}}</strong> to accept…</p>
+        </div>
+        {{/if}}
+
+        {{#if isActive}}
+        <header class="dqa-barter-header">
+            <img class="dqa-barter-portrait" src="{{peerActorImg}}" alt="{{peerActorName}}">
+            <div class="dqa-barter-heading">
+                <span class="dqa-barter-title">{{peerName}}'s Offer</span>
+                <span class="dqa-barter-subtitle">{{peerActorName}}</span>
+            </div>
+            {{#if peerLocked}}
+            <span class="dqa-barter-badge confirmed"><i class="fa-solid fa-lock"></i> Confirmed</span>
+            {{else}}
+            <span class="dqa-barter-badge"><i class="fa-solid fa-pen"></i> Choosing</span>
+            {{/if}}
+        </header>
+
+        <div class="dqa-barter-peer-items">
+            {{#each peerItems}}
+            <div class="dqa-barter-tile offered" data-tooltip="{{this.name}}" aria-label="{{this.name}}">
+                <img src="{{this.img}}" alt="{{this.name}}">
+                {{#if (gt this.quantity 1)}}<span class="dqa-barter-owned">×{{this.quantity}}</span>{{/if}}
+            </div>
+            {{/each}}
+            {{#if peerEmpty}}
+            <p class="dqa-barter-empty">Nothing offered in return — this is a gift.</p>
+            {{/if}}
+        </div>
+
+        {{#if peerGold.length}}
+        <div class="dqa-barter-gold readonly">
+            {{#each peerGold}}
+            <span class="dqa-barter-gold-entry">
+                <span><i class="{{this.icon}}"></i> {{this.label}}</span>
+                <strong>{{this.amount}}</strong>
+            </span>
+            {{/each}}
+        </div>
+        {{/if}}
+
+        <footer class="dqa-barter-footer">
+            <p class="dqa-barter-status">
+                {{#if isInitiator}}
+                {{#if peerLocked}}Their offer is locked in — approve to complete the trade.
+                {{else}}Waiting for {{peerName}} to confirm their offer.{{/if}}
+                {{else}}
+                {{#if myLocked}}Waiting for {{peerName}} to approve the trade.
+                {{else}}Add anything you want to send back, then confirm your offer.{{/if}}
+                {{/if}}
+            </p>
+        </footer>
+        {{/if}}
+
+    </section>
+
+</div>

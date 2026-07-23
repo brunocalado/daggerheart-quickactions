@@ -2,14 +2,12 @@
   "id": "daggerheart-quickactions",
   "title": "Daggerheart: Quick Actions",
   "description": "Essential tools and automations for Daggerheart in Foundry VTT. Provides quick access to common mechanics directly from the sidebar and party sheet: a full Downtime UI with automated resource recovery, feature support (Efficient, Forager, Recovery, Armorer, and more), Falling and Collision Damage, Roll Requests with cinematic prompts, Level Up, Loot and Consumable rolling, Scar Check, Help an Ally, Spotlight Token, and Token Hover Tooltips. The Downtime button replaces Short and Long Rest on the party sheet (GM only) and drives the entire rest workflow including Fear gain, per-actor move limits, and chat summaries.",
-  
-  "version": "0.5.2",
-  
+  "version": "0.5.3",
   "compatibility": {
     "minimum": "14",
-    "verified": "14"
+    "verified": "14",
+    "maximum": "14"
   },
-  
   "relationships": {
     "systems": [
       {
@@ -33,11 +31,11 @@
         "id": "light-sources",
         "type": "module",
         "title": "Light Sources",
-        "manifest": "https://raw.githubusercontent.com/brunocalado/light-sources/refs/heads/main/module.json"
+        "manifest": "https://raw.githubusercontent.com/brunocalado/light-sources/refs/heads/main/module.json",
+        "compatibility": {}
       }
     ]
   },
-  
   "authors": [
     {
       "name": "Mestre Digital",
@@ -45,7 +43,6 @@
       "flags": {}
     }
   ],
-  
   "packs": [
     {
       "label": "Macros",
@@ -72,7 +69,6 @@
       "flags": {}
     }
   ],
-  
   "packFolders": [
     {
       "name": "⚡ Quick Actions",
@@ -86,29 +82,59 @@
     }
   ],
   "socket": true,
-  
   "esmodules": [
     "scripts/main.js"
   ],
-  
   "styles": [
-    "styles/app-base.css",
-    "styles/cinematic-roll-prompt.css",
-    "styles/falling-damage.css",
-    "styles/falling-damage-settings.css",
-    "styles/loot-consumable.css",
-    "styles/loot-consumable-settings.css",
-    "styles/level-up.css",
-    "styles/downtime-ui.css",
-    "styles/configure-actor.css",
-    "styles/token-tooltip.css",
-    "styles/scan-settings.css",
-    "styles/template-creator.css",
-    "styles/quick-actions-macros.css",
-    "styles/daggerheart-menu-enhancements.css",
-    "styles/whisper.css"
+    {
+      "src": "styles/app-base.css"
+    },
+    {
+      "src": "styles/cinematic-roll-prompt.css"
+    },
+    {
+      "src": "styles/falling-damage.css"
+    },
+    {
+      "src": "styles/falling-damage-settings.css"
+    },
+    {
+      "src": "styles/loot-consumable.css"
+    },
+    {
+      "src": "styles/loot-consumable-settings.css"
+    },
+    {
+      "src": "styles/level-up.css"
+    },
+    {
+      "src": "styles/downtime-ui.css"
+    },
+    {
+      "src": "styles/configure-actor.css"
+    },
+    {
+      "src": "styles/token-tooltip.css"
+    },
+    {
+      "src": "styles/scan-settings.css"
+    },
+    {
+      "src": "styles/template-creator.css"
+    },
+    {
+      "src": "styles/quick-actions-macros.css"
+    },
+    {
+      "src": "styles/daggerheart-menu-enhancements.css"
+    },
+    {
+      "src": "styles/whisper.css"
+    },
+    {
+      "src": "styles/barter.css"
+    }
   ],
-  
   "url": "https://github.com/brunocalado/daggerheart-quickactions",
   "manifest": "https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/module.json",
   "download": "https://codeload.github.com/brunocalado/daggerheart-quickactions/zip/main",
