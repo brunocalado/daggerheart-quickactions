@@ -38,8 +38,9 @@
     .dh-special-btn[data-special="loot"].active, .dh-special-btn[data-special="loot"]:hover { background: #2ecc71; color: #000; box-shadow: 0 0 8px #2ecc71; }
 
     .dh-cb-row { display: flex; align-items: center; justify-content: space-around; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 4px; }
-    .dh-cb-label { display: flex; align-items: center; gap: 8px; color: #e0e0e0; cursor: pointer; font-size: 0.95em; margin-bottom: 0; }
-    .dh-cb-label input { accent-color: #C9A060; transform: scale(1.2); margin: 0; }
+    /* Toggle sits at the end of the label so the switches line up down the row.
+       The switch skin itself lives in styles/app-base.css (.dh-toggle). */
+    .dh-cb-label { display: flex; align-items: center; gap: 10px; color: #e0e0e0; cursor: pointer; font-size: 0.95em; margin-bottom: 0; }
     .dh-sq-btn { width: 32px; height: 30px; padding: 0; border: 1px solid #555; background: #191919; color: #C9A060; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.2s; font-size: 0.9em; }
     .dh-sq-btn:hover { background: #C9A060; color: #191919; }
     .dh-dc-wrapper { display: flex; align-items: center; gap: 4px; flex: 1; }
@@ -148,13 +149,13 @@
         </div>
 
         <div class="dh-cb-row">
-            <label class="dh-cb-label">Advantage <input type="checkbox" name="advantage"></label>
-            <label class="dh-cb-label">Disadvantage <input type="checkbox" name="disadvantage"></label>
-            <label class="dh-cb-label">Reaction <input type="checkbox" name="reaction"></label>
+            <label class="dh-cb-label">Advantage <input type="checkbox" class="dh-toggle" name="advantage"></label>
+            <label class="dh-cb-label">Disadvantage <input type="checkbox" class="dh-toggle" name="disadvantage"></label>
+            <label class="dh-cb-label">Reaction <input type="checkbox" class="dh-toggle" name="reaction"></label>
         </div>
         <div class="dh-cb-row">
-            <label class="dh-cb-label">Grant Resources <input type="checkbox" name="grantResources" checked></label>
-            <label class="dh-cb-label" style="color: #ffaa44;">Cinematic Mode <input type="checkbox" name="cinematicMode" {{#if cinematicMode}}checked{{/if}}></label>
+            <label class="dh-cb-label">Grant Resources <input type="checkbox" class="dh-toggle" name="grantResources" checked></label>
+            <label class="dh-cb-label" style="color: #ffaa44;">Cinematic Mode <input type="checkbox" class="dh-toggle" name="cinematicMode" {{#if cinematicMode}}checked{{/if}}></label>
         </div>
         
         <div class="dh-rr-row">

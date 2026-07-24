@@ -119,6 +119,19 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         });
 
+        // Advantage and Disadvantage cancel each other out, so they can never be on at
+        // the same time — switching one on silently switches the other off.
+        const advantageInput = html.querySelector('input[name="advantage"]');
+        const disadvantageInput = html.querySelector('input[name="disadvantage"]');
+        if (advantageInput && disadvantageInput) {
+            advantageInput.onchange = () => {
+                if (advantageInput.checked) disadvantageInput.checked = false;
+            };
+            disadvantageInput.onchange = () => {
+                if (disadvantageInput.checked) advantageInput.checked = false;
+            };
+        }
+
         const dcInput = html.querySelector('input[name="difficulty"]');
         
         // Listener para modificadores (+/-)

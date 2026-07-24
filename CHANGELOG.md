@@ -1,6 +1,8 @@
 # 0.5.4
 
 - [Added] Request Roll: the "Send To" list now shows each connected player's linked character name alongside their username, formatted as `Character - Username`, when that player has an actor assigned. Both name parts are truncated with an ellipsis past a fixed default length so long names don't overflow the column; hover a name to see the untruncated version. The Send To column and window were widened to fit the extra text.
+- [Changed] Request Roll: Advantage, Disadvantage, Reaction, Grant Resources and Cinematic Mode are now sliding toggle switches in the module's gold accent instead of plain checkboxes. The switch skin lives in `styles/app-base.css` as an opt-in `.dh-toggle` class, so it can be reused by other windows without changing checkboxes elsewhere.
+- [Changed] Request Roll: Advantage and Disadvantage are now mutually exclusive — turning one on automatically turns the other off, since the two cancel each other out.
 
 # 0.5.3
 

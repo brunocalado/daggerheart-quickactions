@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /* Daggerheart Quick Actions - Base Application Styles
    Namespace .dh-qa-app used to avoid conflicts.
 */
@@ -51,4 +59,70 @@
     background: #333;
     color: #fff;
     box-shadow: 0 0 5px #C9A060;
+}
+
+/* --- Toggle Switch (Apple-style) --- */
+/* Opt-in via .dh-toggle so checkboxes elsewhere in the module keep the default skin.
+   `!important` on the reset properties is required: Foundry core's own checkbox skin
+   (foundry2.css, layer elements.forms) otherwise paints its native border, background
+   and check glyph on top of this custom toggle. The core checkmark lives on ::after
+   (this rule only redefines ::before for the sliding thumb), so ::after must be
+   cleared separately or the glyph still shows through the track. */
+.dh-qa-app input[type="checkbox"].dh-toggle {
+    --dh-qa-toggle-width: 2.4rem;
+    --dh-qa-toggle-height: 1.4rem;
+    --dh-qa-toggle-inset: 0.125rem;
+
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    position: relative;
+    width: var(--dh-qa-toggle-width) !important;
+    height: var(--dh-qa-toggle-height) !important;
+    margin: 0;
+    padding: 0;
+    border: none !important;
+    border-radius: calc(var(--dh-qa-toggle-height) / 2);
+    background: #555 !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    vertical-align: middle;
+    flex: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: var(--dh-qa-toggle-inset);
+        left: var(--dh-qa-toggle-inset);
+        width: calc(var(--dh-qa-toggle-height) - (var(--dh-qa-toggle-inset) * 2));
+        height: calc(var(--dh-qa-toggle-height) - (var(--dh-qa-toggle-inset) * 2));
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: transform 0.2s ease;
+    }
+
+    &::after {
+        content: none !important;
+    }
+
+    &:checked {
+        background: #C9A060 !important;
+        box-shadow: 0 0 8px rgba(201, 160, 96, 0.4) !important;
+    }
+
+    &:checked::before {
+        transform: translateX(calc(var(--dh-qa-toggle-width) - var(--dh-qa-toggle-height)));
+    }
+
+    &:focus-visible {
+        outline: 2px solid #C9A060;
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 }
