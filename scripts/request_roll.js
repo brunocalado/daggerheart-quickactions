@@ -8,6 +8,21 @@ import { buildChatCard } from "./helpers.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/** @type {number} Max characters kept for each name part ("Actor" / "User") in the Send To list before an ellipsis is applied. */
+const SEND_TO_NAME_PART_LIMIT = 14;
+
+/**
+ * Truncates a name to a fixed maximum length, appending an ellipsis when cut.
+ * Keeps combined "Actor - User" labels in the Send To list from overflowing the column.
+ * @param {string} name
+ * @param {number} maxLength
+ * @returns {string}
+ */
+function truncateName(name, maxLength) {
+    if (!name || name.length <= maxLength) return name;
+    return `${name.slice(0, maxLength - 1)}…`;
+}
+
 // ==================================================================
 // REQUEST ROLL APP
 // ==================================================================
@@ -24,7 +39,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "request-roll-app",
         classes: ["dh-qa-app", "request-roll-app"],
         window: { title: "Roll Configuration", icon: "fas fa-dice-d20", resizable: false, controls: [] },
-        position: { width: 650, height: "auto" }, // Increased Width for 2 columns
+        position: { width: 740, height: "auto" }, // Widened to fit "Actor - User" labels in the Send To column
         actions: {
             roll: RequestRollApp.prototype._onRoll,
             cancel: RequestRollApp.prototype._onCancel,
@@ -38,11 +53,20 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _prepareContext(options) {
         // Filter users to remove GMs and keep only active users
-        const connectedUsers = game.users.filter(u => u.active && !u.isGM).map(u => ({
-            id: u.id,
-            name: u.name,
-            color: u.color.css
-        }));
+        const connectedUsers = game.users.filter(u => u.active && !u.isGM).map(u => {
+            const actorName = u.character?.name ?? null;
+            const label = actorName
+                ? `${truncateName(actorName, SEND_TO_NAME_PART_LIMIT)} - ${truncateName(u.name, SEND_TO_NAME_PART_LIMIT)}`
+                : truncateName(u.name, SEND_TO_NAME_PART_LIMIT);
+            const fullLabel = actorName ? `${actorName} - ${u.name}` : u.name;
+
+            return {
+                id: u.id,
+                label,
+                fullLabel,
+                color: u.color.css
+            };
+        });
         
         // Retrieve cinematic mode flag
         const savedCinematic = game.user.getFlag(MODULE_ID, "cinematicMode") ?? false;

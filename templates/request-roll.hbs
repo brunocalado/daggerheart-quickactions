@@ -3,7 +3,7 @@
     /* Layout */
     .dh-main-layout { display: flex; gap: 15px; height: 100%; }
     .dh-left-col { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-    .dh-right-col { width: 150px; display: flex; flex-direction: column; gap: 5px; border-left: 1px solid #444; padding-left: 10px; max-height: 400px; }
+    .dh-right-col { width: 220px; display: flex; flex-direction: column; gap: 5px; border-left: 1px solid #444; padding-left: 10px; max-height: 400px; }
 
     /* Existing Styles Adapted */
     .dh-rr-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -55,6 +55,7 @@
         border-radius: 4px;
         transition: all 0.2s;
         font-weight: bold;
+        font-size: 0.9em;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -170,7 +171,7 @@
         <div class="dh-user-list">
             <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="all">All Players</button>
             {{#each connectedUsers}}
-            <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="{{this.id}}" style="--user-color: {{this.color}}; color: {{this.color}}">{{this.name}}</button>
+            <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="{{this.id}}" style="--user-color: {{this.color}}; color: {{this.color}}" title="{{this.fullLabel}}">{{this.label}}</button>
             {{/each}}
         </div>
         <button type="button" class="dh-send-btn" data-action="roll" disabled>

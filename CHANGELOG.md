@@ -1,3 +1,7 @@
+# 0.5.4
+
+- [Added] Request Roll: the "Send To" list now shows each connected player's linked character name alongside their username, formatted as `Character - Username`, when that player has an actor assigned. Both name parts are truncated with an ellipsis past a fixed default length so long names don't overflow the column; hover a name to see the untruncated version. The Send To column and window were widened to fit the extra text.
+
 # 0.5.3
 
 - [Added] **Barter**: player-to-player trading between two users who each have a linked `character` actor. The window shows your own inventory on the left as an icon grid split into Weapons / Armor / Consumables / Loot tabs — clicking an icon puts it on the table with a green border, and stacked items get a quantity stepper. Coins can be offered alongside items, honoring whichever currencies the world has enabled. Pick a connected player, press **Start Trade**, and the same window opens on their screen showing your offer; they can add items and coins of their own or accept as-is. Editing an offer revokes both confirmations, so an agreed trade can never be swapped out from under either side.
