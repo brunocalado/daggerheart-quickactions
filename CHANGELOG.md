@@ -5,6 +5,7 @@
 - [Changed] Barter: the currency row was rebuilt as a two-column grid — two currencies per line, with label, input and "/ owned" total aligned in columns. Disabled currencies simply leave fewer cells filled.
 - [Fixed] Barter: the portrait in the trade partner list overflowed its row and overlapped the entry's border. Both core and the system size bare `img` elements, so the thumbnail is now pinned on every axis and the row clips its own contents.
 - [Fixed] Barter: the currency inputs were far taller than the labels beside them, because they inherited Foundry's default input sizing. Their height is now pinned to the label's line height, so the whole row reads as one line.
+- [Changed] The **Quick Actions** button in the character sheet header now carries a gold border matching its label, so it reads as a button rather than loose text next to the window controls. Hovering brightens the border and adds a soft gold glow.
 - [Fixed] Barter: **Approve Trade** / **Start Trade** and **Cancel** rendered at visibly different heights — Cancel had a 1px border and an inherited font size against the others' 2px border and explicit size. All three footer buttons now share one box model.
 
 # 0.5.6
