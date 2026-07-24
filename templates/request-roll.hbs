@@ -43,7 +43,21 @@
     .dh-cb-label { display: flex; align-items: center; gap: 10px; color: #e0e0e0; cursor: pointer; font-size: 0.95em; margin-bottom: 0; }
     .dh-sq-btn { width: 32px; height: 30px; padding: 0; border: 1px solid #555; background: #191919; color: #C9A060; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.2s; font-size: 0.9em; }
     .dh-sq-btn:hover { background: #C9A060; color: #191919; }
+    .dh-sq-btn.active { background: #C9A060; color: #191919; border-color: #C9A060; }
     .dh-dc-wrapper { display: flex; align-items: center; gap: 4px; flex: 1; }
+
+    /* Suggested labels panel — collapsed by default, expanded by the bulb button next to
+       the Label field. `[hidden]` needs an explicit rule because `display: flex` below
+       would otherwise beat the attribute's default `display: none`. */
+    .dh-suggestions { display: flex; flex-direction: column; align-items: stretch; gap: 10px; background: rgba(0,0,0,0.25); border: 1px solid #444; border-radius: 4px; padding: 10px; max-height: 260px; overflow-y: auto; }
+    .dh-suggestions[hidden] { display: none; }
+    /* Trait heading stacks above its chips so both start flush against the panel's
+       left edge — the labels are long enough that an indented column would wrap badly. */
+    .dh-suggestion-group { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+    .dh-suggestion-trait { color: #C9A060; font-weight: bold; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.5px; text-align: left; }
+    .dh-suggestion-chips { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px; width: 100%; }
+    .dh-suggestion-chip { background: #191919; color: #e0e0e0; border: 1px solid #666; border-radius: 12px; padding: 3px 12px; font-size: 0.85em; line-height: 1.4; white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+    .dh-suggestion-chip:hover { background: #C9A060; color: #191919; border-color: #C9A060; }
     
     /* User Buttons (Right Column) */
     .dh-user-btn {
@@ -161,6 +175,25 @@
         <div class="dh-rr-row">
             <label class="dh-rr-label">Label</label>
             <input type="text" name="label" class="dh-rr-input" placeholder="Optional description...">
+            <button type="button" class="dh-sq-btn" data-action="toggleSuggestions" aria-expanded="false"
+                    title="Suggested labels" aria-label="Suggested labels">
+                <i class="fas fa-lightbulb"></i>
+            </button>
+        </div>
+
+        <div class="dh-suggestions" hidden>
+            {{#each labelSuggestions}}
+            <div class="dh-suggestion-group">
+                <span class="dh-suggestion-trait">{{this.traitLabel}}</span>
+                <div class="dh-suggestion-chips">
+                    {{#each this.suggestions}}
+                    <button type="button" class="dh-suggestion-chip" data-action="applySuggestion"
+                            data-label="{{this.label}}" data-trait="{{../trait}}"
+                            data-tooltip="{{this.hint}}">{{this.label}}</button>
+                    {{/each}}
+                </div>
+            </div>
+            {{/each}}
         </div>
 
         <button type="button" class="dh-btn-cancel" data-action="cancel">Cancel</button>

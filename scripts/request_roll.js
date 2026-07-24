@@ -23,6 +23,87 @@ function truncateName(name, maxLength) {
     return `${name.slice(0, maxLength - 1)}…`;
 }
 
+/**
+ * Ready-made roll labels, grouped by the trait each one usually calls for. `label` is both
+ * the chip caption and the text dropped into the Label field; `hint` is shown as a tooltip
+ * so the panel stays compact while still explaining what each action covers.
+ *
+ * Picking one fills the Label field and pre-selects that trait as a shortcut — the trait
+ * stays freely changeable afterwards, so the pairing is a hint, never a lock.
+ * @type {Readonly<Array<{trait: string, traitLabel: string, suggestions: Array<{label: string, hint: string}>}>>}
+ */
+const LABEL_SUGGESTIONS = Object.freeze([
+    {
+        trait: "agility",
+        traitLabel: "Agility",
+        suggestions: [
+            { label: "Sprint / Maneuver", hint: "Run at high speed or dodge dynamic obstacles." },
+            { label: "Leap", hint: "Jump across gaps, crevices, or reach elevations." },
+            { label: "Dodge / Evade", hint: "Duck away from immediate danger (falling rocks, traps)." },
+            { label: "Acrobatics / Balance", hint: "Cross unstable surfaces, tightropes, or narrow spaces." },
+            { label: "Scale", hint: "Quickly climb walls or trees using agility, not just strength." },
+            { label: "Catch", hint: "Grab falling objects or people mid-air." }
+        ]
+    },
+    {
+        trait: "strength",
+        traitLabel: "Strength",
+        suggestions: [
+            { label: "Lift / Push / Pull", hint: "Hoist, move, or drag massive and heavy objects." },
+            { label: "Smash / Break / Wreck", hint: "Destroy the environment, bash down doors, or break chains." },
+            { label: "Grapple", hint: "Physically grab and restrain a creature." },
+            { label: "Endure", hint: "Withstand physical exhaustion, hold your breath, resist continuous pain." },
+            { label: "Intimidate (Physical)", hint: "Coerce through a display of brute force (e.g., breaking something in front of the target)." }
+        ]
+    },
+    {
+        trait: "finesse",
+        traitLabel: "Finesse",
+        suggestions: [
+            { label: "Control / Manipulate", hint: "Handle delicate objects with extreme fine motor coordination." },
+            { label: "Hide / Sneak / Prowl", hint: "Conceal yourself and move in absolute silence to avoid detection." },
+            { label: "Tinker / Disable / Pick Lock", hint: "Create and fix mechanisms, disarm traps, or pick complex locks." },
+            { label: "Pickpocket / Sleight of Hand", hint: "Steal small objects or hide items without being noticed." },
+            { label: "Aim", hint: "Make extremely precise shots or throws outside the pace of combat." }
+        ]
+    },
+    {
+        trait: "instinct",
+        traitLabel: "Instinct",
+        suggestions: [
+            { label: "Perceive / Sense", hint: "Notice unobvious details, feel changes in the environment, hidden dangers, or intentions." },
+            { label: "Navigate", hint: "Orient yourself in unknown terrain, find the way." },
+            { label: "Track", hint: "Follow physical trails or identify natural disturbances left by creatures." },
+            { label: "Forage / Survive", hint: "Find food, drinkable water, and safe shelters in hostile environments." },
+            { label: "Anticipate / React", hint: "Act in a split second when faced with surprises or imminent ambushes." },
+            { label: "Handle Animal", hint: "Calm wild beasts or control unruly mounts." }
+        ]
+    },
+    {
+        trait: "presence",
+        traitLabel: "Presence",
+        suggestions: [
+            { label: "Charm / Persuade / Convince", hint: "Change someone's mind through dialogue, empathy, or magnetism." },
+            { label: "Perform", hint: "Entertain, draw attention, or convey emotions through acting or art." },
+            { label: "Deceive", hint: "Lie, cheat, or omit information while maintaining a convincing posture." },
+            { label: "Intimidate (Verbal/Social)", hint: "Impose authority, threaten verbally, or use status to generate fear." },
+            { label: "Command / Inspire", hint: "Motivate allies to endure, organize panicking people, or lead." },
+            { label: "Distract", hint: "Calculatedly become the center of attention to provide cover for allies." }
+        ]
+    },
+    {
+        trait: "knowledge",
+        traitLabel: "Knowledge",
+        suggestions: [
+            { label: "Recall", hint: "Accurately remember facts, history, legends, or academic information." },
+            { label: "Analyse / Investigate", hint: "Systematically search for clues and deduce events from a scene." },
+            { label: "Comprehend / Decipher", hint: "Understand theoretical mechanics, break codes, translate languages." },
+            { label: "Strategize", hint: "Formulate action or battle plans based on maps, geography, or military theory." },
+            { label: "Treat / Medic", hint: "Identify properties of plants and poisons, or systematically apply medical first aid." }
+        ]
+    }
+]);
+
 // ==================================================================
 // REQUEST ROLL APP
 // ==================================================================
@@ -43,7 +124,9 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         actions: {
             roll: RequestRollApp.prototype._onRoll,
             cancel: RequestRollApp.prototype._onCancel,
-            toggleUser: RequestRollApp.prototype._onTargetToggle
+            toggleUser: RequestRollApp.prototype._onTargetToggle,
+            toggleSuggestions: RequestRollApp.prototype._onToggleSuggestions,
+            applySuggestion: RequestRollApp.prototype._onApplySuggestion
         }
     };
 
@@ -73,6 +156,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         return {
             connectedUsers,
+            labelSuggestions: LABEL_SUGGESTIONS,
             cinematicMode: savedCinematic,
             difficulty: 15
         };
@@ -152,6 +236,52 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 dcInput.value = "";
             };
         }
+    }
+
+    /**
+     * Shows or hides the suggested-label panel, keeping the toggle button's visual and
+     * ARIA state in sync. The window is sized to its content, so it has to be re-measured
+     * whenever the panel changes the form's height.
+     * @param {boolean} visible - Whether the panel should be shown.
+     */
+    _setSuggestionsVisible(visible) {
+        const html = this.element;
+        const panel = html.querySelector(".dh-suggestions");
+        const toggleBtn = html.querySelector('[data-action="toggleSuggestions"]');
+        if (!panel) return;
+
+        panel.hidden = !visible;
+        toggleBtn?.classList.toggle("active", visible);
+        toggleBtn?.setAttribute("aria-expanded", String(visible));
+        this.setPosition({ height: "auto" });
+    }
+
+    /**
+     * Opens or closes the suggested-label panel next to the Label field.
+     * Triggered by data-action="toggleSuggestions".
+     * @param {PointerEvent} event
+     * @param {HTMLElement} target - The clicked toggle button.
+     */
+    _onToggleSuggestions(event, target) {
+        this._setSuggestionsVisible(target.getAttribute("aria-expanded") !== "true");
+    }
+
+    /**
+     * Fills the Label field with the chosen suggestion and pre-selects its matching trait.
+     * The trait button is clicked rather than updated directly so selection runs through the
+     * same logic wired in `_onRender` — which also means the trait is only pre-selected, and
+     * the GM stays free to pick a different one (or a Hope/Fear/Loot roll) afterwards.
+     * Triggered by data-action="applySuggestion".
+     * @param {PointerEvent} event
+     * @param {HTMLElement} target - The clicked suggestion chip.
+     */
+    _onApplySuggestion(event, target) {
+        const html = this.element;
+        const labelInput = html.querySelector('input[name="label"]');
+        if (labelInput) labelInput.value = target.dataset.label ?? "";
+
+        html.querySelector(`.dh-trait-btn[data-trait="${target.dataset.trait}"]`)?.click();
+        this._setSuggestionsVisible(false);
     }
 
     /**
