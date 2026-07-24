@@ -1,3 +1,12 @@
+# 0.5.7
+
+- [Added] Barter: **party stash trading**. The "Trade With" list now carries a **Party** group above the players, listing every party sheet that names your character as a member *and* that you hold Owner permission on — without ownership the option is not offered at all, since the transfer could not be written. Picking one turns the right-hand column into a second editable inventory: the left column is what you give the party, the right is what you take from it, with the same tabs, quantity steppers and currency fields on both sides. There is no invite, no confirmation step and no GM involved — you already own both actors, so your own client settles it the moment you press **Complete Transfer**. It still runs through the same validation against live actor data and the same single `foundry.documents.modifyBatch` call as a player trade, so it applies in full or not at all, and it posts the same chat receipt.
+- [Changed] Barter: entries in the trade partner list now read as `Character - Username` on a single line instead of stacking the two names, with the username kept in that user's own color. Party entries use the same shape, tagged *Party Stash* in place of a username.
+- [Changed] Barter: the currency row was rebuilt as a two-column grid — two currencies per line, with label, input and "/ owned" total aligned in columns. Disabled currencies simply leave fewer cells filled.
+- [Fixed] Barter: the portrait in the trade partner list overflowed its row and overlapped the entry's border. Both core and the system size bare `img` elements, so the thumbnail is now pinned on every axis and the row clips its own contents.
+- [Fixed] Barter: the currency inputs were far taller than the labels beside them, because they inherited Foundry's default input sizing. Their height is now pinned to the label's line height, so the whole row reads as one line.
+- [Fixed] Barter: **Approve Trade** / **Start Trade** and **Cancel** rendered at visibly different heights — Cancel had a 1px border and an inherited font size against the others' 2px border and explicit size. All three footer buttons now share one box model.
+
 # 0.5.6
 
 - [Added] **Interface Settings** window (GM only), reachable from *Configure Settings → Module Settings*. It collects the world-wide interface changes this module makes in one place instead of leaving them scattered through the settings list.

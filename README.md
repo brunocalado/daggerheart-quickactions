@@ -27,7 +27,11 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 * **🪂 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far/Very Far", and "Collision" tiers, with dice formulas the GM can fully customize.
 * **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label; optionally send it as a "cinematic" full-screen prompt.
 * **💬 Whisper:** Send a private message to any number of connected users, via `QuickActions.Whisper()`. Pick the recipients from the list (GMs are flagged with a crown), type the message, and hit send — it arrives as a whispered chat card visible only to them. The text is plain: anything you type is delivered literally, so pasted HTML shows up as text instead of being rendered. Ctrl+Enter sends without leaving the keyboard.
-* **🤝 Barter:** Player-to-player trading, via `QuickActions.Barter()`. Both traders need a linked `character` actor. Your inventory shows as an icon grid split into **Weapons / Armor / Consumables / Loot** tabs — click an icon to put it on the table (selected items get a green border; stacks get a small quantity stepper). Pick a connected player, hit **Start Trade**, and the same window opens on their screen with your offer already laid out. They can add items and coins of their own or accept as-is; once they confirm, you approve and the swap happens. Any edit after a confirmation cancels it, so nobody can lock in an offer and then quietly change it. A GM must be connected: the actual transfer is written by the GM client in a single batch, so it either goes through completely or not at all, and it is posted to chat as a receipt.
+* **🤝 Barter:** Trade items and coins, via `QuickActions.Barter()`. You need a linked `character` actor. Your inventory shows as an icon grid split into **Weapons / Armor / Consumables / Loot** tabs — click an icon to put it on the table (selected items get a green border; stacks get a small quantity stepper), and offer coins alongside them in whichever currencies the world has enabled. The "Trade With" list then lets you pick either:
+  * **Another player** (they also need a linked `character` actor). Hit **Start Trade** and the same window opens on their screen with your offer already laid out. They can add items and coins of their own or accept as-is; once they confirm, you approve and the swap happens. Any edit after a confirmation cancels it, so nobody can lock in an offer and then quietly change it. A GM must be connected: the actual transfer is written by the GM client in a single batch, so it either goes through completely or not at all.
+  * **A party stash** — any party sheet that lists your character as a member *and* that you hold **Owner** permission on. There is no invite and no approval step here: the right-hand column becomes the party's own inventory, so you give from the left and take from the right in the same window, then hit **Complete Transfer**. Your own client writes it, so no GM needs to be online. If a party you expect is missing from the list, check its ownership — without Owner permission on the party actor the option is hidden, since the transfer could not be written.
+
+  Either way the result is posted to chat as a receipt.
 * **🆙 Level Up:** Walk a player character through leveling up directly from the menu.
 * **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving player's character sheet when possible.
 * **✨ Spend Hope:** A quick picker for spending 1–6 Hope from the selected token's actor.
@@ -124,7 +128,8 @@ QuickActions.Whisper();
 ```
 
 ```javascript
-// Opens the Barter window — trade items and coins with another connected player.
+// Opens the Barter window — trade items and coins with another connected
+// player, or with a party stash your character belongs to.
 QuickActions.Barter();
 ```
 

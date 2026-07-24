@@ -7,10 +7,13 @@
  */
 
 /**
- * Barter — peer-to-peer trading of inventory items and currency between two users who each
- * have a linked `character` actor.
+ * Barter — trading of inventory items and currency, either peer-to-peer between two users who
+ * each have a linked `character` actor, or between a character and a party stash it belongs to.
  *
- * Two transport layers are used, per the split described in CLAUDE.md §7:
+ * Party trades are purely local: the requester already owns both actors, so there is no invite,
+ * no confirmation and no GM round trip — they give and take in a single batch of their own.
+ *
+ * Peer-to-peer trades use two transport layers, per the split described in CLAUDE.md §7:
  * - `game.socket` broadcasts carry the fire-and-forget session chatter (invite, offer sync,
  *   cancel, completion). Every client receives them and drops anything not addressed to it.
  * - A registered User query asks an active GM to settle the trade. Players cannot write to each
@@ -25,6 +28,9 @@ const { ApplicationV2, HandlebarsApplicationMixin, DialogV2 } = foundry.applicat
 
 /** Inventory item types that can be bartered, in tab order. @type {string[]} */
 const BARTER_ITEM_TYPES = ["weapon", "armor", "consumable", "loot"];
+
+/** Actor type of the Daggerheart party sheet, which carries its own inventory and purse. */
+const PARTY_TYPE = "party";
 
 /** Font Awesome icon shown on each inventory tab. */
 const BARTER_TAB_ICONS = Object.freeze({
@@ -80,12 +86,45 @@ let currentApp = null;
 
 /**
  * Builds an empty offer side.
- * @param {string} [userId=""] - Id of the user who owns this side.
- * @param {string} [actorUuid=""] - Uuid of that user's linked character.
+ * @param {string} [userId=""] - Id of the user who owns this side. Empty for a party stash, which
+ *   nobody drives from the other end.
+ * @param {string} [actorUuid=""] - Uuid of that side's actor.
  * @returns {{userId: string, actorUuid: string, items: object[], gold: object, locked: boolean}}
  */
 function emptySide(userId = "", actorUuid = "") {
     return { userId, actorUuid, items: [], gold: {}, locked: false };
+}
+
+/**
+ * Tests whether a character is listed on a party sheet. `system.partyMembers` is a
+ * `ForeignDocumentUUIDArrayField`, so entries arrive as resolved Actor documents at runtime but
+ * as `"Actor.<id>"` strings in raw source data — both shapes are accepted here, and members whose
+ * actor has since been deleted resolve to `null` and are skipped.
+ * @param {foundry.documents.Actor} party - The party actor to inspect.
+ * @param {foundry.documents.Actor} actor - The character to look for.
+ * @returns {boolean} True when the character is a member of that party.
+ */
+function partyIncludesActor(party, actor) {
+    return (party.system?.partyMembers ?? []).some(member => {
+        if (!member) return false;
+        const uuid = typeof member === "string" ? member : member.uuid;
+        if (!uuid) return false;
+        return uuid === actor.uuid || String(uuid).split(".").pop() === actor.id;
+    });
+}
+
+/**
+ * Lists the party stashes the given character may trade with — a party actor that names the
+ * character as a member and that the current user holds OWNER permission on. Without ownership
+ * the user could not write to the stash, so the option is not offered at all.
+ * @param {foundry.documents.Actor} actor - The character opening the trade.
+ * @returns {Array<{uuid: string, name: string, img: string}>} Eligible parties, sorted by name.
+ */
+function getEligibleParties(actor) {
+    return game.actors
+        .filter(party => party.type === PARTY_TYPE && party.isOwner && partyIncludesActor(party, actor))
+        .map(party => ({ uuid: party.uuid, name: party.name, img: party.img }))
+        .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
@@ -175,11 +214,15 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         /** @type {foundry.documents.Actor} The local user's linked character. */
         this.actor = foundry.utils.fromUuidSync(session[side].actorUuid);
 
-        /** @type {string} Currently visible inventory tab. */
-        this._activeTab = BARTER_ITEM_TYPES[0];
+        /** @type {{mine: string, theirs: string}} Currently visible inventory tab, per panel. */
+        this._activeTabs = { mine: BARTER_ITEM_TYPES[0], theirs: BARTER_ITEM_TYPES[0] };
 
-        /** @type {string|null} User picked in the "Start Trade" list (initiator, draft state only). */
-        this._selectedUserId = null;
+        /**
+         * Entry picked in the "Trade With" list (initiator, draft state only). `id` is a user id
+         * for a player and an Actor uuid for a party stash.
+         * @type {{type: "user"|"party", id: string}|null}
+         */
+        this._selectedTarget = null;
 
         /** @type {boolean} Suppresses the cancel broadcast when the window closes for a known reason. */
         this._closingQuietly = false;
@@ -195,10 +238,11 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             selectTab: BarterApp.prototype._onSelectTab,
             toggleItem: BarterApp.prototype._onToggleItem,
             stepQuantity: BarterApp.prototype._onStepQuantity,
-            selectUser: BarterApp.prototype._onSelectUser,
+            selectTarget: BarterApp.prototype._onSelectTarget,
             startTrade: BarterApp.prototype._onStartTrade,
             toggleLock: BarterApp.prototype._onToggleLock,
             approve: BarterApp.prototype._onApprove,
+            transfer: BarterApp.prototype._onTransfer,
             cancel: BarterApp.prototype._onCancel
         }
     };
@@ -206,9 +250,14 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static PARTS = {
         content: {
             template: `modules/${MODULE_ID}/templates/barter.hbs`,
-            // Foundry resolves each selector with querySelector, so the grid entry must name the
-            // one tab that is actually visible rather than all four.
-            scrollable: [".dqa-barter-grid.active", ".dqa-barter-peer-items", ".dqa-barter-users"]
+            // Foundry resolves each selector with querySelector, so each entry must name exactly
+            // one element: the visible tab of each panel rather than all four grids.
+            scrollable: [
+                ".dqa-barter-mine .dqa-barter-grid.active",
+                ".dqa-barter-theirs .dqa-barter-grid.active",
+                ".dqa-barter-peer-items",
+                ".dqa-barter-users"
+            ]
         }
     };
 
@@ -232,22 +281,48 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return this.side === "initiator";
     }
 
+    /** @returns {boolean} Whether the trade partner is a party stash rather than another user. */
+    get isParty() {
+        return this.session.mode === "party";
+    }
+
+    /**
+     * Resolves one of the two panels to its half of the session.
+     * @param {"mine"|"theirs"} side - Panel identifier carried by every tab, tile and gold input.
+     * @returns {object} The matching half of the session.
+     */
+    _sideState(side) {
+        return side === "theirs" ? this.theirs : this.mine;
+    }
+
+    /**
+     * Resolves one of the two panels to the actor whose inventory it shows. Only the party stash
+     * makes the right-hand panel editable, so every other state resolves it to `null`.
+     * @param {"mine"|"theirs"} side - Panel identifier.
+     * @returns {foundry.documents.Actor|null} The actor backing that panel.
+     */
+    _sideActor(side) {
+        if (side !== "theirs") return this.actor;
+        return this.isParty ? foundry.utils.fromUuidSync(this.theirs.actorUuid) : null;
+    }
+
     /* -------------------------------------------- */
     /*  Rendering                                   */
     /* -------------------------------------------- */
 
     /**
-     * Builds the two-column context: own inventory grouped into tabs on the left, the peer's
-     * offer (or the user picker) on the right.
-     * @param {object} _options - Render options (unused).
-     * @returns {Promise<object>} Template context.
+     * Builds one inventory panel: the actor's tradeable items grouped into tabs, each tile marked
+     * with how many of it the matching half of the session already puts on the table.
+     * @param {foundry.documents.Actor} actor - Actor whose inventory the panel shows.
+     * @param {"mine"|"theirs"} side - Panel identifier, stamped onto every tab so the template can
+     *   route clicks back to the right half of the session.
+     * @returns {object[]} Tab descriptors ready for the `dqaBarterInventory` partial.
      */
-    async _prepareContext(_options) {
-        const currencies = getCurrencies();
-        const offered = new Map(this.mine.items.map(entry => [entry.id, entry.quantity]));
+    _buildTabs(actor, side) {
+        const offered = new Map(this._sideState(side).items.map(entry => [entry.id, entry.quantity]));
 
-        const tabs = BARTER_ITEM_TYPES.map(type => {
-            const items = (this.actor.itemTypes[type] ?? []).map(item => {
+        return BARTER_ITEM_TYPES.map(type => {
+            const items = (actor.itemTypes[type] ?? []).map(item => {
                 const owned = Math.max(1, item.system?.quantity ?? 1);
                 const quantity = offered.get(item.id) ?? 0;
                 return {
@@ -262,34 +337,75 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
             return {
                 type,
+                side,
                 label: game.i18n.localize(`TYPES.Item.${type}`),
                 icon: BARTER_TAB_ICONS[type],
                 count: items.length,
                 items,
-                active: type === this._activeTab
+                active: type === this._activeTabs[side]
             };
         });
+    }
 
-        const myGold = currencies.map(currency => ({
+    /**
+     * Builds the currency row of one panel.
+     * @param {foundry.documents.Actor} actor - Actor whose purse the row shows.
+     * @param {"mine"|"theirs"} side - Panel identifier, stamped onto every input.
+     * @param {Array<{key: string, label: string, icon: string}>} currencies - Enabled currencies.
+     * @returns {object[]} Currency descriptors ready for the `dqaBarterGold` partial.
+     */
+    _buildGold(actor, side, currencies) {
+        const state = this._sideState(side);
+        return currencies.map(currency => ({
             ...currency,
-            owned: this.actor.system?.gold?.[currency.key] ?? 0,
-            offered: this.mine.gold[currency.key] ?? 0
+            side,
+            owned: actor.system?.gold?.[currency.key] ?? 0,
+            offered: state.gold[currency.key] ?? 0
         }));
+    }
+
+    /**
+     * Whether one half of the session puts anything at all on the table.
+     * @param {"mine"|"theirs"} side - Panel identifier.
+     * @returns {boolean} True when at least one item or coin is offered.
+     */
+    _hasOffer(side) {
+        const state = this._sideState(side);
+        return !!state.items.length || Object.values(state.gold).some(amount => amount > 0);
+    }
+
+    /**
+     * Builds the two-column context: own inventory grouped into tabs on the left, and on the
+     * right either the partner picker, the peer's offer, or the editable party stash.
+     * @param {object} _options - Render options (unused).
+     * @returns {Promise<object>} Template context.
+     */
+    async _prepareContext(_options) {
+        const currencies = getCurrencies();
+        const isDraft = this.session.status === "draft";
+        const isParty = this.isParty;
 
         const peerUser = this.theirs.userId ? game.users.get(this.theirs.userId) : null;
         const peerActor = this.theirs.actorUuid ? foundry.utils.fromUuidSync(this.theirs.actorUuid) : null;
 
-        return {
+        const users = isDraft ? getEligibleUsers() : [];
+        const parties = isDraft ? getEligibleParties(this.actor) : [];
+        for (const user of users) user.selected = this._selectedTarget?.type === "user" && this._selectedTarget.id === user.id;
+        for (const party of parties) party.selected = this._selectedTarget?.type === "party" && this._selectedTarget.id === party.uuid;
+
+        const context = {
             status: this.session.status,
-            isDraft: this.session.status === "draft",
+            isDraft,
             isPending: this.session.status === "pending",
             isActive: this.session.status === "active",
+            isParty,
             isInitiator: this.isInitiator,
 
+            mineTitle: isParty ? "You Give" : "Your Offer",
             actorName: this.actor.name,
             actorImg: this.actor.img,
-            tabs,
-            myGold,
+            tabs: this._buildTabs(this.actor, "mine"),
+            myGold: this._buildGold(this.actor, "mine", currencies),
             myLocked: this.mine.locked,
             myOfferCount: this.mine.items.length,
 
@@ -303,11 +419,25 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             peerLocked: this.theirs.locked,
             peerEmpty: !this.theirs.items.length && !Object.values(this.theirs.gold).some(v => v > 0),
 
-            users: this.session.status === "draft" ? getEligibleUsers() : [],
-            selectedUserId: this._selectedUserId,
-            canStart: this.session.status === "draft" && !!this._selectedUserId,
+            users,
+            parties,
+            hasTargets: !!(users.length || parties.length),
+            canStart: isDraft && !!this._selectedTarget,
             canApprove: this.isInitiator && this.session.status === "active" && this.theirs.locked
         };
+
+        if (isParty) {
+            // A party sheet the user owns is an ordinary actor with its own inventory and purse,
+            // so the right-hand panel is built exactly like the left one.
+            context.partyName = peerActor?.name ?? "";
+            context.partyImg = peerActor?.img ?? "icons/svg/mystery-man.svg";
+            context.partyTabs = peerActor ? this._buildTabs(peerActor, "theirs") : [];
+            context.partyGold = peerActor ? this._buildGold(peerActor, "theirs", currencies) : [];
+            context.partyTakeCount = this.theirs.items.length;
+            context.canTransfer = this._hasOffer("mine") || this._hasOffer("theirs");
+        }
+
+        return context;
     }
 
     /**
@@ -328,39 +458,48 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /* -------------------------------------------- */
 
     /**
-     * Switches the visible inventory tab without a full re-render, so the grid scroll position
-     * of the other tabs survives. Triggered by `data-action="selectTab"`.
+     * Switches the visible inventory tab of one panel without a full re-render, so the grid
+     * scroll position of the other tabs survives. Triggered by `data-action="selectTab"`.
      * @param {PointerEvent} _event - The originating click (unused).
-     * @param {HTMLElement} target - The clicked tab button carrying `data-tab`.
+     * @param {HTMLElement} target - The clicked tab button carrying `data-side` and `data-tab`.
      * @returns {void}
      */
     _onSelectTab(_event, target) {
+        const side = target.dataset.side;
         const tab = target.dataset.tab;
-        if (!BARTER_ITEM_TYPES.includes(tab)) return;
-        this._activeTab = tab;
+        if (!BARTER_ITEM_TYPES.includes(tab) || !(side in this._activeTabs)) return;
+        this._activeTabs[side] = tab;
 
-        for (const button of this.element.querySelectorAll(".dqa-barter-tab")) {
+        // Both panels can carry a tab strip in party mode, so the swap is scoped to the one that
+        // was actually clicked.
+        const panel = target.closest(".dqa-barter-side");
+        if (!panel) return;
+
+        for (const button of panel.querySelectorAll(".dqa-barter-tab")) {
             button.classList.toggle("active", button.dataset.tab === tab);
         }
-        for (const grid of this.element.querySelectorAll(".dqa-barter-grid")) {
+        for (const grid of panel.querySelectorAll(".dqa-barter-grid")) {
             grid.classList.toggle("active", grid.dataset.tab === tab);
         }
     }
 
     /**
-     * Adds or removes an item from this client's offer. Triggered by `data-action="toggleItem"`.
+     * Adds or removes an item from one side of the table. Triggered by `data-action="toggleItem"`.
      * @param {PointerEvent} _event - The originating click (unused).
-     * @param {HTMLElement} target - The clicked tile carrying `data-item-id`.
+     * @param {HTMLElement} target - The clicked tile carrying `data-side` and `data-item-id`.
      * @returns {void}
      */
     _onToggleItem(_event, target) {
+        const side = target.dataset.side ?? "mine";
+        const actor = this._sideActor(side);
         const itemId = target.dataset.itemId;
-        const item = this.actor.items.get(itemId);
+        const item = actor?.items.get(itemId);
         if (!item) return;
 
-        const index = this.mine.items.findIndex(entry => entry.id === itemId);
-        if (index >= 0) this.mine.items.splice(index, 1);
-        else this.mine.items.push({ id: itemId, name: item.name, img: item.img, quantity: 1 });
+        const state = this._sideState(side);
+        const index = state.items.findIndex(entry => entry.id === itemId);
+        if (index >= 0) state.items.splice(index, 1);
+        else state.items.push({ id: itemId, name: item.name, img: item.img, quantity: 1 });
 
         this._onOfferChanged();
     }
@@ -368,15 +507,18 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
      * Adjusts how many of a stacked item are offered. Triggered by `data-action="stepQuantity"`.
      * @param {PointerEvent} _event - The originating click (unused).
-     * @param {HTMLElement} target - The stepper button carrying `data-item-id` and `data-delta`.
+     * @param {HTMLElement} target - The stepper button carrying `data-side`, `data-item-id` and
+     *   `data-delta`.
      * @returns {void}
      */
     _onStepQuantity(_event, target) {
+        const side = target.dataset.side ?? "mine";
+        const actor = this._sideActor(side);
         const itemId = target.dataset.itemId;
-        const entry = this.mine.items.find(e => e.id === itemId);
-        if (!entry) return;
+        const entry = this._sideState(side).items.find(e => e.id === itemId);
+        if (!actor || !entry) return;
 
-        const owned = Math.max(1, this.actor.items.get(itemId)?.system?.quantity ?? 1);
+        const owned = Math.max(1, actor.items.get(itemId)?.system?.quantity ?? 1);
         const next = Math.clamp(entry.quantity + Number(target.dataset.delta), 1, owned);
         if (next === entry.quantity) return;
 
@@ -385,31 +527,34 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Clamps a currency input to what the actor actually holds and folds it into the offer.
-     * Bound in `_onRender`.
+     * Clamps a currency input to what the owning actor actually holds and folds it into that
+     * side of the table. Bound in `_onRender`.
      * @param {HTMLInputElement} input - The changed currency input.
      * @returns {void}
      */
     _onGoldChanged(input) {
+        const state = this._sideState(input.dataset.side ?? "mine");
         const key = input.dataset.currency;
         const owned = Number(input.dataset.owned) || 0;
         const amount = Math.clamp(Math.floor(Number(input.value) || 0), 0, owned);
 
         input.value = String(amount);
-        if (amount > 0) this.mine.gold[key] = amount;
-        else delete this.mine.gold[key];
+        if (amount > 0) state.gold[key] = amount;
+        else delete state.gold[key];
 
         this._onOfferChanged();
     }
 
     /**
-     * Applies the consequences of any change to this client's offer: the change invalidates both
-     * confirmations, is pushed to the peer, and the window is redrawn.
+     * Applies the consequences of any change to the table. In a peer trade the change invalidates
+     * both confirmations and is pushed to the partner; a party stash has no partner to notify.
      * @returns {void}
      */
     _onOfferChanged() {
-        this.mine.locked = false;
-        this._pushOffer(true);
+        if (!this.isParty) {
+            this.mine.locked = false;
+            this._pushOffer(true);
+        }
         this.render();
     }
 
@@ -438,32 +583,35 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /* -------------------------------------------- */
 
     /**
-     * Highlights the trade partner picked from the list. Triggered by `data-action="selectUser"`.
+     * Highlights the party stash or player picked from the list.
+     * Triggered by `data-action="selectTarget"`.
      * @param {PointerEvent} _event - The originating click (unused).
-     * @param {HTMLElement} target - The clicked user button carrying `data-user-id`.
+     * @param {HTMLElement} target - The clicked entry carrying `data-target-type` and `data-target-id`.
      * @returns {void}
      */
-    _onSelectUser(_event, target) {
-        this._selectedUserId = target.dataset.userId;
+    _onSelectTarget(_event, target) {
+        this._selectedTarget = { type: target.dataset.targetType, id: target.dataset.targetId };
 
-        for (const button of this.element.querySelectorAll(".dqa-barter-user")) {
-            button.classList.toggle("selected", button.dataset.userId === this._selectedUserId);
+        for (const button of this.element.querySelectorAll(".dqa-barter-target")) {
+            button.classList.toggle("selected", button.dataset.targetId === this._selectedTarget.id);
         }
         const startBtn = this.element.querySelector('[data-action="startTrade"]');
         if (startBtn) startBtn.disabled = false;
     }
 
     /**
-     * Sends the trade invite to the selected user. Triggered by `data-action="startTrade"`.
+     * Opens the selected trade: a party stash opens locally, a player gets an invite.
+     * Triggered by `data-action="startTrade"`.
      * @returns {void}
      */
     _onStartTrade() {
-        if (this.session.status !== "draft") return;
+        if (this.session.status !== "draft" || !this._selectedTarget) return;
+        if (this._selectedTarget.type === "party") return this._startPartyTrade();
 
-        const user = game.users.get(this._selectedUserId);
+        const user = game.users.get(this._selectedTarget.id);
         if (!user?.active || user.character?.type !== "character") {
             ui.notifications.warn("Barter: that user is no longer available to trade.");
-            this._selectedUserId = null;
+            this._selectedTarget = null;
             this.render();
             return;
         }
@@ -473,6 +621,28 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         emitBarter(MESSAGES.INVITE, [user.id], { session: this.session });
 
         ui.notifications.info(`Barter: trade request sent to ${user.name}.`);
+        this.render();
+    }
+
+    /**
+     * Switches the window into party mode. Nothing is sent over the socket: the user owns both
+     * the character and the stash, so the right-hand panel simply becomes a second editable
+     * inventory and the trade is settled locally when they press Complete Transfer.
+     * @returns {void}
+     */
+    _startPartyTrade() {
+        const party = foundry.utils.fromUuidSync(this._selectedTarget.id);
+        if (!party || party.type !== PARTY_TYPE || !party.isOwner || !partyIncludesActor(party, this.actor)) {
+            ui.notifications.warn("Barter: that party stash is no longer available.");
+            this._selectedTarget = null;
+            this.render();
+            return;
+        }
+
+        this.session.mode = "party";
+        this.session.status = "party";
+        this.session.recipient = emptySide("", party.uuid);
+        this._activeTabs.theirs = BARTER_ITEM_TYPES[0];
         this.render();
     }
 
@@ -523,6 +693,33 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
+     * Moves everything selected on both panels between the character and the party stash. There
+     * is no approval step: the user owns both actors, so this client writes the batch itself.
+     * Triggered by `data-action="transfer"`.
+     * @returns {Promise<void>}
+     */
+    async _onTransfer() {
+        if (!this.isParty) return;
+
+        const button = this.element.querySelector('[data-action="transfer"]');
+        if (button) button.disabled = true;
+
+        try {
+            await settlePartyTrade(this.session, this.actor);
+        } catch (error) {
+            if (button) button.disabled = false;
+            ui.notifications.error(`Barter: transfer failed — ${error.message}`);
+            console.error(`${MODULE_ID} | Barter party transfer failed`, error);
+            return;
+        }
+
+        this.session.status = "completed";
+        ui.notifications.info("Barter: party stash updated.");
+        this._closingQuietly = true;
+        this.close();
+    }
+
+    /**
      * Closes the window, which implicitly cancels the session. Triggered by `data-action="cancel"`.
      * @returns {Promise<void>}
      */
@@ -558,7 +755,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (!this.isInitiator) return;
                 this.session.recipient = emptySide();
                 this.session.status = "draft";
-                this._selectedUserId = null;
+                this._selectedTarget = null;
                 ui.notifications.warn(`Barter: ${game.users.get(data.senderId)?.name ?? "The other trader"} declined${data.reason ? ` — ${data.reason}` : ""}.`);
                 break;
 
@@ -721,42 +918,28 @@ function adjustGold(gold, actor, key, delta) {
 }
 
 /**
- * Settles a trade on behalf of both participants. Runs only on a GM client, which is the only
- * one permitted to write to both actors. Every modification goes into a single
- * `foundry.documents.modifyBatch` call: if any one of them is refused, none are applied.
- * @param {object} session - The session as agreed by both participants.
- * @param {foundry.documents.User} requester - The user who approved the trade.
- * @returns {Promise<{ok: true}>} Resolves once the batch has been written.
+ * Validates both halves of a session against live actor data and turns them into a settlement
+ * plan. Throws on the first inconsistency, so a plan that comes back is always complete.
+ * @param {object} session - The session as agreed by both sides.
+ * @param {foundry.documents.Actor} fromActor - The initiator's actor.
+ * @param {foundry.documents.Actor} toActor - The recipient's actor, or the party stash.
+ * @returns {object} The settlement plan.
  */
-async function settleBarter(session, requester) {
-    if (!game.user.isGM) throw new Error("only a Gamemaster can settle a trade");
-
-    const { initiator, recipient } = session ?? {};
-    if (!initiator?.actorUuid || !recipient?.actorUuid) throw new Error("the trade session is incomplete");
-    if (requester.id !== initiator.userId) throw new Error("only the user who started the trade can approve it");
-    if (!recipient.locked) throw new Error("the other trader has not confirmed their offer");
-
-    const [fromActor, toActor] = await Promise.all([
-        foundry.utils.fromUuid(initiator.actorUuid),
-        foundry.utils.fromUuid(recipient.actorUuid)
-    ]);
-    if (!fromActor || !toActor) throw new Error("one of the trading actors no longer exists");
-    if (fromActor.id === toActor.id) throw new Error("an actor cannot trade with itself");
-    if (fromActor.type !== "character" || toActor.type !== "character") throw new Error("both traders must use a character actor");
-
-    // The claimed actors must really belong to the claimed users — the session travelled over an
-    // untrusted socket, so nothing in it is taken on faith.
-    for (const [side, actor] of [[initiator, fromActor], [recipient, toActor]]) {
-        const user = game.users.get(side.userId);
-        if (!user) throw new Error("one of the traders is no longer connected");
-        if (user.character?.id !== actor.id) throw new Error(`${actor.name} is not ${user.name}'s assigned character`);
-    }
-
+function buildBarterPlan(session, fromActor, toActor) {
     const plan = { ledger: new Map(), creates: new Map(), gold: new Map(), summary: [] };
-    planTransfer(initiator, fromActor, toActor, plan);
-    planTransfer(recipient, toActor, fromActor, plan);
+    planTransfer(session.initiator, fromActor, toActor, plan);
+    planTransfer(session.recipient, toActor, fromActor, plan);
     if (!plan.summary.length) throw new Error("there is nothing to trade");
+    return plan;
+}
 
+/**
+ * Writes a settlement plan. Every modification goes into a single `foundry.documents.modifyBatch`
+ * call: if any one of them is refused, none are applied.
+ * @param {object} plan - A plan built by {@link buildBarterPlan}.
+ * @returns {Promise<void>} Resolves once the batch has been written.
+ */
+async function applyBarterPlan(plan) {
     const operations = [];
 
     for (const [actor, copies] of plan.creates) {
@@ -786,9 +969,63 @@ async function settleBarter(session, requester) {
     if (actorUpdates.length) operations.push({ action: "update", documentName: "Actor", updates: actorUpdates });
 
     await foundry.documents.modifyBatch(operations);
+}
+
+/**
+ * Settles a peer-to-peer trade on behalf of both participants. Runs only on a GM client, which is
+ * the only one permitted to write to both actors.
+ * @param {object} session - The session as agreed by both participants.
+ * @param {foundry.documents.User} requester - The user who approved the trade.
+ * @returns {Promise<{ok: true}>} Resolves once the batch has been written.
+ */
+async function settleBarter(session, requester) {
+    if (!game.user.isGM) throw new Error("only a Gamemaster can settle a trade");
+
+    const { initiator, recipient } = session ?? {};
+    if (!initiator?.actorUuid || !recipient?.actorUuid) throw new Error("the trade session is incomplete");
+    if (requester.id !== initiator.userId) throw new Error("only the user who started the trade can approve it");
+    if (!recipient.locked) throw new Error("the other trader has not confirmed their offer");
+
+    const [fromActor, toActor] = await Promise.all([
+        foundry.utils.fromUuid(initiator.actorUuid),
+        foundry.utils.fromUuid(recipient.actorUuid)
+    ]);
+    if (!fromActor || !toActor) throw new Error("one of the trading actors no longer exists");
+    if (fromActor.id === toActor.id) throw new Error("an actor cannot trade with itself");
+    if (fromActor.type !== "character" || toActor.type !== "character") throw new Error("both traders must use a character actor");
+
+    // The claimed actors must really belong to the claimed users — the session travelled over an
+    // untrusted socket, so nothing in it is taken on faith.
+    for (const [side, actor] of [[initiator, fromActor], [recipient, toActor]]) {
+        const user = game.users.get(side.userId);
+        if (!user) throw new Error("one of the traders is no longer connected");
+        if (user.character?.id !== actor.id) throw new Error(`${actor.name} is not ${user.name}'s assigned character`);
+    }
+
+    const plan = buildBarterPlan(session, fromActor, toActor);
+    await applyBarterPlan(plan);
     await postBarterSummary(fromActor, toActor, plan.summary);
 
     return { ok: true };
+}
+
+/**
+ * Settles a trade between a character and a party stash. No GM is involved: the requester holds
+ * OWNER permission on both actors, so their own client is allowed to write the batch — which is
+ * also why this side of the feature has no approval step at all.
+ * @param {object} session - The session, whose recipient side is the party stash.
+ * @param {foundry.documents.Actor} actor - The requester's character.
+ * @returns {Promise<void>} Resolves once the batch has been written.
+ */
+async function settlePartyTrade(session, actor) {
+    const party = await foundry.utils.fromUuid(session?.recipient?.actorUuid);
+    if (!party || party.type !== PARTY_TYPE) throw new Error("the party sheet no longer exists");
+    if (!party.isOwner) throw new Error(`you do not have owner permission on ${party.name}`);
+    if (!partyIncludesActor(party, actor)) throw new Error(`${actor.name} is not a member of ${party.name}`);
+
+    const plan = buildBarterPlan(session, actor, party);
+    await applyBarterPlan(plan);
+    await postBarterSummary(actor, party, plan.summary);
 }
 
 /**
@@ -865,6 +1102,9 @@ async function onBarterInvite(data) {
 
     session.recipient = emptySide(game.user.id, actor.uuid);
     session.status = "active";
+    // Party mode is strictly local; an invite arriving over the socket is always a peer trade,
+    // whatever the packet claims.
+    session.mode = "user";
 
     currentApp = new BarterApp({ session, side: "recipient" });
     currentApp.render(true);
@@ -934,6 +1174,7 @@ export async function activateBarter() {
     const session = {
         id: foundry.utils.randomID(),
         status: "draft",
+        mode: "user",
         initiator: emptySide(game.user.id, actor.uuid),
         recipient: emptySide()
     };

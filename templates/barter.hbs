@@ -1,3 +1,60 @@
+{{!--
+    Inline partials keep the two inventory panels identical: the left one is always the local
+    actor, the right one is the party stash in party mode. Each tab and currency row carries its
+    own `side` so a single set of actions can serve both panels.
+--}}
+{{#*inline "dqaBarterInventory"}}
+<nav class="dqa-barter-tabs">
+    {{#each tabs}}
+    <button type="button" class="dqa-barter-tab {{#if this.active}}active{{/if}}"
+            data-action="selectTab" data-side="{{this.side}}" data-tab="{{this.type}}">
+        <i class="{{this.icon}}"></i> {{this.label}}
+    </button>
+    {{/each}}
+</nav>
+
+{{#each tabs}}
+<div class="dqa-barter-grid {{#if this.active}}active{{/if}}" data-tab="{{this.type}}">
+    {{#each this.items}}
+    <div class="dqa-barter-tile {{#if this.selected}}selected{{/if}}"
+         data-action="toggleItem" data-side="{{../side}}" data-item-id="{{this.id}}"
+         data-tooltip="{{this.name}}" aria-label="{{this.name}}">
+        <img src="{{this.img}}" alt="{{this.name}}">
+        {{#if this.stackable}}<span class="dqa-barter-owned">×{{this.owned}}</span>{{/if}}
+        {{#if this.selected}}
+        {{#if this.stackable}}
+        <div class="dqa-barter-stepper">
+            <button type="button" data-action="stepQuantity" data-side="{{../side}}"
+                    data-item-id="{{this.id}}" data-delta="-1">−</button>
+            <span>{{this.quantity}}</span>
+            <button type="button" data-action="stepQuantity" data-side="{{../side}}"
+                    data-item-id="{{this.id}}" data-delta="1">+</button>
+        </div>
+        {{/if}}
+        <i class="fa-solid fa-check dqa-barter-check"></i>
+        {{/if}}
+    </div>
+    {{else}}
+    <p class="dqa-barter-empty">No {{this.label}} available.</p>
+    {{/each}}
+</div>
+{{/each}}
+{{/inline}}
+
+{{#*inline "dqaBarterGold"}}
+<div class="dqa-barter-gold">
+    {{#each gold}}
+    <label class="dqa-barter-gold-entry" data-tooltip="{{this.owned}} available">
+        <span class="dqa-barter-gold-label"><i class="{{this.icon}}"></i> {{this.label}}</span>
+        <input type="number" class="dqa-barter-gold-input" min="0" max="{{this.owned}}" step="1"
+               value="{{this.offered}}" data-side="{{this.side}}" data-currency="{{this.key}}"
+               data-owned="{{this.owned}}">
+        <span class="dqa-barter-gold-owned">/ {{this.owned}}</span>
+    </label>
+    {{/each}}
+</div>
+{{/inline}}
+
 <div class="dqa-barter-layout">
 
     <!-- ============ LEFT: WHAT YOU OWN AND HAVE SELECTED ============ -->
@@ -6,62 +63,27 @@
         <header class="dqa-barter-header">
             <img class="dqa-barter-portrait" src="{{actorImg}}" alt="{{actorName}}">
             <div class="dqa-barter-heading">
-                <span class="dqa-barter-title">Your Offer</span>
+                <span class="dqa-barter-title">{{mineTitle}}</span>
                 <span class="dqa-barter-subtitle">{{actorName}}</span>
             </div>
             <span class="dqa-barter-badge">{{myOfferCount}} selected</span>
         </header>
 
-        <nav class="dqa-barter-tabs">
-            {{#each tabs}}
-            <button type="button" class="dqa-barter-tab {{#if this.active}}active{{/if}}"
-                    data-action="selectTab" data-tab="{{this.type}}">
-                <i class="{{this.icon}}"></i> {{this.label}}
-            </button>
-            {{/each}}
-        </nav>
-
-        {{#each tabs}}
-        <div class="dqa-barter-grid {{#if this.active}}active{{/if}}" data-tab="{{this.type}}">
-            {{#each this.items}}
-            <div class="dqa-barter-tile {{#if this.selected}}selected{{/if}}"
-                 data-action="toggleItem" data-item-id="{{this.id}}"
-                 data-tooltip="{{this.name}}" aria-label="{{this.name}}">
-                <img src="{{this.img}}" alt="{{this.name}}">
-                {{#if this.stackable}}<span class="dqa-barter-owned">×{{this.owned}}</span>{{/if}}
-                {{#if this.selected}}
-                {{#if this.stackable}}
-                <div class="dqa-barter-stepper">
-                    <button type="button" data-action="stepQuantity" data-item-id="{{this.id}}" data-delta="-1">−</button>
-                    <span>{{this.quantity}}</span>
-                    <button type="button" data-action="stepQuantity" data-item-id="{{this.id}}" data-delta="1">+</button>
-                </div>
-                {{/if}}
-                <i class="fa-solid fa-check dqa-barter-check"></i>
-                {{/if}}
-            </div>
-            {{else}}
-            <p class="dqa-barter-empty">No {{this.label}} carried.</p>
-            {{/each}}
-        </div>
-        {{/each}}
+        {{> dqaBarterInventory tabs=tabs}}
 
         {{#if myGold.length}}
-        <div class="dqa-barter-gold">
-            {{#each myGold}}
-            <label class="dqa-barter-gold-entry" data-tooltip="You hold {{this.owned}}">
-                <span><i class="{{this.icon}}"></i> {{this.label}}</span>
-                <input type="number" class="dqa-barter-gold-input" min="0" max="{{this.owned}}" step="1"
-                       value="{{this.offered}}" data-currency="{{this.key}}" data-owned="{{this.owned}}">
-                <span class="dqa-barter-gold-owned">/ {{this.owned}}</span>
-            </label>
-            {{/each}}
-        </div>
+        {{> dqaBarterGold gold=myGold}}
         {{/if}}
 
         <footer class="dqa-barter-footer">
-            {{#if isInitiator}}
-            <button type="button" class="dqa-barter-confirm" data-action="approve" {{#unless canApprove}}disabled{{/unless}}>
+            {{#if isParty}}
+            <button type="button" class="dqa-barter-confirm" data-action="transfer"
+                    {{#unless canTransfer}}disabled{{/unless}}>
+                <i class="fa-solid fa-right-left"></i> Complete Transfer
+            </button>
+            {{else if isInitiator}}
+            <button type="button" class="dqa-barter-confirm" data-action="approve"
+                    {{#unless canApprove}}disabled{{/unless}}>
                 <i class="fa-solid fa-handshake"></i> Approve Trade
             </button>
             {{else}}
@@ -77,34 +99,56 @@
         </footer>
     </section>
 
-    <!-- ============ RIGHT: WHAT THE OTHER USER OFFERS ============ -->
+    <!-- ============ RIGHT: PARTNER PICKER, PEER OFFER, OR PARTY STASH ============ -->
     <section class="dqa-barter-side dqa-barter-theirs">
 
         {{#if isDraft}}
         <header class="dqa-barter-header">
             <div class="dqa-barter-heading">
                 <span class="dqa-barter-title">Trade With</span>
-                <span class="dqa-barter-subtitle">Pick a connected player</span>
+                <span class="dqa-barter-subtitle">Pick a party stash or a connected player</span>
             </div>
         </header>
 
         <div class="dqa-barter-users">
-            {{#each users}}
-            <button type="button" class="dqa-barter-user {{#if (eq this.id ../selectedUserId)}}selected{{/if}}"
-                    data-action="selectUser" data-user-id="{{this.id}}">
-                <img src="{{this.actorImg}}" alt="{{this.actorName}}">
-                <span class="dqa-barter-user-names">
-                    <strong style="color: {{this.color}};">{{this.name}}</strong>
-                    <small>{{this.actorName}}</small>
+            {{#if parties.length}}
+            <span class="dqa-barter-group">Party</span>
+            {{#each parties}}
+            <button type="button" class="dqa-barter-target {{#if this.selected}}selected{{/if}}"
+                    data-action="selectTarget" data-target-type="party" data-target-id="{{this.uuid}}">
+                <img src="{{this.img}}" alt="{{this.name}}">
+                <span class="dqa-barter-target-names">
+                    <strong>{{this.name}}</strong>
+                    <span class="dqa-barter-target-sep">-</span>
+                    <span class="dqa-barter-target-tag">Party Stash</span>
                 </span>
             </button>
-            {{else}}
-            <p class="dqa-barter-empty">No other connected player has a linked character.</p>
             {{/each}}
+            {{/if}}
+
+            {{#if users.length}}
+            <span class="dqa-barter-group">Players</span>
+            {{#each users}}
+            <button type="button" class="dqa-barter-target {{#if this.selected}}selected{{/if}}"
+                    data-action="selectTarget" data-target-type="user" data-target-id="{{this.id}}">
+                <img src="{{this.actorImg}}" alt="{{this.actorName}}">
+                <span class="dqa-barter-target-names">
+                    <strong>{{this.actorName}}</strong>
+                    <span class="dqa-barter-target-sep">-</span>
+                    <span class="dqa-barter-target-user" style="color: {{this.color}};">{{this.name}}</span>
+                </span>
+            </button>
+            {{/each}}
+            {{/if}}
+
+            {{#unless hasTargets}}
+            <p class="dqa-barter-empty">No party stash or connected player is available to trade with.</p>
+            {{/unless}}
         </div>
 
         <footer class="dqa-barter-footer">
-            <button type="button" class="dqa-barter-start" data-action="startTrade" {{#unless canStart}}disabled{{/unless}}>
+            <button type="button" class="dqa-barter-start" data-action="startTrade"
+                    {{#unless canStart}}disabled{{/unless}}>
                 <i class="fa-solid fa-right-left"></i> Start Trade
             </button>
         </footer>
@@ -117,12 +161,33 @@
         </div>
         {{/if}}
 
+        {{#if isParty}}
+        <header class="dqa-barter-header">
+            <img class="dqa-barter-portrait" src="{{partyImg}}" alt="{{partyName}}">
+            <div class="dqa-barter-heading">
+                <span class="dqa-barter-title">You Take</span>
+                <span class="dqa-barter-subtitle">{{partyName}}</span>
+            </div>
+            <span class="dqa-barter-badge">{{partyTakeCount}} selected</span>
+        </header>
+
+        {{> dqaBarterInventory tabs=partyTabs}}
+
+        {{#if partyGold.length}}
+        {{> dqaBarterGold gold=partyGold}}
+        {{/if}}
+
+        <footer class="dqa-barter-footer">
+            <p class="dqa-barter-status">Party stash — give and take freely, no approval needed.</p>
+        </footer>
+        {{/if}}
+
         {{#if isActive}}
         <header class="dqa-barter-header">
             <img class="dqa-barter-portrait" src="{{peerActorImg}}" alt="{{peerActorName}}">
             <div class="dqa-barter-heading">
-                <span class="dqa-barter-title">{{peerName}}'s Offer</span>
-                <span class="dqa-barter-subtitle">{{peerActorName}}</span>
+                <span class="dqa-barter-title">{{peerActorName}}</span>
+                <span class="dqa-barter-subtitle">{{peerName}}</span>
             </div>
             {{#if peerLocked}}
             <span class="dqa-barter-badge confirmed"><i class="fa-solid fa-lock"></i> Confirmed</span>
@@ -147,7 +212,7 @@
         <div class="dqa-barter-gold readonly">
             {{#each peerGold}}
             <span class="dqa-barter-gold-entry">
-                <span><i class="{{this.icon}}"></i> {{this.label}}</span>
+                <span class="dqa-barter-gold-label"><i class="{{this.icon}}"></i> {{this.label}}</span>
                 <strong>{{this.amount}}</strong>
             </span>
             {{/each}}
