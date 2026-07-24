@@ -1,0 +1,44 @@
+<div class="dqa-ui-wrapper">
+
+    <p class="dqa-ui-intro">
+        World-wide interface changes made by this module, collected here. Each switch applies
+        immediately — there is nothing to save.
+    </p>
+
+    <fieldset class="dqa-ui-section">
+        <legend><i class="fas fa-skull"></i> Daggerheart Sidebar Menu</legend>
+
+        <div class="dqa-ui-row">
+            <label for="dqa-menu-enhancements">Menu Enhancements</label>
+            <input type="checkbox" id="dqa-menu-enhancements" class="dh-toggle" name="menuEnhancements"
+                   {{#if menuEnhancements}}checked{{/if}}>
+        </div>
+
+        <p class="dqa-ui-hint">
+            Turns off everything this module changes in the system's own sidebar menu: the purple
+            skull tab icon, the search bar, the alphabetical section ordering, the collapsible
+            sections and the two-column button grid. The module's own <strong>Quick Actions</strong>
+            section stays in the menu either way — only its layout falls back to the system default.
+        </p>
+    </fieldset>
+
+    <fieldset class="dqa-ui-section">
+        <legend><i class="fas fa-address-card"></i> Character Sheet</legend>
+
+        <div class="dqa-ui-row">
+            <label for="dqa-biography-policy">Biography Tab Visibility</label>
+            <select id="dqa-biography-policy" class="dh-select" name="biographyPolicy">
+                {{#each policyChoices}}
+                <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <p class="dqa-ui-hint">
+            World-wide rule for the Biography tab on character sheets. <strong>Each user decides</strong>
+            honors every user's own <strong>Hide Biography Tab</strong> setting, which each player
+            controls from the module settings list.
+        </p>
+    </fieldset>
+
+</div>

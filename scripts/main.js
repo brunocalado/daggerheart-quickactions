@@ -42,6 +42,8 @@ import { registerQuickActionsMacrosSettings, initQuickActionsButton, showQuickAc
 import { registerLightSources } from "./light-sources-integration.js";
 // Import Daggerheart Menu Enhancer (search, ordering and collapsible sections for the system's GM menu)
 import { initDaggerheartMenuEnhancer } from "./daggerheart-menu-enhancer.js";
+// Import Interface Settings (single window for every UI change this module makes)
+import { registerUISettings } from "./ui-settings.js";
 
 // ==================================================================
 // GLOBAL API
@@ -241,6 +243,8 @@ Hooks.once("init", () => {
     initBiographyTab();
     initQuickActionsButton();
     initDaggerheartMenuEnhancer();
+    // After the features that own the settings it edits — their registration must come first.
+    registerUISettings();
     registerBarter();
 
     globalThis.QuickActions = {

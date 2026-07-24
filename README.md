@@ -68,8 +68,10 @@ Most features work out of the box, but a few can be tuned from **Configure Setti
 
 * **Quick Actions Macros (GM):** choose which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the macros the module ships with (Fate Roll – Hope, Fate Roll – Fear, Help an Ally, Roll Loot/Consumable, Whisper, and Barter), and **Clear All** empties the list. The button at the bottom turns the whole feature off — open character sheets lose the button immediately, for every user.
 * **Token Hover Tooltip:** enable/disable and choose its size (Small to Massive).
-* **Biography Tab Visibility (GM):** decide how the Biography tab behaves on character sheets — *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
-* **Hide Biography Tab (per user):** hides the Biography tab on character sheets for you only (off by default). Honored only while the GM leaves the world setting on *Each user decides*.
+* **Interface Settings (GM):** one window collecting the world-wide interface changes this module makes. It holds:
+  * **Daggerheart Menu Enhancements:** a single switch that turns off *all* of this module's changes to the system's sidebar menu — the purple skull tab icon, the search bar, the alphabetical ordering, the collapsible sections, and the two-column button grid. The module's own **Quick Actions** section stays in the menu either way; only its layout falls back to the system default. Takes effect immediately, on every client.
+  * **Biography Tab Visibility:** decide how the Biography tab behaves on character sheets — *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
+* **Hide Biography Tab (per user):** hides the Biography tab on character sheets for you only (off by default). Honored only while the GM leaves the world setting on *Each user decides*. Stays in the settings list rather than in the GM-only Interface Settings window, so every player can reach it.
 * **Scan Configuration:** enable the Scan macro for players and customize the labels/descriptions it shows.
 * **Falling Damage Formulas:** customize the dice formula for each fall height tier, with a one-click reset to the official defaults.
 * **Coin Tier Configuration:** customize the min/max coin range rolled for each Loot coin tier.

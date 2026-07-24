@@ -1,0 +1,75 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* Interface Settings — the window collecting this module's UI switches (ui-settings.js).
+   The window also carries .dh-qa-app for the shared dark/gold palette and the .dh-toggle
+   switch skin; the rules below only lay the rows out and tone the hint text down. */
+
+.daggerheart-quickactions {
+    & .dqa-ui-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* app-base.css centers and golds every <p> and <label> inside .dh-qa-app with a colour
+       !important, so the hint text needs !important of its own to win — the selector here is
+       more specific, which is what decides between two !important declarations. */
+    & .dqa-ui-intro {
+        margin: 0;
+        text-align: left;
+        font-size: var(--font-size-13);
+        color: var(--color-text-secondary, #999) !important;
+        text-shadow: none;
+    }
+
+    & .dqa-ui-section {
+        margin: 0;
+        padding: 10px 12px 4px;
+        border: 1px solid var(--daggerheart-quickactions-border, rgba(255, 255, 255, 0.1));
+        border-radius: 4px;
+
+        & legend {
+            padding: 0 6px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: var(--font-size-12);
+            color: var(--daggerheart-quickactions-accent, #C9A060);
+        }
+    }
+
+    & .dqa-ui-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
+        & label {
+            flex: 1;
+            margin: 0;
+            text-align: left;
+            font-size: var(--font-size-14);
+            cursor: pointer;
+        }
+
+        & .dh-select {
+            flex: 0 1 260px;
+        }
+    }
+
+    /* Sits directly under the row it explains, indented so the pairing reads at a glance. */
+    & .dqa-ui-hint {
+        margin: 4px 0 12px;
+        text-align: left;
+        font-size: var(--font-size-12);
+        font-style: italic;
+        line-height: 1.4;
+        color: var(--color-text-secondary, #999) !important;
+        text-shadow: none;
+    }
+}

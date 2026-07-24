@@ -1,3 +1,9 @@
+# 0.5.6
+
+- [Added] **Interface Settings** window (GM only), reachable from *Configure Settings → Module Settings*. It collects the world-wide interface changes this module makes in one place instead of leaving them scattered through the settings list.
+- [Added] Interface Settings: **Daggerheart Menu Enhancements** — a single switch that turns off *all* of this module's changes to the system's sidebar menu at once: the purple skull tab icon, the search bar, the alphabetical section ordering, the collapsible sections and the two-column button grid. With it off the menu looks exactly as the system built it. The module's own **Quick Actions** section stays in the menu either way — only its layout falls back to the system default. The change applies on the spot, on every client, with no reload.
+- [Changed] **Biography Tab Visibility** (GM) moved out of the settings list into the new Interface Settings window. Its behaviour and stored value are unchanged. The per-user **Hide Biography Tab** switch stays in the settings list, where every player can reach it.
+
 # 0.5.5
 
 - [Added] Downtime UI: **Users** tab in the config window, listing every non-GM user with a switch that decides whether they take part in downtime. A user switched off is hidden from the Downtime window even while connected, and is skipped when the downtime effects are applied — for table members who should never join a rest (spectators, a second screen, a shared account). Each row shows the user's assigned character, and offline users are dimmed, so it is clear who is being switched off. The change takes effect as soon as the config is saved: a player who was just disabled has their Downtime window closed, and everyone else's re-renders.

@@ -17,13 +17,32 @@
  * Registered from the init hook in main.js.
  */
 
-import { MODULE_ID, MENU_COLLAPSED_SECTIONS } from "./constants.js";
+import { MODULE_ID, MENU_COLLAPSED_SECTIONS, MENU_ENHANCEMENTS_ENABLED } from "./constants.js";
 
 /** Legend text of the system's own built-in section, always pinned first. */
 const PINNED_LEGEND = "Refresh Features";
 
+/** Sidebar tab name the system registers its menu under (`CONFIG.ui.daggerheartMenu`). */
+const MENU_TAB = "daggerheartMenu";
+
 /**
- * Registers the collapsed-state setting and subscribes to the menu's render hook.
+ * The sidebar tab's original `<img>`, keyed by the button it was taken from. Keeping the detached
+ * node itself (rather than just its src) is what lets the tab be put back exactly as the system
+ * built it when the enhancements are switched off, without this module having to know its markup.
+ * @type {WeakMap<HTMLElement, HTMLImageElement>}
+ */
+const originalTabIcons = new WeakMap();
+
+/**
+ * Whether this module's changes to the system's sidebar menu are currently switched on.
+ * @returns {boolean} True while the enhancements should be applied.
+ */
+function areEnhancementsEnabled() {
+    return game.settings.get(MODULE_ID, MENU_ENHANCEMENTS_ENABLED);
+}
+
+/**
+ * Registers the enhancer's settings and subscribes to the menu's render hook.
  * Called once from the init hook in main.js.
  * @returns {void}
  */
@@ -35,7 +54,19 @@ export function initDaggerheartMenuEnhancer() {
         default: {}
     });
 
+    // Surfaced by the Interface Settings menu (ui-settings.js), not by the settings list.
+    game.settings.register(MODULE_ID, MENU_ENHANCEMENTS_ENABLED, {
+        name: "Daggerheart Menu Enhancements",
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: true,
+        onChange: refreshDaggerheartMenu
+    });
+
     Hooks.on("renderDaggerheartMenu", (app, element) => {
+        if (!areEnhancementsEnabled()) return;
+
         // Deferred to the next frame so every other module's own renderDaggerheartMenu
         // callback (synchronous DOM builders, same as this one) has already appended its
         // fieldset before we sort/decorate the menu. Modules that insert their fieldset
@@ -46,29 +77,79 @@ export function initDaggerheartMenuEnhancer() {
     // The menu's sidebar tab button is rebuilt whenever the sidebar re-renders, so re-apply
     // the skull swap on every render. Also runs once on ready for the initial sidebar already
     // present before this hook was registered.
-    Hooks.on("renderSidebar", (app, element) => swapMenuTabIcon(element));
+    Hooks.on("renderSidebar", (app, element) => applyMenuTabIcon(element));
     Hooks.once("ready", () => {
-        if (ui.sidebar?.element) swapMenuTabIcon(ui.sidebar.element);
+        if (ui.sidebar?.element) applyMenuTabIcon(ui.sidebar.element);
     });
 }
 
 /**
- * Replaces the Daggerheart menu sidebar tab's FoundryBorne logo image with a purple skull icon.
- * The tab button belongs to the system's sidebar navigation, so this is called on every sidebar
- * render. Idempotent: it no-ops once the skull is already in place.
+ * Brings the Daggerheart menu's sidebar tab in line with the current enhancements switch —
+ * skull icon while they are on, the system's own image while they are off.
  * @param {HTMLElement} element - Root element of the rendered sidebar.
  * @returns {void}
  */
-function swapMenuTabIcon(element) {
-    const button = element.querySelector('button[data-action="tab"][data-tab="daggerheartMenu"]');
-    if (!button || button.querySelector(".dqa-menu-tab-skull")) return;
+function applyMenuTabIcon(element) {
+    // Absent for players: the system declares this tab gmOnly.
+    const button = element.querySelector(`button[data-action="tab"][data-tab="${MENU_TAB}"]`);
+    if (!button) return;
+
+    if (areEnhancementsEnabled()) swapMenuTabIcon(button);
+    else restoreMenuTabIcon(button);
+}
+
+/**
+ * Replaces the Daggerheart menu sidebar tab's FoundryBorne logo image with a purple skull icon.
+ * Idempotent: it no-ops once the skull is already in place.
+ * @param {HTMLElement} button - The menu's sidebar tab button.
+ * @returns {void}
+ */
+function swapMenuTabIcon(button) {
+    if (button.querySelector(".dqa-menu-tab-skull")) return;
 
     const icon = document.createElement("i");
     icon.className = "fa-solid fa-skull dqa-menu-tab-skull";
 
     const img = button.querySelector("img");
-    if (img) img.replaceWith(icon);
-    else button.appendChild(icon);
+    if (img) {
+        originalTabIcons.set(button, img);
+        img.replaceWith(icon);
+    } else button.appendChild(icon);
+}
+
+/**
+ * Puts the system's own tab image back. A no-op on a freshly re-rendered sidebar, whose button
+ * never carried the skull in the first place.
+ * @param {HTMLElement} button - The menu's sidebar tab button.
+ * @returns {void}
+ */
+function restoreMenuTabIcon(button) {
+    const icon = button.querySelector(".dqa-menu-tab-skull");
+    if (!icon) return;
+
+    const img = originalTabIcons.get(button);
+    if (img) {
+        icon.replaceWith(img);
+        originalTabIcons.delete(button);
+    } else icon.remove();
+}
+
+/**
+ * Applies a change of the enhancements switch to whatever is already on screen, so it takes
+ * effect without a reload. Runs on every client through the setting's onChange (world scope).
+ *
+ * The tab icon is swapped in place rather than through a sidebar re-render — the original image
+ * node is still held here, so restoring it is exact and costs nothing. The menu itself must be
+ * re-rendered: its toolbar, ordering and collapsible legends are DOM surgery on the system's
+ * template, and rebuilding from that template is what drops (or re-applies) all of it at once.
+ * @returns {void}
+ */
+function refreshDaggerheartMenu() {
+    if (ui.sidebar?.element) applyMenuTabIcon(ui.sidebar.element);
+
+    for (const app of foundry.applications.instances.values()) {
+        if (app.rendered && app.constructor.tabName === MENU_TAB) app.render();
+    }
 }
 
 /**

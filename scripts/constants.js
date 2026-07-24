@@ -87,6 +87,15 @@ export const BIOGRAPHY_POLICY = Object.freeze({
 export const MENU_COLLAPSED_SECTIONS = "menuCollapsedSections";
 
 /**
+ * World setting key holding the master switch for every cosmetic change this module makes to
+ * the Daggerheart system's own sidebar menu — tab icon, search toolbar, section ordering,
+ * collapsible sections and the two-column button grid. Turning it off leaves the system's menu
+ * exactly as the system built it.
+ * @type {string}
+ */
+export const MENU_ENHANCEMENTS_ENABLED = "menuEnhancementsEnabled";
+
+/**
  * World setting key holding the ids of users switched off in the Downtime configuration.
  * Stored as an array of user ids — those users are skipped by the whole Downtime flow
  * (row list, state initialization and effect application) even while they are connected.

@@ -26,6 +26,10 @@ const FALLBACK_TAB = "features";
 
 /**
  * Registers the world policy and the per-user opt-out.
+ * The world policy is `config: false` — it is edited from the Interface Settings window
+ * (ui-settings.js), where this module's GM-facing UI switches are collected. The per-user
+ * opt-out deliberately stays in the settings list: it belongs to each client, and that window
+ * is GM-only.
  * Called from the init hook in main.js.
  * @returns {void}
  */
@@ -34,7 +38,7 @@ export function registerBiographyTabSettings() {
         name: "Biography Tab Visibility",
         hint: "Controls the Biography tab on character sheets for the whole world. \"Each user decides\" honors every user's own \"Hide Biography Tab\" setting.",
         scope: "world",
-        config: true,
+        config: false,
         type: String,
         default: BIOGRAPHY_POLICY.USER,
         choices: {
