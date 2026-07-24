@@ -1,10 +1,18 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Downtime UI App and related helpers.
  * Contains the full Downtime UI system (DowntimeUIApp, helpers, and exported activation functions).
  */
 
 import { rollD4WithDiceSoNice, rollD6WithDiceSoNice } from "./apps.js";
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, DOWNTIME_DISABLED_USERS } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -33,6 +41,19 @@ const FORAGER_OPTIONS = [
 // ==================================================================
 // DOWNTIME UI HELPERS
 // ==================================================================
+
+/**
+ * Whether a user has been switched off in the Downtime configuration ("Users" tab).
+ * Disabled users are skipped by the whole flow — row list, state initialization and
+ * effect application — so they never take part even while connected.
+ * @param {User|null|undefined} user - The user to test.
+ * @returns {boolean} True when the user must be ignored by the Downtime system.
+ */
+function _isDowntimeDisabledUser(user) {
+    if (!user) return false;
+    const disabled = game.settings.get(MODULE_ID, DOWNTIME_DISABLED_USERS) ?? [];
+    return disabled.includes(user.id);
+}
 
 function _getActorTier(actor) {
     const level = actor.system?.levelData?.level?.current ?? 1;
@@ -241,6 +262,8 @@ async function _applyDowntimeEffects() {
         const actor = game.actors.get(actorId);
         if (!actor) continue;
         const ownerUser = game.users.find(u => !u.isGM && u.character?.id === actorId);
+        // Guards against a user switched off after the state was built.
+        if (_isDowntimeDisabledUser(ownerUser)) continue;
         const playerChoices = _readDowntimeChoices(ownerUser);
         includedActors.push({ actor, actorState: { ...gmState, ...playerChoices } });
     }
@@ -717,10 +740,11 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         id: "daggerheart-configure-moves",
         classes: ["dh-configure-actor"],
-        window: { title: "+Moves", resizable: true },
+        window: { title: "Downtime Config", resizable: true },
         position: { width: 480, height: 500 },
         actions: {
             saveMovesConfig: ConfigureMovesApp.prototype._onSaveMovesConfig,
+            toggleDowntimeUser: ConfigureMovesApp.prototype._onToggleDowntimeUser,
             addCraftRow: ConfigureMovesApp.prototype._onAddCraftRow,
             removeCraftRow: ConfigureMovesApp.prototype._onRemoveCraftRow,
             addCustomRow: ConfigureMovesApp.prototype._onAddCustomRow,
@@ -798,7 +822,19 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
         }
 
-        return { craftEntries: resolvedEntries, customMoves, itemMoveEntries, coreFeatures };
+        // Users tab — every non-GM user, with its participation switch
+        const disabledUsers = game.settings.get(MODULE_ID, DOWNTIME_DISABLED_USERS) ?? [];
+        const users = game.users
+            .filter(u => !u.isGM)
+            .map(u => ({
+                id: u.id,
+                name: u.name,
+                characterName: u.character?.name || "",
+                active: u.active,
+                enabled: !disabledUsers.includes(u.id)
+            }));
+
+        return { craftEntries: resolvedEntries, customMoves, itemMoveEntries, coreFeatures, users };
     }
 
     _onRender(context, options) {
@@ -1063,6 +1099,17 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         target.closest('.dui-itemmove-row').remove();
     }
 
+    /**
+     * Flips a user's participation switch in the Users tab. The change stays DOM-local
+     * until the config is saved, matching the save-on-demand behaviour of every other tab.
+     * @param {Event} event - The originating click event.
+     * @param {HTMLElement} target - The toggle button of the user row.
+     * @returns {void}
+     */
+    _onToggleDowntimeUser(event, target) {
+        target.classList.toggle("checked");
+    }
+
     _onRemoveCoreItem(event, target) {
         const row = target.closest('.dui-core-row');
         const idx = row.dataset.index;
@@ -1128,11 +1175,19 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             k++;
         }
 
+        // Collect the users switched off in the Users tab — an unchecked toggle means "excluded"
+        const disabledUsers = [];
+        for (const row of el.querySelectorAll('.dui-user-row')) {
+            const toggle = row.querySelector('.dui-user-toggle');
+            if (toggle && !toggle.classList.contains('checked')) disabledUsers.push(row.dataset.userId);
+        }
+
         await game.settings.set(MODULE_ID, "downtimeCraftEntries", craftEntries);
         await game.settings.set(MODULE_ID, "downtimeCustomMoves", customMoves);
         await game.settings.set(MODULE_ID, "downtimeItemMoveEntries", itemMoveEntries);
         await game.settings.set(MODULE_ID, "downtimeCoreFeatures", coreFeatures);
-        ui.notifications.info("Moves configuration saved.");
+        await game.settings.set(MODULE_ID, DOWNTIME_DISABLED_USERS, disabledUsers);
+        ui.notifications.info("Downtime configuration saved.");
         this.close();
     }
 
@@ -1159,6 +1214,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleIncluded: DowntimeUIApp.prototype._onToggleIncluded,
             configMaxChoices: DowntimeUIApp.prototype._onConfigMaxChoices,
             setRestType: DowntimeUIApp.prototype._onSetRestType,
+            setShortRestCount: DowntimeUIApp.prototype._onSetShortRestCount,
             addAction: DowntimeUIApp.prototype._onAddAction,
             removeAction: DowntimeUIApp.prototype._onRemoveAction,
             toggleEfficientSlot: DowntimeUIApp.prototype._onToggleEfficientSlot,
@@ -1195,6 +1251,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const allActors = [];
         for (const user of game.users) {
             if (user.isGM) continue;
+            if (_isDowntimeDisabledUser(user)) continue;
             const actor = user.character;
             if (!actor || actor.type !== "character") continue;
             allActors.push({ id: actor.id, name: actor.name, userId: user.id, user, actor });
@@ -1417,7 +1474,6 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             rows.push({
                 userId,
                 userName: user.name,
-                userColor: user.color?.toString() || "#ffffff",
                 actorId,
                 actorName,
                 avatar: actor.img || "icons/svg/mystery-man.svg",
@@ -1468,6 +1524,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const shortRestCount = game.settings.get(MODULE_ID, "shortRestCount") ?? 0;
         const shortRestPips = Array.from({ length: 3 }, (_, i) => ({
+            value: i + 1,
             filled: i < shortRestCount,
             warn: shortRestCount >= 3
         }));
@@ -1625,6 +1682,23 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 await user.unsetFlag(MODULE_ID, "downtimeChoices");
             }
         }
+    }
+
+    /**
+     * Sets the consecutive short rest counter from the GM-only pip strip. Clicking a pip
+     * raises the count to that pip's position; clicking the last filled pip lowers it by one,
+     * so the GM can both add and clear rests by hand when the automatic count drifts.
+     * The counter is a world setting, so only the GM may write it.
+     * @param {Event} event - The originating click event.
+     * @param {HTMLElement} target - The clicked pip, carrying data-count.
+     * @returns {Promise<void>}
+     */
+    async _onSetShortRestCount(event, target) {
+        if (!game.user.isGM) return;
+        const value = Number(target.dataset.count) || 0;
+        const current = game.settings.get(MODULE_ID, "shortRestCount") ?? 0;
+        await game.settings.set(MODULE_ID, "shortRestCount", value === current ? value - 1 : value);
+        this.render();
     }
 
     /**
@@ -1846,6 +1920,7 @@ export async function activateDowntimeUI() {
     const actors = {};
     for (const user of game.users) {
         if (user.isGM) continue;
+        if (_isDowntimeDisabledUser(user)) continue;
         const actor = user.character;
         if (!actor || actor.type !== "character") continue;
         const saved = savedConfigs[actor.id] ?? {};
@@ -1869,6 +1944,7 @@ export function getDowntimeUIInstance() {
 }
 
 export function openDowntimeUIForPlayer() {
+    if (_isDowntimeDisabledUser(game.user)) return;
     if (DowntimeUIApp._instance?.rendered) return;
     DowntimeUIApp._instance = new DowntimeUIApp();
     DowntimeUIApp._instance.render(true);

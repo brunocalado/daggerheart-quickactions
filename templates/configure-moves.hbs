@@ -5,6 +5,7 @@
         <button type="button" class="dui-cfg-tab" data-tab="craft">Craft</button>
         <button type="button" class="dui-cfg-tab" data-tab="custom">Custom</button>
         <button type="button" class="dui-cfg-tab" data-tab="itemmoves">Item Moves</button>
+        <button type="button" class="dui-cfg-tab" data-tab="users">Users</button>
     </nav>
 
     {{!-- Core Features Panel --}}
@@ -47,6 +48,9 @@
             <i class="fas fa-info-circle"></i>
             <span>If an actor owns the recipe item (matched by name), the crafted item will be added to their sheet when the downtime move is executed. Items are matched by name.</span>
         </div>
+        <button type="button" class="dui-craft-add-btn" data-action="addCraftRow">
+            <i class="fas fa-plus"></i>
+        </button>
         <div class="dui-craft-list" id="dui-craft-list">
             {{#each craftEntries}}
             <div class="dui-craft-row" data-index="{{@index}}">
@@ -67,9 +71,6 @@
             </div>
             {{/each}}
         </div>
-        <button type="button" class="dui-craft-add-btn" data-action="addCraftRow">
-            <i class="fas fa-plus"></i>
-        </button>
     </div>
 
     {{!-- Custom Panel --}}
@@ -78,6 +79,9 @@
             <i class="fas fa-info-circle"></i>
             <span>Add custom move names that will appear as selectable actions during downtime. These are freeform labels — no item link required. Use the rest type selector to restrict when each move is available.</span>
         </div>
+        <button type="button" class="dui-craft-add-btn" data-action="addCustomRow">
+            <i class="fas fa-plus"></i>
+        </button>
         <div class="dui-custom-list" id="dui-custom-list">
             {{#each customMoves}}
             <div class="dui-custom-row" data-index="{{@index}}">
@@ -93,9 +97,6 @@
             </div>
             {{/each}}
         </div>
-        <button type="button" class="dui-craft-add-btn" data-action="addCustomRow">
-            <i class="fas fa-plus"></i>
-        </button>
     </div>
 
     {{!-- Item Moves Panel --}}
@@ -104,6 +105,9 @@
             <i class="fas fa-info-circle"></i>
             <span>Drag items here to create moves linked to specific items. The move will only appear for actors who own the item (matched by name). Use the rest type selector to restrict when each move is available.</span>
         </div>
+        <button type="button" class="dui-craft-add-btn" data-action="addItemMoveRow">
+            <i class="fas fa-plus"></i>
+        </button>
         <div class="dui-itemmove-list" id="dui-itemmove-list">
             {{#each itemMoveEntries}}
             <div class="dui-itemmove-row" data-index="{{@index}}">
@@ -123,9 +127,27 @@
             </div>
             {{/each}}
         </div>
-        <button type="button" class="dui-craft-add-btn" data-action="addItemMoveRow">
-            <i class="fas fa-plus"></i>
-        </button>
+    </div>
+
+    {{!-- Users Panel --}}
+    <div class="dui-cfg-panel" data-panel="users">
+        <div class="dui-core-info">
+            <i class="fas fa-info-circle"></i>
+            <span>Switch off any user who should never take part in downtime. A disabled user is hidden from the Downtime window even while connected, and is skipped when the downtime effects are applied.</span>
+        </div>
+        <div class="dui-user-list" id="dui-user-list">
+            {{#each users}}
+            <div class="dui-user-row {{#unless this.active}}dui-user-row--offline{{/unless}}" data-user-id="{{this.id}}">
+                <button type="button" class="dui-user-toggle {{#if this.enabled}}checked{{/if}}" data-action="toggleDowntimeUser" title="Take part in Downtime">
+                    <span class="dui-user-toggle-slider"></span>
+                </button>
+                <span class="dui-user-row-name">{{this.name}}</span>
+                <span class="dui-user-row-char">{{#if this.characterName}}{{this.characterName}}{{else}}No character assigned{{/if}}</span>
+            </div>
+            {{else}}
+            <div class="dui-user-empty">No players found.</div>
+            {{/each}}
+        </div>
     </div>
 
     {{!-- Footer --}}

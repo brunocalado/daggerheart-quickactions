@@ -11,11 +11,11 @@
         </div>
         <div class="dui-short-rest-counter" title="Consecutive short rests taken (resets on Long Rest)">
             {{#each shortRestPips}}
-            <span class="dui-rest-pip{{#if filled}} dui-rest-pip--filled{{/if}}{{#if warn}} dui-rest-pip--warn{{/if}}"></span>
+            <button type="button" class="dui-rest-pip{{#if this.filled}} dui-rest-pip--filled{{/if}}{{#if this.warn}} dui-rest-pip--warn{{/if}}" data-action="setShortRestCount" data-count="{{this.value}}" title="Set the counter to {{this.value}} — click the last filled pip to lower it"></button>
             {{/each}}
         </div>
         <button type="button" class="dui-moves-btn" data-action="openMovesConfig">
-            <i class="fas fa-plus-circle"></i> Moves
+            <i class="fas fa-cog"></i> Config
         </button>
         <button type="button" class="dui-start-btn" data-action="startDowntime">
             <i class="fas fa-play" style="font-size: 10px;"></i> Start Downtime
@@ -53,9 +53,7 @@
                 <img class="dui-avatar" src="{{this.avatar}}" alt="{{this.actorName}}" />
                 <div class="dui-info-text">
                     <span class="dui-actor-name">{{this.actorName}}</span>
-                    <span class="dui-user-name">
-                        (<span class="dui-user-dot" style="--user-color: {{this.userColor}};"></span>{{this.userName}})
-                    </span>
+                    <span class="dui-user-name">({{this.userName}})</span>
                 </div>
             </div>
 

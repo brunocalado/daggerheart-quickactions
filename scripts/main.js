@@ -1,9 +1,17 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Daggerheart Quick Actions
  * Main module that injects buttons into the menu and exposes the global API.
  */
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, DOWNTIME_DISABLED_USERS } from "./constants.js";
 
 // Import all functions from consolidated files
 import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
@@ -114,6 +122,25 @@ Hooks.once("init", () => {
             { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" }
         ],
         type: Array
+    });
+
+    // 5e. Users switched off in the Downtime config — never take part in downtime
+    game.settings.register(MODULE_ID, DOWNTIME_DISABLED_USERS, {
+        name: "Downtime Disabled Users",
+        scope: "world",
+        config: false,
+        default: [],
+        type: Array,
+        onChange: (value) => {
+            const inst = getDowntimeUIInstance();
+            if (!inst?.rendered) return;
+            // A player who was just switched off must lose the window entirely.
+            if (!game.user.isGM && (value ?? []).includes(game.user.id)) {
+                inst.close();
+                return;
+            }
+            inst._debouncedRender();
+        }
     });
 
     // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)

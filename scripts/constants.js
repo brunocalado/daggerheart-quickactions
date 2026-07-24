@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Module-level constants.
  * This is the single source of truth for the module id.
@@ -77,3 +85,11 @@ export const BIOGRAPHY_POLICY = Object.freeze({
  * @type {string}
  */
 export const MENU_COLLAPSED_SECTIONS = "menuCollapsedSections";
+
+/**
+ * World setting key holding the ids of users switched off in the Downtime configuration.
+ * Stored as an array of user ids — those users are skipped by the whole Downtime flow
+ * (row list, state initialization and effect application) even while they are connected.
+ * @type {string}
+ */
+export const DOWNTIME_DISABLED_USERS = "downtimeDisabledUsers";

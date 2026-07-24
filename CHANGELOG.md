@@ -1,3 +1,12 @@
+# 0.5.5
+
+- [Added] Downtime UI: **Users** tab in the config window, listing every non-GM user with a switch that decides whether they take part in downtime. A user switched off is hidden from the Downtime window even while connected, and is skipped when the downtime effects are applied — for table members who should never join a rest (spectators, a second screen, a shared account). Each row shows the user's assigned character, and offline users are dimmed, so it is clear who is being switched off. The change takes effect as soon as the config is saved: a player who was just disabled has their Downtime window closed, and everyone else's re-renders.
+- [Changed] Downtime UI: the GM toolbar's **Moves** button is now **Config**, with a gear icon instead of the plus sign — the window it opens is titled **Downtime Config** and holds the Core, Craft, Custom, Item Moves and Users tabs, not just moves.
+- [Changed] Downtime UI: the consecutive short rest pips are now clickable by the GM. Clicking a pip sets the counter to that position, and clicking the last filled pip lowers it by one, so the count can be corrected by hand when a rest happens outside the module or the automatic count drifts. It stays GM-only — the strip is never rendered for players, and the counter is a world setting they cannot write.
+- [Changed] Downtime UI: in the config window's Craft, Custom and Item Moves tabs, the `+` button that adds a row now sits above its list instead of below it, so it stays in the same place no matter how many rows the list has. New rows are still appended to the end of the list.
+- [Removed] Downtime UI: the small colored dot drawn before each player's name in the row header.
+- [Fixed] Foundry's orange focus/selected ring no longer appears on the Downtime window or its config window either — the 0.5.4 fix covered the module's other windows, but these two were still showing the ring stuck to the selected Short/Long and config tab buttons. As before, buttons everywhere else in Foundry are untouched and the module's own gold styling is preserved.
+
 # 0.5.4
 
 - [Added] Request Roll: the "Send To" list now shows each connected player's linked character name alongside their username, formatted as `Character - Username`, when that player has an actor assigned. Both name parts are truncated with an ellipsis past a fixed default length so long names don't overflow the column; hover a name to see the untruncated version. The Send To column and window were widened to fit the extra text.
