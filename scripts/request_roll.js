@@ -123,7 +123,6 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         position: { width: 740, height: "auto" }, // Widened to fit "Actor - User" labels in the Send To column
         actions: {
             roll: RequestRollApp.prototype._onRoll,
-            cancel: RequestRollApp.prototype._onCancel,
             toggleUser: RequestRollApp.prototype._onTargetToggle,
             toggleSuggestions: RequestRollApp.prototype._onToggleSuggestions,
             applySuggestion: RequestRollApp.prototype._onApplySuggestion
@@ -448,7 +447,6 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
         this.close();
     }
-    _onCancel() { this.close(); }
 }
 
 // ==================================================================

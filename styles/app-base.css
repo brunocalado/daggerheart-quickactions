@@ -61,6 +61,49 @@
     box-shadow: 0 0 5px #C9A060;
 }
 
+/* --- Foundry Focus / Active Ring Reset --- */
+/* Core paints an orange ring on `a.button:focus`, `button:focus`, `a.button.active`
+   and `button.active` — an `outline` plus a `box-shadow`, both coloured by
+   `--button-focus-outline-color`. Both rules are global, and `.active` is this
+   module's own "selected" state, so the ring sticks permanently to selected
+   trait / target buttons rather than clearing on blur.
+
+   Two things make the obvious fix wrong:
+
+   1. Neutralise the colour, not `box-shadow`. Several buttons here declare a
+      deliberate coloured glow on `.active` (gold traits, Hope / Fear / Loot);
+      a blanket `box-shadow: none` on `.dh-qa-app button.active` (0,2,1) outranks
+      `.dh-trait-btn.active` (0,2,0) and would silently wipe those glows out.
+      Going transparent is also how core opts its own elements out — see the
+      color-picker / file-picker buttons in foundry2.css.
+
+   2. Declare it on the buttons, not on the app root. Core's theme rules
+      (`body.theme-dark button`, `.themed.theme-dark button`) set this variable
+      directly on every button, and a directly-matched declaration always beats
+      an inherited one — a root-level override would never reach them.
+      `!important` keeps it winning whichever theme is active.
+
+   Scoped to this module's windows; buttons elsewhere in Foundry keep their
+   native focus ring and its accessibility behaviour. */
+.dh-qa-app a.button,
+.dh-qa-app button,
+.daggerheart-quickactions a.button,
+.daggerheart-quickactions button {
+    --button-focus-outline-color: transparent !important;
+}
+
+/* Backstop for themes that hard-code the outline instead of reading the variable. */
+.dh-qa-app a.button:focus,
+.dh-qa-app button:focus,
+.dh-qa-app a.button.active,
+.dh-qa-app button.active,
+.daggerheart-quickactions a.button:focus,
+.daggerheart-quickactions button:focus,
+.daggerheart-quickactions a.button.active,
+.daggerheart-quickactions button.active {
+    outline: none;
+}
+
 /* --- Toggle Switch (Apple-style) --- */
 /* Opt-in via .dh-toggle so checkboxes elsewhere in the module keep the default skin.
    `!important` on the reset properties is required: Foundry core's own checkbox skin
