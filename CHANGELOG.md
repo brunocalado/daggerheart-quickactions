@@ -1,6 +1,8 @@
 # 0.5.9
 
-
+- [Fixed] Token Tooltip: the adversary tooltip listed only Reactions and Passives — every action feature was silently dropped. The grouping loop matched `system.featureForm` against `"reaction"` and `"passive"` and discarded everything else, so an adversary's actions never appeared at all. All three groups are now listed, in the order **Actions / Reactions / Passives**, and any feature whose `featureForm` is missing or unrecognised falls into Actions rather than vanishing. The loop also skips items that are not of type `feature`, so nothing unrelated leaks into the lists.
+- [Fixed] Token Tooltip: adversary feature names were cut off at 15 characters with an ellipsis (`Armor-Shredding…`), which made features with a shared prefix indistinguishable. Feature names are now shown in full. The actor name in the tooltip header is still shortened as before.
+- [Changed] Token Tooltip: widened to fit the larger feature lists. The maximum width rose for every size option — Small 240→330px, Normal 290→400px, Large 350→480px, Extra Large 420→560px, Huge 500→660px. The minimum widths are unchanged, so a tooltip with few features stays as compact as it was. Feature lists now wrap onto additional lines instead of pushing the tooltip past that maximum.
 
 # 0.5.8
 
