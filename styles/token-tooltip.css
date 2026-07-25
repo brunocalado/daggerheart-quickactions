@@ -8,7 +8,7 @@
     display: none;
     pointer-events: none;
     min-width: 190px;
-    max-width: 240px;
+    max-width: 330px;
     background: #191919;
     border: 1px solid #C9A060;
     border-radius: 6px;
@@ -160,6 +160,10 @@
         font-size: 11px;
         color: #e0e0e0;
         line-height: 1.4;
+        /* Feature names are never truncated, so long lists must wrap instead
+           of forcing the tooltip past its max-width. */
+        overflow-wrap: break-word;
+        word-break: normal;
     }
 
     .dh-qa-tt-features-label {
@@ -179,7 +183,7 @@
 
 #dh-qa-token-tooltip.dh-qa-tt-size--normal {
     min-width: 230px;
-    max-width: 290px;
+    max-width: 400px;
     padding: 10px 13px;
     font-size: 14px;
     border-radius: 7px;
@@ -219,7 +223,7 @@
 
 #dh-qa-token-tooltip.dh-qa-tt-size--large {
     min-width: 280px;
-    max-width: 350px;
+    max-width: 480px;
     padding: 13px 16px;
     font-size: 16px;
     border-radius: 8px;
@@ -260,7 +264,7 @@
 
 #dh-qa-token-tooltip.dh-qa-tt-size--xlarge {
     min-width: 340px;
-    max-width: 420px;
+    max-width: 560px;
     padding: 16px 20px;
     font-size: 18px;
     border-radius: 10px;
@@ -301,7 +305,7 @@
 
 #dh-qa-token-tooltip.dh-qa-tt-size--xxlarge {
     min-width: 400px;
-    max-width: 500px;
+    max-width: 660px;
     padding: 20px 24px;
     font-size: 21px;
     border-radius: 12px;

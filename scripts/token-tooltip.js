@@ -102,11 +102,6 @@ function _truncName(name) {
     return name.slice(0, 17) + "...";
 }
 
-function _truncFeatureName(name) {
-    if (!name || name.length <= 15) return name;
-    return name.slice(0, 15) + "…";
-}
-
 // -------------------------------------------------------------------
 // Data builder — always use actor.system (live, post-Active Effects)
 // NEVER use .toObject(), actor.data, or JSON extraction
@@ -188,13 +183,18 @@ function _buildAdversaryData(token) {
 
     const tier = sys.tier ?? 1;
 
-    // Collect passive and reaction features from actor items
+    // Collect features grouped by their form. Adversary features declare
+    // `system.featureForm`; anything unrecognised is treated as an action so
+    // no feature silently disappears from the tooltip.
+    const actions = [];
     const reactions = [];
     const passives = [];
     for (const item of actor.items) {
+        if (item.type !== "feature") continue;
         const form = item.system?.featureForm;
-        if (form === "reaction") reactions.push(_truncFeatureName(item.name));
-        else if (form === "passive") passives.push(_truncFeatureName(item.name));
+        if (form === "reaction") reactions.push(item.name);
+        else if (form === "passive") passives.push(item.name);
+        else actions.push(item.name);
     }
 
     return {
@@ -212,8 +212,10 @@ function _buildAdversaryData(token) {
         massiveDT,
         hpPct:     pct(hp.max - hp.value, hp.max),
         stressPct: pct(stress.max - stress.value, stress.max),
+        actions,
         reactions,
         passives,
+        hasActions:   actions.length > 0,
         hasReactions: reactions.length > 0,
         hasPassives:  passives.length > 0
     };

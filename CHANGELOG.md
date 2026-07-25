@@ -1,3 +1,7 @@
+# 0.5.9
+
+
+
 # 0.5.8
 
 - [Fixed] Loot & Consumables: clicking the rolled item in the chat card opened the **Table Result** sheet instead of the item, and the link could not be dragged onto a character sheet. The card was built from `TableResult#uuid`, which identifies the table entry itself — not the document it points at. The referenced item now comes from `TableResult#documentUuid`, so the link opens the real item sheet and drops onto a sheet like any other item link. The same corrected UUID is used when the item is auto-added to the roller's linked actor, and results that are plain text rather than a document reference still fall back to their name as before. This reverses the change made in 0.4.2, which had moved the lookup to `#uuid` on the wrong assumption that it resolved to the referenced document.

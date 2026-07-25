@@ -34,6 +34,14 @@
         {{/if}}
     </div>
 
+    {{#if hasActions}}
+    <div class="dh-qa-tt-divider"></div>
+    <div class="dh-qa-tt-features">
+        <span class="dh-qa-tt-features-label">Actions:</span>
+        <span class="dh-qa-tt-features-list">{{#each actions}}{{#if @index}}, {{/if}}{{this}}{{/each}}</span>
+    </div>
+    {{/if}}
+
     {{#if hasReactions}}
     <div class="dh-qa-tt-divider"></div>
     <div class="dh-qa-tt-features">
@@ -45,7 +53,7 @@
     {{#if hasPassives}}
     <div class="dh-qa-tt-divider"></div>
     <div class="dh-qa-tt-features">
-        <span class="dh-qa-tt-features-label">Passive:</span>
+        <span class="dh-qa-tt-features-label">Passives:</span>
         <span class="dh-qa-tt-features-list">{{#each passives}}{{#if @index}}, {{/if}}{{this}}{{/each}}</span>
     </div>
     {{/if}}
