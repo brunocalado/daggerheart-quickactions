@@ -280,20 +280,23 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let rollTotal = Math.max(1, Math.min(60, roll.total));
         const drawResult = table.results.find(r => rollTotal >= r.range[0] && rollTotal <= r.range[1]);
 
+        // TableResult#uuid is the *result document's own* uuid — linking it opens the Table Result
+        // sheet instead of the item. The referenced document lives in `documentUuid` (V13+ schema).
+        const referencedUuid = drawResult?.type === "document" ? drawResult.documentUuid : null;
+
         let displayHtml = "Nothing found";
         if (drawResult) {
             let itemName = drawResult.name || drawResult.description;
-            if (drawResult.uuid) {
-                displayHtml = `@UUID[${drawResult.uuid}]{${itemName}}`;
+            if (referencedUuid) {
+                displayHtml = `@UUID[${referencedUuid}]{${itemName}}`;
             } else { displayHtml = itemName; }
         }
 
         // Automatically add the rolled item to the linked actor's inventory.
-        // In V14, TableResult#uuid returns the referenced document's UUID directly.
         const linkedActor = game.user.character;
-        if (linkedActor && drawResult) {
+        if (linkedActor && referencedUuid) {
             try {
-                const sourceDoc = await fromUuid(drawResult.uuid);
+                const sourceDoc = await fromUuid(referencedUuid);
                 // Guard: only embed if the resolved document is actually an Item.
                 if (sourceDoc instanceof Item) {
                     await linkedActor.createEmbeddedDocuments("Item", [sourceDoc.toObject()]);
