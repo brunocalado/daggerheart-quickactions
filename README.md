@@ -10,7 +10,7 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 
 <p align="center"><img width="900" src="docs/feature.webp"></p>
 
-<p align="center"><img width="600" src="docs/token-tooltips.webp"></p>
+<p align="center"><img width="600" src="docs/character-token-tooltips-hope-bar.webp"></p>
 
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-Donate-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/mestredigital) [![More Modules](https://img.shields.io/badge/Foundry%20VTT-More%20Modules-red?style=for-the-badge&logo=gamepad)](https://mestredigital.online/pages/projetos-en)
@@ -27,11 +27,17 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 * **🪂 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far/Very Far", and "Collision" tiers, with dice formulas the GM can fully customize.
 * **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label; optionally send it as a "cinematic" full-screen prompt.
 * **💬 Whisper:** Send a private message to any number of connected users, via `QuickActions.Whisper()`. Pick the recipients from the list (GMs are flagged with a crown), type the message, and hit send — it arrives as a whispered chat card visible only to them. The text is plain: anything you type is delivered literally, so pasted HTML shows up as text instead of being rendered. Ctrl+Enter sends without leaving the keyboard.
+
+  <p align="center"><img width="800" src="docs/whisper.webp" alt="Whisper"></p>
+
 * **🤝 Barter:** Trade items and coins, via `QuickActions.Barter()`. You need a linked `character` actor. Your inventory shows as an icon grid split into **Weapons / Armor / Consumables / Loot** tabs — click an icon to put it on the table (selected items get a green border; stacks get a small quantity stepper), and offer coins alongside them in whichever currencies the world has enabled. The "Trade With" list then lets you pick either:
   * **Another player** (they also need a linked `character` actor). Hit **Start Trade** and the same window opens on their screen with your offer already laid out. They can add items and coins of their own or accept as-is; once they confirm, you approve and the swap happens. Any edit after a confirmation cancels it, so nobody can lock in an offer and then quietly change it. A GM must be connected: the actual transfer is written by the GM client in a single batch, so it either goes through completely or not at all.
   * **A party stash** — any party sheet that lists your character as a member *and* that you hold **Owner** permission on. There is no invite and no approval step here: the right-hand column becomes the party's own inventory, so you give from the left and take from the right in the same window, then hit **Complete Transfer**. Your own client writes it, so no GM needs to be online. If a party you expect is missing from the list, check its ownership — without Owner permission on the party actor the option is hidden, since the transfer could not be written.
 
   Either way the result is posted to chat as a receipt.
+
+  <p align="center"><img width="800" src="docs/barter.webp" alt="Barter"></p>
+
 * **🆙 Level Up:** Walk a player character through leveling up directly from the menu.
 * **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving player's character sheet when possible.
 * **✨ Spend Hope:** A quick picker for spending 1–6 Hope from the selected token's actor.
@@ -43,7 +49,12 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 * **🤝 Help an Ally:** Spends 1 Hope from the selected token (if available) and rolls the Help Die (1d6) to the chat.
 * **❤️ Scar Check:** Rolls 1d12 against the actor's Level to determine whether they stay Safe or take a Scar.
 * **🔦 Spotlight Token:** Instantly hands the active combat turn to the selected token (requires an active combat).
-* **🖱️ Token Hover Tooltip:** Hovering over a token shows a quick stat summary (HP, Stress, and more). Can be toggled on/off and resized per user in the settings.
+* **🖱️ Token Hover Tooltip:** Hovering over a token shows a quick stat summary (HP, Stress, and more). Can be toggled on/off and resized per user in the settings. Adversaries get their own version, listing damage thresholds and every Action, Reaction and Passive they have.
+* **💛 Token Hope Bar:** A row of Hope diamonds sits just above every character token — filled for the Hope currently held, empty for the rest. It follows each token's own **Display Bars** setting, so it appears and disappears alongside the native Hit Points and Stress bars. Scars are shown instead of hidden: rather than shortening the row, the slots a Scar locked off are faded out, and healing the Scar brings them back. Can be switched off in the settings.
+
+<p align="center"><img width="600" src="docs/character-token-tooltips-hope-bar.webp" alt="Character tooltip and Hope bar"></p>
+
+<p align="center"><img width="545" src="docs/adversary-token-tooltip.webp" alt="Adversary tooltip"></p>
 
 ### ⚡ Class Feature Macros
 
@@ -72,6 +83,7 @@ Most features work out of the box, but a few can be tuned from **Configure Setti
 
 * **Quick Actions Macros (GM):** choose which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the macros the module ships with (Fate Roll – Hope, Fate Roll – Fear, Help an Ally, Roll Loot/Consumable, Whisper, and Barter), and **Clear All** empties the list. The button at the bottom turns the whole feature off — open character sheets lose the button immediately, for every user.
 * **Token Hover Tooltip:** enable/disable and choose its size (Small to Massive).
+* **Token Hope Bar (GM):** draw the Hope diamonds above character tokens (on by default). Turn it off if another module already renders Hope on your tokens — Bar Brawl and similar. Applies immediately, on every client.
 * **Interface Settings (GM):** one window collecting the world-wide interface changes this module makes. It holds:
   * **Daggerheart Menu Enhancements:** a single switch that turns off *all* of this module's changes to the system's sidebar menu — the purple skull tab icon, the search bar, the alphabetical ordering, the collapsible sections, and the two-column button grid. The module's own **Quick Actions** section stays in the menu either way; only its layout falls back to the system default. Takes effect immediately, on every client.
   * **Biography Tab Visibility:** decide how the Biography tab behaves on character sheets — *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
@@ -209,8 +221,6 @@ Mental State: Completely overwhelmed, paralyzed by panic and unable to think cle
 QuickActions.Scan();
 ```
 
-Extra macros [here](https://github.com/brunocalado/daggerheart-quickactions/wiki)
-
 ## 📦 Installation
 
 Install via the Foundry VTT Module browser or use this manifest link:
@@ -234,7 +244,6 @@ https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/modu
 | Module | Description |
 | :--- | :--- |
 | 💀 [**Adversary Manager**](https://github.com/brunocalado/daggerheart-advmanager) | Scale adversaries instantly and build balanced encounters in Foundry VTT. |
-| 🌟 [**Best Modules**](https://github.com/brunocalado/dh-best-modules) | A curated collection of essential modules to enhance the Daggerheart experience. |
 | 🐉 [**Colossus**](https://github.com/brunocalado/dh-colossus) | Manage massive multi-part boss encounters with independent HP per part and a single shared stress pool. |
 | 💥 [**Critical**](https://github.com/brunocalado/daggerheart-critical) | Animated Critical. |
 | 💠 [**Custom Stat Tracker**](https://github.com/brunocalado/dh-new-stat-tracker) | Add custom trackers to actors. |

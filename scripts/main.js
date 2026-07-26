@@ -11,7 +11,7 @@
  * Main module that injects buttons into the menu and exposes the global API.
  */
 
-import { MODULE_ID, DOWNTIME_DISABLED_USERS } from "./constants.js";
+import { MODULE_ID, DOWNTIME_DISABLED_USERS, HOPE_BAR_ENABLED } from "./constants.js";
 
 // Import all functions from consolidated files
 import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
@@ -28,6 +28,8 @@ import { scan } from "./scan.js";
 import { features } from "./features.js";
 // Import Token Tooltip
 import { initTokenTooltip } from "./token-tooltip.js";
+// Import Hope Bar (Hope diamonds drawn above character tokens on the canvas)
+import { initHopeBar, refreshHopeBars } from "./hope-bar.js";
 // Import Scan Settings
 import { registerScanSettings } from "./scan-settings.js";
 // Import Falling Damage Settings
@@ -234,12 +236,24 @@ Hooks.once("init", () => {
         }
     });
 
+    // 8c. Hope Bar
+    game.settings.register(MODULE_ID, HOPE_BAR_ENABLED, {
+        name: "Token Hope Bar",
+        hint: "Draw a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: true,
+        onChange: () => refreshHopeBars()
+    });
+
     registerScanSettings();
     registerFallingDamageSettings();
     registerCoinTierSettings();
     registerBiographyTabSettings();
     registerQuickActionsMacrosSettings();
     initTokenTooltip();
+    initHopeBar();
     initBiographyTab();
     initQuickActionsButton();
     initDaggerheartMenuEnhancer();

@@ -96,6 +96,13 @@ export const MENU_COLLAPSED_SECTIONS = "menuCollapsedSections";
 export const MENU_ENHANCEMENTS_ENABLED = "menuEnhancementsEnabled";
 
 /**
+ * World setting key holding the on/off switch for the Hope bar drawn above character tokens.
+ * Off leaves the canvas untouched, for worlds that render Hope through a token bar module instead.
+ * @type {string}
+ */
+export const HOPE_BAR_ENABLED = "hopeBarEnabled";
+
+/**
  * World setting key holding the ids of users switched off in the Downtime configuration.
  * Stored as an array of user ids — those users are skipped by the whole Downtime flow
  * (row list, state initialization and effect application) even while they are connected.
