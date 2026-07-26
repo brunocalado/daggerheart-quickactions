@@ -14,8 +14,53 @@
     --daggerheart-quickactions-panel: #2b2b2b;
     --daggerheart-quickactions-border: #555;
     --daggerheart-quickactions-selected: #4caf50;
-    --daggerheart-quickactions-tile: 58px;
     --daggerheart-quickactions-button-height: 32px;
+
+    /* Item tiles per row. Kept in step with BARTER_GRID_COLUMNS in scripts/barter.js, which
+       counts in the same unit when it works out how many filler cells a grid needs. */
+    --daggerheart-quickactions-barter-columns: 6;
+
+    /* The empty lattice behind the tiles — faint enough to read as texture, not as content. */
+    --daggerheart-quickactions-barter-slot: rgba(201, 160, 96, 0.13);
+
+    /* Marks an item whose identity is masked by the Unidentified Items module. Deliberately a
+       pale cyan rather than that module's own teal, which sits too close to the selection green
+       to be told apart on a 60px tile. */
+    --daggerheart-quickactions-barter-unknown: #90ffd8;
+
+    /* --- Scrollbars --- */
+
+    /* Gold, to match the window, instead of the red the scroll boxes inherit from the core theme.
+       `scrollbar-color` is the reliable lever: where Chromium honours it, it supersedes any
+       ::-webkit-scrollbar styling on that element outright, so it wins without a specificity
+       fight — the pseudo-element rules below are only a fallback for builds that lack the
+       standard property. Set on the descendants too, since each scroll box is its own element. */
+    &.dqa-barter,
+    &.dqa-barter * {
+        --color-scrollbar: var(--daggerheart-quickactions-accent);
+        --color-scrollbar-track: rgba(0, 0, 0, 0.35);
+        scrollbar-width: thin;
+        scrollbar-color: var(--daggerheart-quickactions-accent) rgba(0, 0, 0, 0.35);
+    }
+
+    &.dqa-barter ::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+    }
+
+    &.dqa-barter ::-webkit-scrollbar-track {
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.35);
+    }
+
+    &.dqa-barter ::-webkit-scrollbar-thumb {
+        border-radius: 4px;
+        background: var(--daggerheart-quickactions-accent);
+
+        &:hover {
+            background: var(--daggerheart-quickactions-accent-dark);
+        }
+    }
 
     & .dqa-barter-layout {
         display: flex;
@@ -133,47 +178,64 @@
 
     /* --- Item grids --- */
 
-    & .dqa-barter-grid {
-        display: none;
+    /* A fixed column count rather than wrapped fixed-width tiles: the tiles divide the panel
+       between them, so the row always ends flush with the edge instead of leaving a dead strip
+       whose width depends on how the window was resized. */
+    & .dqa-barter-grid,
+    & .dqa-barter-peer-items {
+        grid-template-columns: repeat(var(--daggerheart-quickactions-barter-columns), minmax(0, 1fr));
+        align-content: start;
+        /* Tiles are square by aspect-ratio, so they must not be stretched to the row instead. */
+        align-items: start;
         flex: 1;
-        flex-wrap: wrap;
-        align-content: flex-start;
         gap: 6px;
         min-height: 0;
         padding: 8px;
         border: 1px solid var(--daggerheart-quickactions-border);
-        border-radius: 0 4px 4px 4px;
         background: rgba(0, 0, 0, 0.25);
         overflow-y: auto;
+    }
+
+    & .dqa-barter-grid {
+        display: none;
+        border-radius: 0 4px 4px 4px;
 
         &.active {
-            display: flex;
+            display: grid;
         }
     }
 
     & .dqa-barter-peer-items {
-        display: flex;
-        flex: 1;
-        flex-wrap: wrap;
-        align-content: flex-start;
-        gap: 6px;
-        min-height: 0;
-        padding: 8px;
-        border: 1px solid var(--daggerheart-quickactions-border);
+        display: grid;
         border-radius: 4px;
-        background: rgba(0, 0, 0, 0.25);
-        overflow-y: auto;
+    }
+
+    /* Empty cells, appended by _fillGrid to carry the lattice across the rest of the box. Their
+       box model matches a tile exactly so the two line up on the same pitch. */
+    & .dqa-barter-slot {
+        width: 100%;
+        aspect-ratio: 1;
+        border: 2px solid var(--daggerheart-quickactions-barter-slot);
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.2);
+        pointer-events: none;
     }
 
     & .dqa-barter-tile {
         position: relative;
-        width: var(--daggerheart-quickactions-tile);
-        height: var(--daggerheart-quickactions-tile);
+        width: 100%;
+        aspect-ratio: 1;
         border: 2px solid var(--daggerheart-quickactions-border);
         border-radius: 4px;
         background: #1a1a1a;
         cursor: pointer;
         transition: border-color 0.15s, box-shadow 0.15s;
+
+        /* First of the state rules, so hovering and selecting both still read normally on top of
+           it — the corner glyph is what carries the "identity is masked" cue either way. */
+        &.unidentified {
+            border-color: var(--daggerheart-quickactions-barter-unknown);
+        }
 
         &:hover {
             border-color: var(--daggerheart-quickactions-accent);
@@ -222,6 +284,18 @@
         pointer-events: none;
     }
 
+    /* Top-right is the only free corner on a tile: the check takes the left, the stack count the
+       bottom. Purely a cue that the artwork and name on show are a mask. */
+    & .dqa-barter-unknown {
+        position: absolute;
+        top: 1px;
+        right: 3px;
+        color: var(--daggerheart-quickactions-barter-unknown);
+        font-size: var(--font-size-11);
+        text-shadow: 0 0 3px #000, 0 0 3px #000;
+        pointer-events: none;
+    }
+
     & .dqa-barter-stepper {
         position: absolute;
         right: 0;
@@ -246,6 +320,9 @@
     }
 
     & .dqa-barter-empty {
+        /* The message shares a container with the tile grid, so it has to claim the whole row
+           rather than sit in the first cell. */
+        grid-column: 1 / -1;
         width: 100%;
         margin: 0;
         padding: 10px;

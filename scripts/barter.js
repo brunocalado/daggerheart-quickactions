@@ -32,6 +32,18 @@ const BARTER_ITEM_TYPES = ["weapon", "armor", "consumable", "loot"];
 /** Actor type of the Daggerheart party sheet, which carries its own inventory and purse. */
 const PARTY_TYPE = "party";
 
+/**
+ * Id of the optional companion module that hides the real identity of unidentified items. Barter
+ * reads its public API when present and behaves exactly as before when it is absent.
+ */
+const UNIDENTIFIED_MODULE_ID = "dh-unidentified";
+
+/**
+ * Item tiles per grid row. Mirrors `--daggerheart-quickactions-barter-columns` in barter.css —
+ * the stylesheet lays the columns out, this constant is what the filler-cell maths counts in.
+ */
+const BARTER_GRID_COLUMNS = 6;
+
 /** Font Awesome icon shown on each inventory tab. */
 const BARTER_TAB_ICONS = Object.freeze({
     weapon: "fa-solid fa-sword",
@@ -93,6 +105,38 @@ let currentApp = null;
  */
 function emptySide(userId = "", actorUuid = "") {
     return { userId, actorUuid, items: [], gold: {}, locked: false };
+}
+
+/**
+ * Resolves the public API of the Unidentified Items module, or `null` when it is not installed or
+ * not enabled in this world. Every read through it is optional — Barter has no dependency on it.
+ * @returns {object|null} The module API, or null when the feature is unavailable.
+ */
+function unidentifiedApi() {
+    const module = game.modules.get(UNIDENTIFIED_MODULE_ID);
+    return module?.active ? (module.api ?? null) : null;
+}
+
+/**
+ * Resolves the name and artwork an item should be *shown* with. That module keeps the real values
+ * on the document and masks them at every point of display, so nothing built from `item.name` or
+ * `item.img` is audience-safe on its own — this is the read path Barter uses instead. Gamemasters
+ * always see through the mask, matching how that module renders sheets and inventory rows.
+ * @param {foundry.documents.Item} item - The item being displayed.
+ * @param {object} [options]
+ * @param {boolean} [options.asGM=game.user.isGM] - Whether the audience may see the real identity.
+ * @returns {{name: string, img: string, unidentified: boolean}} Presentation values for that audience.
+ */
+function itemDisplay(item, { asGM = game.user.isGM } = {}) {
+    const api = unidentifiedApi();
+    const unidentified = !!api?.isUnidentified?.(item);
+    if (!unidentified || asGM) return { name: item.name, img: item.img, unidentified };
+
+    return {
+        name: api.getDisplayName?.(item) || item.name,
+        img: api.getDisplayImg?.(item) || item.img,
+        unidentified
+    };
 }
 
 /**
@@ -198,6 +242,16 @@ function emitBarter(message, recipients, payload = {}) {
  */
 class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
+     * Collapses a burst of document changes — a batched give-and-take writes several at once —
+     * into a single refresh.
+     * @type {Function}
+     */
+    _debouncedRefresh = foundry.utils.debounce(() => this._refreshFromDocuments(), 100);
+
+    /** @type {Function} Same idea for resize events, which arrive continuously while dragging. */
+    _debouncedSlots = foundry.utils.debounce(() => this._syncGridSlots(), 50);
+
+    /**
      * @param {object} options
      * @param {object} options.session - The shared session state.
      * @param {"initiator"|"recipient"} options.side - Which half of the session this client owns.
@@ -226,6 +280,12 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         /** @type {boolean} Suppresses the cancel broadcast when the window closes for a known reason. */
         this._closingQuietly = false;
+
+        /** @type {Array<{hook: string, id: number}>} Document hooks driving the live refresh. */
+        this._liveHooks = [];
+
+        /** @type {ResizeObserver|null} Watches the window so the filler lattice tracks its size. */
+        this._resizeObserver = null;
     }
 
     static DEFAULT_OPTIONS = {
@@ -325,10 +385,13 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const items = (actor.itemTypes[type] ?? []).map(item => {
                 const owned = Math.max(1, item.system?.quantity ?? 1);
                 const quantity = offered.get(item.id) ?? 0;
+                const display = itemDisplay(item);
                 return {
                     id: item.id,
-                    img: item.img,
-                    name: item.name,
+                    uuid: item.uuid,
+                    img: display.img,
+                    name: display.name,
+                    unidentified: display.unidentified,
                     owned,
                     quantity,
                     selected: quantity > 0,
@@ -442,7 +505,8 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /**
      * Wires the currency inputs, which are `change` events rather than clicks and therefore fall
-     * outside `DEFAULT_OPTIONS.actions`. Called from `_onRender`.
+     * outside `DEFAULT_OPTIONS.actions`, then re-measures the filler lattice for the tabs that
+     * were just rebuilt. Called from `_onRender`.
      * @param {object} _context - Render context (unused).
      * @param {object} _options - Render options (unused).
      * @returns {void}
@@ -451,6 +515,223 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const input of this.element.querySelectorAll(".dqa-barter-gold-input")) {
             input.addEventListener("change", () => this._onGoldChanged(input));
         }
+        this._syncGridSlots();
+    }
+
+    /**
+     * Binds the things that outlive a single render: the inspect gesture is delegated from the
+     * window frame, which Foundry keeps across renders while replacing the part content beneath
+     * it, and the document watchers that keep both panels current.
+     * @param {object} _context - Render context (unused).
+     * @param {object} _options - Render options (unused).
+     * @returns {void}
+     */
+    _onFirstRender(_context, _options) {
+        this.element.addEventListener("contextmenu", event => this._onInspectItem(event));
+        this._registerLiveSync();
+
+        // How many rows fit is a measurement, not a declaration: the cell size follows the column
+        // count, so only the live width of the scroll box can answer it.
+        this._resizeObserver = new ResizeObserver(this._debouncedSlots);
+        this._resizeObserver.observe(this.element);
+    }
+
+    /* -------------------------------------------- */
+    /*  Grid Lattice                                */
+    /* -------------------------------------------- */
+
+    /**
+     * Pads every visible item grid with empty cells so the lattice covers the whole scroll box
+     * rather than stopping at the last item. Called after each render, on tab switches, and
+     * whenever the window is resized.
+     * @returns {void}
+     */
+    _syncGridSlots() {
+        if (!this.rendered) return;
+        for (const grid of this.element.querySelectorAll(".dqa-barter-grid.active, .dqa-barter-peer-items")) {
+            this._fillGrid(grid);
+        }
+    }
+
+    /**
+     * Brings one grid's filler cells to the count that covers its visible area, rounded up to a
+     * whole row. A grid with nothing in it keeps its own "nothing here" message instead of an
+     * empty lattice.
+     * @param {HTMLElement} grid - A grid container.
+     * @returns {void}
+     */
+    _fillGrid(grid) {
+        const tiles = grid.querySelectorAll(".dqa-barter-tile").length;
+        const slots = grid.querySelectorAll(".dqa-barter-slot");
+
+        let needed = 0;
+        if (tiles) {
+            const style = getComputedStyle(grid);
+            const gap = parseFloat(style.columnGap) || 0;
+            const width = grid.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+            const height = grid.clientHeight - (parseFloat(style.paddingTop) || 0) - (parseFloat(style.paddingBottom) || 0);
+
+            // Cells are square, so one column's width is also one row's height.
+            const cell = (width - gap * (BARTER_GRID_COLUMNS - 1)) / BARTER_GRID_COLUMNS;
+            const rows = cell > 0 ? Math.max(1, Math.floor((height + gap) / (cell + gap))) : 1;
+            const cells = Math.max(rows, Math.ceil(tiles / BARTER_GRID_COLUMNS)) * BARTER_GRID_COLUMNS;
+            needed = cells - tiles;
+        }
+
+        // Bailing out when the count already matches is what keeps the ResizeObserver from
+        // retriggering itself on its own DOM writes.
+        if (needed === slots.length) return;
+        for (const slot of slots) slot.remove();
+        if (!needed) return;
+
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < needed; i++) {
+            const slot = document.createElement("div");
+            slot.className = "dqa-barter-slot";
+            fragment.append(slot);
+        }
+        grid.append(fragment);
+    }
+
+    /* -------------------------------------------- */
+    /*  Live Document Sync                          */
+    /* -------------------------------------------- */
+
+    /**
+     * Watches the documents both panels are built from, so items added or removed on a character
+     * sheet show up in an open Barter window without reopening it. Registered on first render and
+     * released in `_onClose`.
+     * @returns {void}
+     */
+    _registerLiveSync() {
+        const onItem = (item) => {
+            if (this._watchesActor(item?.parent)) this._debouncedRefresh();
+        };
+        const onActor = (actor) => {
+            if (this._watchesActor(actor)) this._debouncedRefresh();
+        };
+
+        this._liveHooks = [
+            ["createItem", onItem],
+            ["updateItem", onItem],
+            ["deleteItem", onItem],
+            ["updateActor", onActor]
+        ].map(([hook, handler]) => ({ hook, id: Hooks.on(hook, handler) }));
+    }
+
+    /**
+     * Releases the document watchers. Called from `_onClose`.
+     * @returns {void}
+     */
+    _unregisterLiveSync() {
+        for (const { hook, id } of this._liveHooks) Hooks.off(hook, id);
+        this._liveHooks = [];
+    }
+
+    /**
+     * Whether a document change on this actor has to be reflected in the window. Only the panels
+     * this client actually builds from live data count: in a peer trade the right-hand column is
+     * the partner's own broadcast, and they watch their own inventory.
+     * @param {foundry.documents.Actor|null} actor - The changed actor, or an item's parent.
+     * @returns {boolean} True when one of the two panels shows this actor.
+     */
+    _watchesActor(actor) {
+        if (!(actor instanceof foundry.documents.Actor)) return false;
+        if (actor.id === this.actor.id) return true;
+        return this.isParty && actor.uuid === this.theirs.actorUuid;
+    }
+
+    /**
+     * Re-reads both panels from live document data. An offer that no longer holds up is trimmed
+     * and, in a peer trade, pushed to the partner along with a cleared confirmation — the goods on
+     * the table changed, so neither side's agreement can stand on the old terms.
+     * @returns {void}
+     */
+    _refreshFromDocuments() {
+        if (!this.rendered) return;
+
+        if (this._pruneOffers() && !this.isParty) {
+            this.mine.locked = false;
+            this._pushOffer(true);
+        }
+        this.render();
+    }
+
+    /**
+     * Drops anything from this client's side of the table that live actor data no longer supports:
+     * items that were deleted or given away, stacks that shrank below the offered amount, and coin
+     * beyond what the purse now holds.
+     * @returns {boolean} True when something was trimmed and the partner has to be told.
+     */
+    _pruneOffers() {
+        let changed = false;
+
+        for (const side of ["mine", "theirs"]) {
+            // The right-hand offer is only this client's to prune when it is a party stash.
+            if (side === "theirs" && !this.isParty) continue;
+
+            const actor = this._sideActor(side);
+            const state = this._sideState(side);
+
+            const kept = state.items.filter(entry => {
+                const item = actor?.items.get(entry.id);
+                if (!item) return false;
+                const owned = Math.max(1, item.system?.quantity ?? 1);
+                if (entry.quantity > owned) {
+                    entry.quantity = owned;
+                    changed = true;
+                }
+                return true;
+            });
+            if (kept.length !== state.items.length) {
+                state.items = kept;
+                changed = true;
+            }
+
+            for (const [key, amount] of Object.entries(state.gold)) {
+                const owned = actor?.system?.gold?.[key] ?? 0;
+                if (amount <= owned) continue;
+                changed = true;
+                if (owned > 0) state.gold[key] = owned;
+                else delete state.gold[key];
+            }
+        }
+
+        return changed;
+    }
+
+    /**
+     * Opens the sheet of the tile under the cursor. Right-click is the inspect gesture everywhere
+     * else in Foundry, so it works on the partner's and the party stash's tiles too — those are
+     * resolved through the uuid carried by every offer entry, and a user without at least limited
+     * permission on the owning actor is told so rather than left with a window that never opens.
+     * Bound in `_onFirstRender`.
+     * @param {MouseEvent} event - The originating contextmenu event.
+     * @returns {void}
+     */
+    _onInspectItem(event) {
+        const tile = event.target.closest?.(".dqa-barter-tile");
+        if (!tile) return;
+        event.preventDefault();
+
+        const item = tile.dataset.itemUuid
+            ? foundry.utils.fromUuidSync(tile.dataset.itemUuid)
+            : this._sideActor(tile.dataset.side ?? "mine")?.items.get(tile.dataset.itemId);
+
+        if (!item) {
+            ui.notifications.warn("Barter: that item is no longer available to inspect.");
+            return;
+        }
+        // Foundry refuses to render a sheet the user cannot see, so the check happens here in order
+        // to say why. Named with the masked alias — a permission refusal must not be the thing that
+        // gives an unidentified item away.
+        if (!item.testUserPermission(game.user, "LIMITED")) {
+            ui.notifications.warn(`Barter: ${itemDisplay(item).name} belongs to an actor you have no`
+                + " permission on — the Gamemaster has to grant at least Limited ownership to open it.");
+            return;
+        }
+
+        item.sheet?.render(true);
     }
 
     /* -------------------------------------------- */
@@ -481,6 +762,9 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         for (const grid of panel.querySelectorAll(".dqa-barter-grid")) {
             grid.classList.toggle("active", grid.dataset.tab === tab);
         }
+
+        // A hidden grid has no measurable size, so the grid revealed here is filled only now.
+        this._syncGridSlots();
     }
 
     /**
@@ -499,7 +783,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const state = this._sideState(side);
         const index = state.items.findIndex(entry => entry.id === itemId);
         if (index >= 0) state.items.splice(index, 1);
-        else state.items.push({ id: itemId, name: item.name, img: item.img, quantity: 1 });
+        else state.items.push({ id: itemId, uuid: item.uuid, name: item.name, img: item.img, quantity: 1 });
 
         this._onOfferChanged();
     }
@@ -573,8 +857,30 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         emitBarter(MESSAGES.UPDATE, [peerId], {
             sessionId: this.session.id,
-            offer: { items: this.mine.items, gold: this.mine.gold, locked: this.mine.locked },
+            offer: {
+                items: this._offerForAudience(!!game.users.get(peerId)?.isGM),
+                gold: this.mine.gold,
+                locked: this.mine.locked
+            },
             clearPeerLock
+        });
+    }
+
+    /**
+     * Rewrites this side's offer for the audience about to receive it. Offer entries carry a name
+     * and an image so the partner can draw a tile without touching a document they may have no
+     * permission on — which means an unidentified item has to be masked *here*, before the entry
+     * leaves this client, or the packet itself would hand the identity over.
+     * @param {boolean} asGM - Whether the recipient may see real identities.
+     * @returns {object[]} Offer entries safe to put on the wire.
+     */
+    _offerForAudience(asGM) {
+        return this.mine.items.map(entry => {
+            const item = this.actor.items.get(entry.id);
+            if (!item) return entry;
+
+            const display = itemDisplay(item, { asGM });
+            return { ...entry, name: display.name, img: display.img, unidentified: display.unidentified };
         });
     }
 
@@ -618,7 +924,12 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this.session.recipient = emptySide(user.id, user.character.uuid);
         this.session.status = "pending";
-        emitBarter(MESSAGES.INVITE, [user.id], { session: this.session });
+
+        // The invite carries the opening offer, so it goes through the same audience filter as
+        // every later update rather than sending the raw local state.
+        const invite = foundry.utils.deepClone(this.session);
+        invite.initiator.items = this._offerForAudience(!!user.isGM);
+        emitBarter(MESSAGES.INVITE, [user.id], { session: invite });
 
         ui.notifications.info(`Barter: trade request sent to ${user.name}.`);
         this.render();
@@ -796,6 +1107,11 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     _onClose(_options) {
         if (currentApp === this) currentApp = null;
+
+        this._unregisterLiveSync();
+        this._resizeObserver?.disconnect();
+        this._resizeObserver = null;
+
         if (this._closingQuietly) return;
 
         const peerId = this.theirs.userId;
@@ -865,7 +1181,11 @@ function planTransfer(offer, from, to, plan) {
         const quantity = Math.floor(Number(entry.quantity) || 0);
         if (quantity < 1 || quantity > source.original) throw new Error(`invalid quantity offered for ${item.name}`);
         source.quantity -= quantity;
-        plan.summary.push({ fromId: from.id, label: `${item.name}${quantity > 1 ? ` ×${quantity}` : ""}` });
+
+        // The summary becomes a public chat card, so it is always written for the widest possible
+        // audience — a mystified item stays mystified there even though a GM built the plan.
+        const label = itemDisplay(item, { asGM: false }).name;
+        plan.summary.push({ fromId: from.id, label: `${label}${quantity > 1 ? ` ×${quantity}` : ""}` });
 
         // Character actors merge loot and consumables into existing stacks; anything else — and
         // any item the receiver does not already own — arrives as its own document.
@@ -1161,6 +1481,9 @@ export function registerBarter() {
  */
 export async function activateBarter() {
     if (currentApp) {
+        // Re-triggering the window is also a request to refresh it: the inventory it was built
+        // from may have changed while it sat behind the character sheet.
+        currentApp._refreshFromDocuments();
         currentApp.bringToFront();
         return;
     }

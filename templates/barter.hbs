@@ -16,10 +16,12 @@
 {{#each tabs}}
 <div class="dqa-barter-grid {{#if this.active}}active{{/if}}" data-tab="{{this.type}}">
     {{#each this.items}}
-    <div class="dqa-barter-tile {{#if this.selected}}selected{{/if}}"
+    <div class="dqa-barter-tile {{#if this.selected}}selected{{/if}} {{#if this.unidentified}}unidentified{{/if}}"
          data-action="toggleItem" data-side="{{../side}}" data-item-id="{{this.id}}"
+         data-item-uuid="{{this.uuid}}"
          data-tooltip="{{this.name}}" aria-label="{{this.name}}">
         <img src="{{this.img}}" alt="{{this.name}}">
+        {{#if this.unidentified}}<i class="fa-solid fa-question dqa-barter-unknown"></i>{{/if}}
         {{#if this.stackable}}<span class="dqa-barter-owned">×{{this.owned}}</span>{{/if}}
         {{#if this.selected}}
         {{#if this.stackable}}
@@ -198,8 +200,11 @@
 
         <div class="dqa-barter-peer-items">
             {{#each peerItems}}
-            <div class="dqa-barter-tile offered" data-tooltip="{{this.name}}" aria-label="{{this.name}}">
+            <div class="dqa-barter-tile offered {{#if this.unidentified}}unidentified{{/if}}"
+                 data-item-uuid="{{this.uuid}}"
+                 data-tooltip="{{this.name}}" aria-label="{{this.name}}">
                 <img src="{{this.img}}" alt="{{this.name}}">
+                {{#if this.unidentified}}<i class="fa-solid fa-question dqa-barter-unknown"></i>{{/if}}
                 {{#if (gt this.quantity 1)}}<span class="dqa-barter-owned">×{{this.quantity}}</span>{{/if}}
             </div>
             {{/each}}
