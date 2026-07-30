@@ -1,3 +1,11 @@
+# 0.6.3
+
+- [Fixed] Party Sheet: the Downtime button added in 0.4.3 never appeared, and the Short Rest / Long Rest buttons it was meant to replace were never removed — the hook was registered as `renderParty`, but the Daggerheart system's Party sheet class is `PartySheet`, so Foundry fires `renderPartySheet` instead and the handler never ran. Corrected the hook name.
+
+# 0.6.2
+
+- [Removed] Removed unused audio files (`assets/sfx-critical`) and their credits from `README.md`.
+
 # 0.6.1
 
 - [Added] **Token Hope Bar**: a row of Hope diamonds drawn just above every `character` token on the canvas — filled for the Hope currently held, empty for the rest. It follows each token's own **Display Bars** setting, so *Always for Everyone*, *When Hovered*, *When Controlled* and the owner-only modes apply to it exactly as they do to the native Hit Points and Stress bars, including the Alt-key reveal that forces every overlay visible at once.

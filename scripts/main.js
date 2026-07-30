@@ -304,7 +304,7 @@ Hooks.on("ready", async () => {
 // ==================================================================
 // PARTY SHEET HOOK — Replace rest buttons with Downtime button (GM only)
 // ==================================================================
-Hooks.on("renderParty", (app, html) => {
+Hooks.on("renderPartySheet", (app, html) => {
     // Always remove Short Rest and Long Rest buttons — this module replaces them
     html.querySelectorAll('button[data-action="triggerRest"]').forEach(btn => btn.remove());
 

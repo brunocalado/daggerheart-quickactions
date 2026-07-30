@@ -235,8 +235,6 @@ https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/modu
 
 * **System:** Designed for the [Daggerheart](https://www.daggerheart.com) system on Foundry VTT.
 
-* **sfx-critical:** [https://pixabay.com/service/license-summary/](https://pixabay.com/service/license-summary/)
-
 **Disclaimer:** This module is an independent creation and is not affiliated with Darrington Press.
 
 # 🧰 My Daggerheart Modules
