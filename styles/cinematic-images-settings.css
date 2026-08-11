@@ -1,0 +1,89 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* Cinematic Roll Images — settings menu where the GM assigns an image per roll case. */
+
+.daggerheart-quickactions {
+    & .dqa-ci-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 100%;
+    }
+
+    & .dqa-ci-hint {
+        font-size: var(--font-size-13);
+        text-align: left;
+        margin: 0;
+    }
+
+    & .dqa-ci-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    & .dqa-ci-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 5px 8px;
+        background: var(--daggerheart-quickactions-row-bg, rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--daggerheart-quickactions-border, rgba(255, 255, 255, 0.1));
+        border-radius: 4px;
+
+        & img {
+            flex: 0 0 32px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            object-fit: cover;
+            border-radius: 2px;
+        }
+    }
+
+    & .dqa-ci-placeholder {
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed var(--daggerheart-quickactions-border, rgba(255, 255, 255, 0.1));
+        border-radius: 2px;
+        color: var(--color-text-secondary, #999);
+    }
+
+    & .dqa-ci-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+    }
+
+    & .dqa-ci-label {
+        color: var(--daggerheart-quickactions-accent, #C9A060);
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    & .dqa-ci-path {
+        font-size: var(--font-size-11);
+        color: var(--color-text-secondary, #999);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

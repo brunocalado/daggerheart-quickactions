@@ -40,6 +40,8 @@ import { registerCoinTierSettings } from "./loot-consumable-settings.js";
 import { registerBiographyTabSettings, initBiographyTab } from "./biography-tab.js";
 // Import Quick Actions macro list (settings menu + character sheet header button)
 import { registerQuickActionsMacrosSettings, initQuickActionsButton, showQuickActionsMacros } from "./quick-actions-macros.js";
+// Import Cinematic Roll Images (settings menu for the Request Roll cinematic prompt images)
+import { registerCinematicImagesSettings } from "./cinematic-images-settings.js";
 // Import Light Sources module integration
 import { registerLightSources } from "./light-sources-integration.js";
 // Import Daggerheart Menu Enhancer (search, ordering and collapsible sections for the system's GM menu)
@@ -252,6 +254,7 @@ Hooks.once("init", () => {
     registerCoinTierSettings();
     registerBiographyTabSettings();
     registerQuickActionsMacrosSettings();
+    registerCinematicImagesSettings();
     initTokenTooltip();
     initHopeBar();
     initBiographyTab();

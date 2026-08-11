@@ -3,7 +3,7 @@
  * Contains specific complex macros and features accessed via QuickActions.Features()
  */
 
-import { MODULE_ID, CHAT_CARD_BG } from "./constants.js";
+import { MODULE_ID } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -187,7 +187,6 @@ async function executeUnleashChaos(token) {
  */
 async function _createUnleashChaosChatMessage(token, costType, tokensGained, newTotal) {
     const titleColor = "#C9A060";
-    const bgImage = CHAT_CARD_BG;
     const restoreColor = "#4CAF50";
 
     let costColor, costLabel, costIcon;
@@ -215,26 +214,23 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
                 Unleash Chaos
             </h3>
         </header>
-        <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 0; min-height: 100px; position: relative;">
-            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); z-index: 0;"></div>
-            <div style="position: relative; z-index: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+        <div class="card-content" style="background: #141414; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
 
-                <!-- Cost Row -->
-                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${costColor};">
-                    <i class="${costIcon}" style="color: ${costColor}; width: 16px; text-align: center;"></i>
-                    <span style="color: #ccc; font-size: 0.95em;">Cost paid:</span>
-                    <strong style="color: ${costColor}; font-size: 1em;">${costLabel}</strong>
-                </div>
-
-                <!-- Restore Row -->
-                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${restoreColor};">
-                    <i class="fas fa-bolt" style="color: ${restoreColor}; width: 16px; text-align: center;"></i>
-                    <span style="color: #ccc; font-size: 0.95em;">Restored:</span>
-                    <strong style="color: ${restoreColor}; font-size: 1em;">+${tokensGained} token${tokensGained !== 1 ? 's' : ''}</strong>
-                    <span style="color: #777; font-size: 0.85em;">(now ${newTotal})</span>
-                </div>
-
+            <!-- Cost Row -->
+            <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${costColor};">
+                <i class="${costIcon}" style="color: ${costColor}; width: 16px; text-align: center;"></i>
+                <span style="color: #ccc; font-size: 0.95em;">Cost paid:</span>
+                <strong style="color: ${costColor}; font-size: 1em;">${costLabel}</strong>
             </div>
+
+            <!-- Restore Row -->
+            <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${restoreColor};">
+                <i class="fas fa-bolt" style="color: ${restoreColor}; width: 16px; text-align: center;"></i>
+                <span style="color: #ccc; font-size: 0.95em;">Restored:</span>
+                <strong style="color: ${restoreColor}; font-size: 1em;">+${tokensGained} token${tokensGained !== 1 ? 's' : ''}</strong>
+                <span style="color: #777; font-size: 0.85em;">(now ${newTotal})</span>
+            </div>
+
         </div>
     </div>`;
 
@@ -471,7 +467,6 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     async _createChatMessage(results, dc, damageFormula, applied, originToken) {
         const titleColor = "#C9A060"; // Gold
-        const bgImage = CHAT_CARD_BG;
 
         let listItemsHtml = "";
 
@@ -531,23 +526,16 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 </h3>
             </header>
             
-            <div class="card-content" style="background-image: url('${bgImage}'); background-repeat: no-repeat; background-position: center; background-size: cover; padding: 0; min-height: 150px; position: relative;">
-                
-                <!-- Overlay to darken background -->
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.88); z-index: 0;"></div>
-                
-                <!-- Content -->
-                <div style="position: relative; z-index: 1; padding: 15px;">
-                    
-                    <div style="display: flex; justify-content: space-around; margin-bottom: 10px; font-size: 0.9em; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px;">
-                        <span><strong>Dif:</strong> ${dc}</span>
-                        <span><strong>Dmg:</strong> ${damageFormula}</span>
-                        <span><strong>Mode:</strong> ${applied ? '<span style="color:#f44336">Damage</span>' : '<span style="color:#4a90e2">Info</span>'}</span>
-                    </div>
+            <div class="card-content" style="background: #141414; padding: 15px;">
 
-                    <div style="padding-right: 5px;">
-                        ${listItemsHtml}
-                    </div>
+                <div style="display: flex; justify-content: space-around; margin-bottom: 10px; font-size: 0.9em; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                    <span><strong>Dif:</strong> ${dc}</span>
+                    <span><strong>Dmg:</strong> ${damageFormula}</span>
+                    <span><strong>Mode:</strong> ${applied ? '<span style="color:#f44336">Damage</span>' : '<span style="color:#4a90e2">Info</span>'}</span>
+                </div>
+
+                <div style="padding-right: 5px;">
+                    ${listItemsHtml}
                 </div>
             </div>
         </div>`;

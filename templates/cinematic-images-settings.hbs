@@ -1,0 +1,30 @@
+<div class="dqa-ci-wrapper">
+    <p class="dqa-ci-hint">
+        Pick an image for each roll case. Cases without an image fall back to a plain chat
+        message instead of the cinematic prompt.
+    </p>
+
+    <ol class="dqa-ci-list">
+        {{#each rows}}
+        <li class="dqa-ci-row">
+            {{#if this.hasImage}}
+            <img src="{{this.path}}" alt="{{this.label}}">
+            {{else}}
+            <div class="dqa-ci-placeholder"><i class="fas fa-image"></i></div>
+            {{/if}}
+            <div class="dqa-ci-info">
+                <span class="dqa-ci-label">{{this.label}}</span>
+                <span class="dqa-ci-path">{{#if this.hasImage}}{{this.path}}{{else}}No image configured{{/if}}</span>
+            </div>
+            <button type="button" class="dqa-icon-btn" data-action="browseImage" data-case="{{this.key}}"
+                    data-tooltip="Browse" aria-label="Browse image for {{this.label}}">
+                <i class="fas fa-folder-open"></i>
+            </button>
+            <button type="button" class="dqa-icon-btn" data-action="clearImage" data-case="{{this.key}}"
+                    data-tooltip="Clear" aria-label="Clear image for {{this.label}}" {{#unless this.hasImage}}disabled{{/unless}}>
+                <i class="fas fa-trash"></i>
+            </button>
+        </li>
+        {{/each}}
+    </ol>
+</div>

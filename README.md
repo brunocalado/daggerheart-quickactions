@@ -25,7 +25,7 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 ### 🛠️ GM Utilities
 
 * **🪂 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far/Very Far", and "Collision" tiers, with dice formulas the GM can fully customize.
-* **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label; optionally send it as a "cinematic" full-screen prompt.
+* **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label. If the GM has assigned an image to that roll's case (see **Cinematic Roll Images** below), it's sent as a "cinematic" full-screen prompt instead of a plain chat message.
 * **💬 Whisper:** Send a private message to any number of connected users, via `QuickActions.Whisper()`. Pick the recipients from the list (GMs are flagged with a crown), type the message, and hit send — it arrives as a whispered chat card visible only to them. The text is plain: anything you type is delivered literally, so pasted HTML shows up as text instead of being rendered. Ctrl+Enter sends without leaving the keyboard.
 
   <p align="center"><img width="800" src="docs/whisper.webp" alt="Whisper"></p>
@@ -91,7 +91,7 @@ Most features work out of the box, but a few can be tuned from **Configure Setti
 * **Scan Configuration:** enable the Scan macro for players and customize the labels/descriptions it shows.
 * **Falling Damage Formulas:** customize the dice formula for each fall height tier, with a one-click reset to the official defaults.
 * **Coin Tier Configuration:** customize the min/max coin range rolled for each Loot coin tier.
-* **Cinematic Request Roll:** toggle whether Request Roll uses the full-screen cinematic prompt.
+* **Cinematic Roll Images:** assign an image to each Request Roll case (the six traits, Hope, Fear, and the generic Duality Roll fallback). A case only uses the full-screen cinematic prompt when it has an image configured here — cases left empty fall back to a plain chat message, and the feature does nothing at all until at least one image is set.
 
 ## ⚙️ Usage
 
@@ -129,8 +129,8 @@ QuickActions.FallingDamage();
 ```
 
 ```javascript
-// Opens the Roll Request dialog
-// You can use QuickActions.RequestRoll(false); to prevent it from showing images.
+// Opens the Roll Request dialog. The cinematic full-screen prompt activates automatically per
+// request, based on the images configured in Configure Settings → Cinematic Roll Images.
 QuickActions.RequestRoll();
 ```
 
@@ -241,23 +241,26 @@ https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/modu
 
 | Module | Description |
 | :--- | :--- |
-| 💀 [**Adversary Manager**](https://github.com/brunocalado/daggerheart-advmanager) | Scale adversaries instantly and build balanced encounters in Foundry VTT. |
+| 💀 [**Adversary Manager**](https://github.com/brunocalado/daggerheart-advmanager) | Scale adversaries instantly and build balanced encounters. |
+| 🖼️ [**Art Mapper**](https://github.com/brunocalado/dh-assets) | Automatically assigns artwork to system compendiums, actors, tokens, and custom module content — keeping your visuals organized and up to date. |
 | 🐉 [**Colossus**](https://github.com/brunocalado/dh-colossus) | Manage massive multi-part boss encounters with independent HP per part and a single shared stress pool. |
-| 💥 [**Critical**](https://github.com/brunocalado/daggerheart-critical) | Animated Critical. |
+| 📦 [**Containers**](https://github.com/brunocalado/dh-containers) | Group inventory items into collapsible containers — pouches, chests, backpacks — to declutter character sheets. |
+| 💥 [**Critical**](https://github.com/brunocalado/daggerheart-critical) | Animated criticals. |
 | 💠 [**Custom Stat Tracker**](https://github.com/brunocalado/dh-new-stat-tracker) | Add custom trackers to actors. |
 | ☠️ [**Death Moves**](https://github.com/brunocalado/daggerheart-death-moves) | Enhances the Death Move moment with a dramatic interface and full automation. |
 | 📏 [**Distances**](https://github.com/brunocalado/daggerheart-distances) | Visualizes combat ranges with customizable rings and hover calculations. |
-| 📦 [**Extra Content**](https://github.com/brunocalado/daggerheart-extra-content) | Homebrew for Daggerheart. |
-| 🤖 [**Resource Macros**](https://github.com/brunocalado/daggerheart-fear-macros) | Automatically executes macros when the Fear or Hope resources are changed. |
+| 📦 [**Extra Content**](https://github.com/brunocalado/daggerheart-extra-content) | Homebrew content pack. |
 | 😱 [**Fear Tracker**](https://github.com/brunocalado/daggerheart-fear-tracker) | Adds an animated slider bar with configurable fear tokens to the UI. |
 | 🧟 [**Horde**](https://github.com/brunocalado/dh-horde) | Explode single horde tokens into dozens of individual tokens and manage their movement and stats automatically. |
 | 🎁 [**Mystery Box**](https://github.com/brunocalado/dh-mystery-box) | Introduces mystery box mechanics for random loot and surprises. |
 | ⚡ [**Quick Actions**](https://github.com/brunocalado/daggerheart-quickactions) | Quick access to common mechanics like Falling Damage, Downtime, etc. |
 | 📜 [**Quick Rules**](https://github.com/brunocalado/daggerheart-quickrules) | Fast and accessible reference guide for the core rules. |
+| 🤖 [**Resource Macros**](https://github.com/brunocalado/daggerheart-fear-macros) | Automatically executes macros when the Fear or Hope resources change. |
 | 🎲 [**Stats**](https://github.com/brunocalado/daggerheart-stats) | Tracks dice rolls from GM and Players. |
-| 🧠 [**Stats Toolbox**](https://github.com/brunocalado/dh-statblock-importer) | Import using a statblock. |
-| 🛒 [**Store**](https://github.com/brunocalado/daggerheart-store) | A dynamic, interactive, and fully configurable store for Foundry VTT. |
+| 🧠 [**Stats Toolbox**](https://github.com/brunocalado/dh-statblock-importer) | Import actors using a statblock. |
+| 🛒 [**Store**](https://github.com/brunocalado/daggerheart-store) | A dynamic, interactive, and fully configurable in-game store. |
 | 🔍 [**Unidentified**](https://github.com/brunocalado/dh-unidentified) | Obfuscates item names and descriptions until they are identified by the players. |
+| 🌌 [**Void**](https://github.com/brunocalado/the-void-unofficial) | Unofficial module that brings The Void playtesting content — experimental classes, subclasses, ancestries, communities, adversaries, loot, weapons, and more. |
 
 # 🗺️ Adventures
 

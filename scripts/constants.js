@@ -16,12 +16,6 @@
 export const MODULE_ID = "daggerheart-quickactions";
 
 /**
- * Absolute path to the chat card background image shared across all module chat messages.
- * @type {string}
- */
-export const CHAT_CARD_BG = `modules/${MODULE_ID}/assets/chat-messages/skull.webp`;
-
-/**
  * World setting key holding the macro list shown by the character sheet "Quick Actions" button.
  * Stored as an array of { uuid, name, img } snapshots — name/img are only fallbacks for
  * documents that can no longer be resolved (deleted macro, disabled compendium).
@@ -109,3 +103,46 @@ export const HOPE_BAR_ENABLED = "hopeBarEnabled";
  * @type {string}
  */
 export const DOWNTIME_DISABLED_USERS = "downtimeDisabledUsers";
+
+/**
+ * World setting key holding the GM-configured image for each Cinematic Roll case.
+ * Stored as an object keyed by CINEMATIC_CASE_KEYS, values are image paths (or "" when unset).
+ * @type {string}
+ */
+export const CINEMATIC_IMAGES = "cinematicImages";
+
+/**
+ * The Request Roll cases that can each have their own Cinematic Mode image: the six traits,
+ * Hope, Fear, and "none" — the generic Duality Roll fallback used when no trait or special
+ * roll was picked. Order matches the trait buttons in request-roll.hbs.
+ * @type {Readonly<Array<string>>}
+ */
+export const CINEMATIC_CASE_KEYS = Object.freeze([
+    "agility", "strength", "finesse", "instinct", "presence", "knowledge", "hope", "fear", "none"
+]);
+
+/**
+ * Human-readable labels for CINEMATIC_CASE_KEYS, shown as row labels in the Cinematic Roll
+ * Images settings menu.
+ * @type {Readonly<Record<string, string>>}
+ */
+export const CINEMATIC_CASE_LABELS = Object.freeze({
+    agility: "Agility",
+    strength: "Strength",
+    finesse: "Finesse",
+    instinct: "Instinct",
+    presence: "Presence",
+    knowledge: "Knowledge",
+    hope: "Hope",
+    fear: "Fear",
+    none: "Duality Roll (no trait)"
+});
+
+/**
+ * Default value of the CINEMATIC_IMAGES setting — every case unset. Cinematic Mode stays
+ * inactive until the GM assigns an image to at least one case.
+ * @type {Readonly<Record<string, string>>}
+ */
+export const DEFAULT_CINEMATIC_IMAGES = Object.freeze(
+    Object.fromEntries(CINEMATIC_CASE_KEYS.map(key => [key, ""]))
+);

@@ -243,6 +243,12 @@ export async function registerLightSources() {
         return;
     }
 
+    // Seeds Item/Actor Types so freeForAll sources (if any are ever added above) work without
+    // the GM having to open the Light Sources module's Compatibility window by hand. A no-op on
+    // fields the GM has already configured — see registerCompatibility's contract in the Light
+    // Sources module's docs/register-sources-api.md.
+    await api.registerCompatibility?.({ itemTypes: ["loot", "consumable"], actorTypes: ["character"] });
+
     await api.registerSources(LIGHT_SOURCE_ENTRIES, { managedBy: MODULE_ID });
     console.log("Daggerheart Quick Actions | Registered light sources with the Light Sources module");
 }

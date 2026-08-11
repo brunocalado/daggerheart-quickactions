@@ -5,6 +5,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
+import { getCinematicImagePath } from "./cinematic-images-settings.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -110,7 +111,6 @@ const LABEL_SUGGESTIONS = Object.freeze([
 export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options = {}) {
         super(options);
-        this.showImages = options.showImages ?? true;
         /** @type {Set<string>} IDs of currently selected target users */
         this._selectedTargets = new Set();
     }
@@ -150,13 +150,9 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             };
         });
         
-        // Retrieve cinematic mode flag
-        const savedCinematic = game.user.getFlag(MODULE_ID, "cinematicMode") ?? false;
-
         return {
             connectedUsers,
             labelSuggestions: LABEL_SUGGESTIONS,
-            cinematicMode: savedCinematic,
             difficulty: 15
         };
     }
@@ -336,7 +332,6 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const grantResources = container.querySelector('[name="grantResources"]').checked;
         const advantage = container.querySelector('[name="advantage"]').checked;
         const disadvantage = container.querySelector('[name="disadvantage"]').checked;
-        const cinematicMode = container.querySelector('[name="cinematicMode"]').checked;
         const labelInput = (container.querySelector('[name="label"]').value || "").trim();
 
         // Resolve targets: empty array means broadcast to all, populated array means specific users
@@ -344,9 +339,6 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const isAll = this._selectedTargets.size === connectedUserIds.length;
         const selectedIds = [...this._selectedTargets];
         const targetIds = isAll ? [] : selectedIds;
-
-        // Persist Cinematic Mode choice
-        await game.user.setFlag(MODULE_ID, "cinematicMode", cinematicMode);
 
         // LOOT: Trigger LootConsumable screen on targeted players
         if (specialRoll === "loot") {
@@ -358,6 +350,13 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             this.close();
             return;
         }
+
+        // Resolve which of the 9 Cinematic Roll cases this request maps to, and whether the GM
+        // has configured an image for it. Cinematic Mode is no longer a manual toggle — it
+        // auto-activates only when that case has an image assigned.
+        const caseKey = specialRoll ? specialRoll.toLowerCase() : (trait ? trait.toLowerCase() : "none");
+        const configuredPath = getCinematicImagePath(caseKey);
+        const cinematicMode = !!configuredPath;
 
         let rawCommand = "";
         let displayCommand = "";
@@ -416,8 +415,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 label: labelInput || "GM Requests a Roll",
                 difficulty: cinematicDifficulty,
                 trait: cinematicTraitLabel,
-                rawTrait: specialRoll ? "" : trait, // If special, do not send rawTrait to avoid fetching attribute image
-                showImages: this.showImages // Passes image configuration to client
+                imagePath: configuredPath // Resolved from the GM's world settings at request time
             };
             
             await game.settings.set(MODULE_ID, "cinematicRequest", {
@@ -484,20 +482,9 @@ export class CinematicRollPrompt extends HandlebarsApplicationMixin(ApplicationV
         let checkLabel = this.data.trait;
         if (!checkLabel || checkLabel === "Roll") checkLabel = "Duality Roll";
 
-        // Resolve the trait image path (images optional via showImages flag)
-        let imagePath = null;
-        if (this.data.showImages !== false) {
-            let imageName = "";
-            if (this.data.rawTrait) {
-                // Normal attribute roll (agility, strength, etc.) — use rawTrait directly
-                imageName = this.data.rawTrait.toLowerCase();
-            } else {
-                // Special roll — map processed label to image name
-                const specialImageMap = { Hope: "hope", Fear: "fear", "Duality Roll": "none" };
-                imageName = specialImageMap[checkLabel] ?? "";
-            }
-            if (imageName) imagePath = `modules/${MODULE_ID}/assets/requestroll/${imageName}.webp`;
-        }
+        // Image path was already resolved from the GM's Cinematic Roll Images settings when the
+        // request was sent (see RequestRollApp._onRoll) — this prompt just displays it.
+        const imagePath = this.data.imagePath || null;
 
         // Enrich the roll command into a native Daggerheart enriched button.
         // `renderHandlebarsApplication` (fired by HandlebarsApplicationMixin) triggers
@@ -528,10 +515,8 @@ export class CinematicRollPrompt extends HandlebarsApplicationMixin(ApplicationV
     }
 }
 
-export async function activateRequestRoll(arg) {
-    // If arg is boolean false, use false. Otherwise (undefined or event), use true.
-    const showImages = (typeof arg === "boolean") ? arg : true;
-    new RequestRollApp({ showImages }).render(true);
+export async function activateRequestRoll() {
+    new RequestRollApp().render(true);
 }
 
 export async function showCinematicPrompt(data) { 

@@ -137,7 +137,7 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
             <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #800080, 2px 2px 2px #000; font-family: 'Lato', sans-serif;">+${addedFear}</div>
             <div style="color: #ccc; font-size: 0.8em; margin-top: 5px; font-style: italic;">${calculationText}</div>
             <div style="color: #e0e0e0; font-size: 0.9em; margin-top: 8px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px;">Current Total: ${newFear}</div>
-        `, { overlayOpacity: 0.75 });
+        `);
         await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content: content });
     }
 }
@@ -335,7 +335,7 @@ export async function helpAnAlly() {
             content: buildChatCard("Help an Ally", `
                 <i class="fas fa-heart-broken" style="font-size: 32px; color: #ff6b6b; margin-bottom: 10px;"></i>
                 <div style="color: #ff6b6b; font-size: 1.1em; font-weight: bold; font-family: 'Aleo', serif;">No Hope remaining!</div>
-            `, { overlayOpacity: 0.6 })
+            `)
         });
         return;
     }
@@ -470,7 +470,7 @@ class HopeSpenderApp extends ApplicationV2 {
         const content = buildChatCard("Hope Spent", `
             <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #C9A060, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">-${spendAmount}</div>
             <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">Hope Remaining: ${currentHope} → <span style="color: #C9A060; font-weight: bold;">${currentHope - spendAmount}</span></div>
-        `, { overlayOpacity: 0.8 });
+        `);
         await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker({actor: actor}), content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
         this.close();
     }
