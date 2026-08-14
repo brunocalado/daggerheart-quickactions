@@ -1,3 +1,8 @@
+# 0.6.5
+
+- [Changed] Request Roll: **Cinematic Mode now always opens** the full-screen prompt on the targeted players' screens, whether or not the GM has configured an image for the resolved case (see 0.6.4) — the prompt template already omits the image cleanly when none is set, so there was no reason to fall back to a plain chat message. The roll request is also still posted to chat as before, alongside the cinematic prompt rather than instead of it, so there's a persistent record even before a player acknowledges the prompt.
+
+
 # 0.6.4
 
 - removed ai assets

@@ -351,45 +351,25 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             return;
         }
 
-        // Resolve which of the 9 Cinematic Roll cases this request maps to, and whether the GM
-        // has configured an image for it. Cinematic Mode is no longer a manual toggle — it
-        // auto-activates only when that case has an image assigned.
+        // Resolve which of the 9 Cinematic Roll cases this request maps to. An image is
+        // optional here — the prompt template omits it gracefully when the GM hasn't
+        // configured one for this case — so Cinematic Mode always opens on the players'
+        // screen regardless of whether configuredPath resolves to anything.
         const caseKey = specialRoll ? specialRoll.toLowerCase() : (trait ? trait.toLowerCase() : "none");
         const configuredPath = getCinematicImagePath(caseKey);
-        const cinematicMode = !!configuredPath;
 
         let rawCommand = "";
-        let displayCommand = "";
         let cinematicTraitLabel = "";
         let cinematicDifficulty = difficulty;
 
         // BRANCH LOGIC: Special Roll vs Standard Roll
         if (specialRoll) {
             const capSpecial = specialRoll.toLowerCase(); // hope or fear
-
-            // Non-Cinematic Hope/Fear sends direct command
-            if (!cinematicMode) {
-                let textCommand = `[[/fr type=${capSpecial}]]`;
-                if (labelInput) textCommand += `{${labelInput}}`;
-
-                await ChatMessage.create({
-                    user: game.user.id,
-                    content: textCommand,
-                    whisper: targetIds
-                });
-
-                this.close();
-                return;
-            }
-
-            // Cinematic Mode Logic (Visuals)
             const displaySpecial = capSpecial.charAt(0).toUpperCase() + capSpecial.slice(1);
             rawCommand = `/fr type=${displaySpecial}`;
-            
-            // Setup Cinematic Data for Special (Visuals only)
+
             cinematicTraitLabel = displaySpecial; // "Hope" or "Fear"
             cinematicDifficulty = ""; // Do not show difficulty
-            
         } else {
             // Standard Logic
             let params = [];
@@ -403,33 +383,29 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             rawCommand = "/dr";
             if (params.length > 0) rawCommand += " " + params.join(" ");
 
-            displayCommand = `[[${rawCommand}]]`;
-            if (labelInput) displayCommand += `{${labelInput}}`;
-
             cinematicTraitLabel = trait ? trait.charAt(0).toUpperCase() + trait.slice(1) : "Roll";
         }
 
-        if (cinematicMode) {
-            const dataPacket = {
-                command: rawCommand,
-                label: labelInput || "GM Requests a Roll",
-                difficulty: cinematicDifficulty,
-                trait: cinematicTraitLabel,
-                imagePath: configuredPath // Resolved from the GM's world settings at request time
-            };
-            
-            await game.settings.set(MODULE_ID, "cinematicRequest", {
-                targetIds: targetIds,
-                data: dataPacket,
-                timestamp: Date.now()
-            });
-            //ui.notifications.info("Cinematic Request sent to player(s) screen.");
-            this.close();
-            return;
-        }
+        // Open the Cinematic Roll prompt on the targeted players' screens.
+        const dataPacket = {
+            command: rawCommand,
+            label: labelInput || "GM Requests a Roll",
+            difficulty: cinematicDifficulty,
+            trait: cinematicTraitLabel,
+            imagePath: configuredPath // Resolved from the GM's world settings at request time; may be empty
+        };
 
-        // Standard Text Chat Logic (Traits)
-        let whisperArray = targetIds;
+        await game.settings.set(MODULE_ID, "cinematicRequest", {
+            targetIds: targetIds,
+            data: dataPacket,
+            timestamp: Date.now()
+        });
+
+        // Also drop the request into chat, so it's visible even before the player
+        // acknowledges the cinematic prompt.
+        let displayCommand = `[[${rawCommand}]]`;
+        if (labelInput) displayCommand += `{${labelInput}}`;
+
         const content = buildChatCard(labelInput || "Roll Request", `
             <span style="color: #ffffff !important; font-size: 1.1em; font-weight: bold; text-shadow: 0px 0px 8px #000000; font-family: 'Lato', sans-serif; line-height: 1.4; width: 100%;">
                 ${displayCommand}
@@ -441,8 +417,9 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             speaker: ChatMessage.getSpeaker(),
             content: content,
             style: CONST.CHAT_MESSAGE_STYLES.OTHER,
-            whisper: whisperArray
+            whisper: targetIds
         });
+
         this.close();
     }
 }
