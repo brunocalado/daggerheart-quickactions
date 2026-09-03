@@ -448,9 +448,9 @@ export class CinematicRollPrompt extends HandlebarsApplicationMixin(ApplicationV
 
     /**
      * Builds the context passed to the Handlebars template.
-     * Uses HandlebarsApplicationMixin so the `renderHandlebarsApplication` hook fires,
-     * which triggers Daggerheart's `enricherRenderSetup` to wire `.duality-roll-button`
-     * and `.fate-roll-button` click handlers automatically.
+     * The click handler on the resulting `.duality-roll-button` / `.fate-roll-button` needs no
+     * wiring here — Daggerheart registers one delegated listener on `window.document` at init
+     * (`enricherRenderSetup`), so a click on this ApplicationV2's button simply bubbles up to it.
      * @override
      * @returns {Promise<object>}
      */
@@ -463,9 +463,8 @@ export class CinematicRollPrompt extends HandlebarsApplicationMixin(ApplicationV
         // request was sent (see RequestRollApp._onRoll) — this prompt just displays it.
         const imagePath = this.data.imagePath || null;
 
-        // Enrich the roll command into a native Daggerheart enriched button.
-        // `renderHandlebarsApplication` (fired by HandlebarsApplicationMixin) triggers
-        // Daggerheart's enricherRenderSetup, which wires the click handler on the result.
+        // Enrich the roll command into a native Daggerheart enriched button. Its click handler
+        // needs no wiring here — see the delegated-listener note on the method doc above.
         const TextEditorImpl = foundry.applications.ux.TextEditor.implementation;
         const enrichedRoll = await TextEditorImpl.enrichHTML(`[[${this.data.command}]]`);
 
