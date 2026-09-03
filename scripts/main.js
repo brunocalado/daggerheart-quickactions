@@ -367,4 +367,8 @@ Hooks.on("renderDaggerheartMenu", (app, element, data) => {
 
     // This module's Falling Damage button always replaces the system's built-in one.
     element.querySelector('[data-action="createFallCollisionDamage"]')?.closest('fieldset')?.remove();
+
+    // The system's "Downtime Fear" section (Daggerheart 2.9.1+) is superseded by this
+    // module's own Downtime UI, which handles rest/downtime fear generation itself.
+    element.querySelector('[data-action="rollDowntimeFear"]')?.closest('fieldset')?.remove();
 });

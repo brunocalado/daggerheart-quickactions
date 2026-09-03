@@ -1,3 +1,8 @@
+# 0.6.6
+
+- [Changed] GM Menu: hide the system's **Downtime Fear** section (new in Daggerheart 2.9.1 — Short Rest / Long Rest / Extended Downtime buttons that roll downtime Fear). This module's own Downtime UI already handles rest and downtime Fear generation, so the system's section is redundant. Removed from the "GM Tools" menu the same way the built-in "Falling And Collision Damage" section already was, by matching its `rollDowntimeFear` action buttons and dropping the enclosing `<fieldset>` on `renderDaggerheartMenu`.
+
+
 # 0.6.5
 
 - [Changed] Request Roll: **Cinematic Mode now always opens** the full-screen prompt on the targeted players' screens, whether or not the GM has configured an image for the resolved case (see 0.6.4) — the prompt template already omits the image cleanly when none is set, so there was no reason to fall back to a plain chat message. The roll request is also still posted to chat as before, alongside the cinematic prompt rather than instead of it, so there's a persistent record even before a player acknowledges the prompt.
