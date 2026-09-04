@@ -1,7 +1,8 @@
 <div class="dqa-ci-wrapper">
     <p class="dqa-ci-hint">
-        Pick an image for each roll case. Cases without an image fall back to a plain chat
-        message instead of the cinematic prompt.
+        Pick an image for each roll case. Every case starts on a core Foundry icon &mdash; point it
+        at your own artwork, or clear it to fall back to a plain chat message instead of the
+        cinematic prompt.
     </p>
 
     <ol class="dqa-ci-list">
@@ -27,4 +28,15 @@
         </li>
         {{/each}}
     </ol>
+
+    <footer class="dqa-ci-footer">
+        <button type="button" class="dqa-ci-footer-btn" data-action="resetDefaults"
+                data-tooltip="Restore the icon this module ships with for every case">
+            <i class="fas fa-rotate-left"></i> Reset to Default
+        </button>
+        <button type="button" class="dqa-ci-footer-btn dqa-ci-danger" data-action="clearAll"
+                data-tooltip="Blank every case — Cinematic Mode falls back to plain chat messages">
+            <i class="fas fa-trash"></i> Clear All
+        </button>
+    </footer>
 </div>

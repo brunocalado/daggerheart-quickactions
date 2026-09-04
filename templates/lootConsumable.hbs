@@ -33,20 +33,19 @@
     <hr class="divider">
 
     {{#unless isCoins}}
-    <!-- 2. Meio: Botões de Dados (Lado a Lado) -->
-    <div class="dice-row">
-        <button type="button" class="dice-btn" data-action="setFormula" data-formula="1d12">1d12</button>
-        <button type="button" class="dice-btn" data-action="setFormula" data-formula="2d12">2d12</button>
-        <button type="button" class="dice-btn" data-action="setFormula" data-formula="3d12">3d12</button>
-        <button type="button" class="dice-btn" data-action="setFormula" data-formula="4d12">4d12</button>
-        <button type="button" class="dice-btn" data-action="setFormula" data-formula="5d12">5d12</button>
+    <!-- 2. Dice pool: tap + to stack another d12. More dice reach rarer entries further down the
+         table, capped at 5d12 — the tables hold 60 rarity-ordered entries, so beyond that the
+         total can only run past the last one and get clamped back. The hint says what the current
+         pool actually buys, including how much wider the pick gets with both books enabled. -->
+    <div class="dice-pool-row">
+        <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="-1"
+            title="Remove a d12" {{#if atMinDice}}disabled{{/if}}>&minus;</button>
+        <div class="dice-pool-display"><span class="dice-pool-count">{{diceCount}}</span>d12</div>
+        <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="1"
+            title="Add a d12 (max {{maxDice}}d12)" {{#if atMaxDice}}disabled{{/if}}>+</button>
     </div>
 
-    <!-- 3. Formula Input (Mesma Linha) -->
-    <div class="formula-row">
-        <label>Formula:</label>
-        <input type="text" name="formula" class="dh-input" value="{{formula}}" placeholder="e.g. 1d12" />
-    </div>
+    <div class="reach-hint">{{reachHint}}</div>
     {{/unless}}
 
     {{#if isCoins}}
@@ -59,10 +58,48 @@
     </div>
     {{/if}}
 
-    <!-- 4. Footer: Botão Roll Grande -->
+    <!-- 3. Queue: stack several draws ("3d12 loot, then 2d12 loot") and resolve them all with a
+         single ROLL, into a single chat card. -->
+    <div class="queue-row">
+        <button type="button" class="queue-add-btn" data-action="queueRoll" title="Stack this roll and set up another">
+            <i class="fas fa-layer-group"></i> Add to Roll
+        </button>
+    </div>
+
+    {{#if hasQueue}}
+    <ul class="queue-list">
+        {{#each queue}}
+        <li class="queue-item">
+            <span class="queue-label">{{this.label}}</span>
+            <button type="button" class="queue-remove" data-action="unqueueRoll" data-index="{{this.index}}" title="Remove">&times;</button>
+        </li>
+        {{/each}}
+    </ul>
+    {{/if}}
+
+    {{#if hasParty}}
+    <!-- 4. Where the results land — a radio pair, only offered when the linked character belongs
+         to a party sheet this user owns. Either way the choice is recorded in the chat card. -->
+    <div class="destination-row">
+        <button type="button" class="destination-btn {{#unless toParty}}active{{/unless}}"
+            data-action="selectDestination" data-destination="self"
+            title="Keep the results on your own sheet">
+            <i class="fas fa-user"></i>
+            <span>To Myself</span>
+        </button>
+        <button type="button" class="destination-btn {{#if toParty}}active{{/if}}"
+            data-action="selectDestination" data-destination="party"
+            title="Send the results to {{partyName}}">
+            <i class="fas fa-users"></i>
+            <span>To Party</span>
+        </button>
+    </div>
+    {{/if}}
+
+    <!-- 5. Footer: Botão Roll Grande -->
     <div class="footer-row">
         <button type="button" class="main-roll-btn" data-action="roll">
-            <i class="fas fa-dice"></i> ROLL
+            <i class="fas fa-dice"></i> ROLL{{#if hasQueue}} &times;{{queueSize}}{{/if}}
         </button>
     </div>
 

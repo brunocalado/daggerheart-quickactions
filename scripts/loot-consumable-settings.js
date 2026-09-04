@@ -1,10 +1,11 @@
 /**
- * Loot Consumable Settings Module
- * Provides an ApplicationV2 menu for customizing coin tier min/max ranges.
+ * Loot & Consumables Settings Module
+ * Provides an ApplicationV2 menu covering everything QuickActions.LootConsumable() rolls:
+ * which Daggerheart roll tables loot and consumables are drawn from, and the coin tier ranges.
  * Registered from the init hook in main.js.
  */
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, LOOT_CONSUMABLE_SOURCE, LOOT_SOURCE, LOOT_SOURCE_LABELS } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -17,16 +18,16 @@ export const DEFAULT_COIN_TIERS = {
 };
 
 /**
- * Menu Application for customizing coin tier ranges.
- * Triggered via a settings menu button registered in registerCoinTierSettings().
+ * Menu Application configuring the Loot & Consumables roller.
+ * Triggered via the settings menu button registered in registerLootConsumableSettings().
  */
-class CoinTierSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
+class LootConsumableSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
-        id: "dh-qa-coin-tier-settings-app",
+        id: "dh-qa-loot-consumable-settings-app",
         tag: "form",
-        classes: [MODULE_ID, "coin-tier-settings"],
-        window: { title: "Coin Tier Configuration", icon: "fas fa-coins", resizable: false },
-        position: { width: 460, height: "auto" }
+        classes: [MODULE_ID, "loot-consumable-settings"],
+        window: { title: "Loot & Consumables Configuration", icon: "fas fa-treasure-chest", resizable: false },
+        position: { width: 480, height: "auto" }
     };
 
     static PARTS = {
@@ -36,11 +37,17 @@ class CoinTierSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
      * Prepares context data for the template from stored settings.
      * @param {object} _options - Render options (unused).
-     * @returns {Promise<object>} Template context with current tier ranges.
+     * @returns {Promise<object>} Template context with the active table source and tier ranges.
      */
     async _prepareContext(_options) {
+        const source = game.settings.get(MODULE_ID, LOOT_CONSUMABLE_SOURCE);
         return {
-            tiers: game.settings.get(MODULE_ID, "coinTierRanges")
+            tiers: game.settings.get(MODULE_ID, "coinTierRanges"),
+            sources: Object.values(LOOT_SOURCE).map(value => ({
+                value,
+                label: LOOT_SOURCE_LABELS[value],
+                selected: value === source
+            }))
         };
     }
 
@@ -64,6 +71,12 @@ class CoinTierSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.addEventListener("submit", async (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
+
+            const source = fd.get("source");
+            if (Object.values(LOOT_SOURCE).includes(source)) {
+                await game.settings.set(MODULE_ID, LOOT_CONSUMABLE_SOURCE, source);
+            }
+
             const tiers = {};
             for (const key of ["tier1", "tier2", "tier3", "tier4"]) {
                 tiers[key] = {
@@ -78,10 +91,21 @@ class CoinTierSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 
 /**
- * Registers the coin tier ranges setting and the settings menu button.
+ * Registers everything the Loot & Consumables roller reads — the table source, the coin tier
+ * ranges, and the single settings menu button that edits both.
  * Called from the init hook in main.js.
  */
-export function registerCoinTierSettings() {
+export function registerLootConsumableSettings() {
+    // Edited through the menu below rather than as a standalone dropdown, so the roller's whole
+    // configuration lives behind one button.
+    game.settings.register(MODULE_ID, LOOT_CONSUMABLE_SOURCE, {
+        name: "Loot & Consumable Table Source",
+        scope: "world",
+        config: false,
+        type: String,
+        default: LOOT_SOURCE.BOTH
+    });
+
     game.settings.register(MODULE_ID, "coinTierRanges", {
         scope: "world",
         config: false,
@@ -89,12 +113,12 @@ export function registerCoinTierSettings() {
         default: { ...DEFAULT_COIN_TIERS }
     });
 
-    game.settings.registerMenu(MODULE_ID, "coinTierSettingsMenu", {
-        name: "Coin Tier Configuration",
-        label: "Configure Coin Tiers",
-        hint: "Customize the min/max coin range for each loot tier.",
-        icon: "fas fa-coins",
-        type: CoinTierSettingsApp,
+    game.settings.registerMenu(MODULE_ID, "lootConsumableSettingsMenu", {
+        name: "Loot & Consumables Configuration",
+        label: "Configure Loot & Consumables",
+        hint: "Pick which Daggerheart roll tables loot and consumables are drawn from, and customize the coin range of each tier.",
+        icon: "fas fa-treasure-chest",
+        type: LootConsumableSettingsApp,
         restricted: true
     });
 }

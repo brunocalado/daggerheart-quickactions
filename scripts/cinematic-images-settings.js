@@ -10,7 +10,9 @@
  * Cinematic Roll Images Settings
  * Lets the GM assign an image to each Request Roll case (traits, Hope, Fear, and the generic
  * Duality Roll fallback). Cinematic Mode auto-activates per request in request_roll.js only when
- * the resolved case has an image configured here — with nothing configured, the feature is inert.
+ * the resolved case has an image configured here — every case ships with a core Foundry icon
+ * (DEFAULT_CINEMATIC_IMAGES), so the feature is on out of the box; blanking a case, or all of
+ * them via Clear All, drops it back to a plain chat message.
  * Registered from the init hook in main.js.
  */
 
@@ -56,7 +58,9 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
         position: { width: 480, height: "auto" },
         actions: {
             browseImage: CinematicImagesSettingsApp.prototype._onBrowseImage,
-            clearImage: CinematicImagesSettingsApp.prototype._onClearImage
+            clearImage: CinematicImagesSettingsApp.prototype._onClearImage,
+            resetDefaults: CinematicImagesSettingsApp.prototype._onResetDefaults,
+            clearAll: CinematicImagesSettingsApp.prototype._onClearAll
         }
     };
 
@@ -119,6 +123,28 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
         await game.settings.set(MODULE_ID, CINEMATIC_IMAGES, images);
         this.render();
     }
+
+    /**
+     * Restores every case to the core Foundry icon this module ships with, discarding whatever the
+     * GM had picked. Worlds created before the defaults existed start out fully blank, so this is
+     * how they get the stock artwork.
+     * @returns {Promise<void>}
+     */
+    async _onResetDefaults() {
+        await game.settings.set(MODULE_ID, CINEMATIC_IMAGES, { ...DEFAULT_CINEMATIC_IMAGES });
+        this.render();
+    }
+
+    /**
+     * Blanks every case at once, which switches Cinematic Mode off entirely — every roll request
+     * falls back to the plain chat message.
+     * @returns {Promise<void>}
+     */
+    async _onClearAll() {
+        const cleared = Object.fromEntries(CINEMATIC_CASE_KEYS.map(key => [key, ""]));
+        await game.settings.set(MODULE_ID, CINEMATIC_IMAGES, cleared);
+        this.render();
+    }
 }
 
 /**
@@ -138,7 +164,7 @@ export function registerCinematicImagesSettings() {
     game.settings.registerMenu(MODULE_ID, "cinematicImagesSettingsMenu", {
         name: "Cinematic Roll Images",
         label: "Configure Cinematic Images",
-        hint: "Assign an image to each Request Roll case. Cinematic Mode only activates for cases with an image configured — cases left empty fall back to a plain chat message.",
+        hint: "Assign an image to each Request Roll case. Every case starts on a core Foundry icon; Cinematic Mode only activates for cases that have an image, so a case left empty falls back to a plain chat message.",
         icon: "fas fa-images",
         type: CinematicImagesSettingsApp,
         restricted: true

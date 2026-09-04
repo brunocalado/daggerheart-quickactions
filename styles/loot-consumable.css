@@ -64,59 +64,172 @@
     margin: 5px 0;
 }
 
-.loot-consumable-app .dice-row {
+.loot-consumable-app .dice-pool-row {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    gap: 5px;
+    align-items: stretch;
+    justify-content: center;
+    gap: 10px;
 }
 
-.loot-consumable-app .dice-btn {
-    flex: 1;
+.loot-consumable-app .dice-adjust {
+    flex: 0 0 auto;
+    width: 48px;
     background: #191919;
     border: 1px solid #C9A060;
-    padding: 8px 0;
     border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 1.4em;
+    line-height: 1;
     text-align: center;
     transition: background 0.2s;
     color: #C9A060;
 }
 
-.loot-consumable-app .dice-btn:hover {
+.loot-consumable-app .dice-adjust:hover:not(:disabled) {
     background: #333;
     color: #fff;
     box-shadow: 0 0 5px rgba(201, 160, 96, 0.3);
 }
 
-.loot-consumable-app .formula-row {
+/* The stepper stops at 1d12 and at 5d12 per chained table — a disabled end shows the ceiling
+   rather than silently swallowing the click. */
+.loot-consumable-app .dice-adjust:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.loot-consumable-app .dice-pool-display {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 5px;
-    background: rgba(0,0,0,0.05);
-    padding: 5px 10px;
+    justify-content: center;
+    gap: 2px;
+    background: #191919;
+    border: 1px solid #C9A060;
     border-radius: 4px;
-    border: 1px solid rgba(122, 110, 93, 0.2);
-}
-
-.loot-consumable-app .formula-row label {
     font-weight: bold;
-    white-space: nowrap;
-    flex: 0 0 auto;
+    font-size: 1.3em;
     color: #C9A060;
     text-shadow: 0 0 2px #000000;
-    font-size: 1.1em;
 }
 
-.loot-consumable-app .formula-row input {
-    flex: 1;
+.loot-consumable-app .dice-pool-count {
+    font-size: 1.1em;
+    color: #fff;
+}
+
+.loot-consumable-app .reach-hint {
+    margin-top: -8px;
     text-align: center;
+    font-size: 0.85em;
+    font-style: italic;
+    color: #C9A060;
+    opacity: 0.8;
+}
+
+.loot-consumable-app .queue-row {
+    display: flex;
+    justify-content: center;
+}
+
+.loot-consumable-app .queue-add-btn {
+    width: 100%;
+    background: rgba(201, 160, 96, 0.08);
+    border: 1px dashed rgba(201, 160, 96, 0.5);
+    color: #C9A060;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
     font-weight: bold;
-    background: #ffffff;
-    color: #000000;
-    border: 1px solid #7a6e5d;
+    transition: all 0.2s;
+}
+
+.loot-consumable-app .queue-add-btn:hover {
+    background: rgba(201, 160, 96, 0.18);
+    border-style: solid;
+    color: #fff;
+}
+
+.loot-consumable-app .queue-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 160px;
+    overflow-y: auto;
+}
+
+.loot-consumable-app .queue-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: #191919;
+    border: 1px solid rgba(201, 160, 96, 0.4);
+    border-radius: 4px;
+    padding: 5px 10px;
+}
+
+.loot-consumable-app .queue-label {
+    color: #C9A060;
+    font-weight: bold;
+    font-size: 0.95em;
+}
+
+.loot-consumable-app .queue-remove {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    line-height: 1;
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.loot-consumable-app .queue-remove:hover {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.12);
+}
+
+.loot-consumable-app .destination-row {
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+}
+
+.loot-consumable-app .destination-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #191919;
+    border: 1px solid #C9A060;
+    color: #C9A060;
+    padding: 9px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9em;
+    transition: background 0.2s;
+}
+
+.loot-consumable-app .destination-btn:hover {
+    background: #333;
+    color: #fff;
+    box-shadow: 0 0 5px rgba(201, 160, 96, 0.3);
+}
+
+.loot-consumable-app .destination-btn.active {
+    border-width: 2px;
+    box-shadow: 0 0 12px rgba(201, 160, 96, 0.6);
 }
 
 .loot-consumable-app .footer-row {

@@ -1,6 +1,6 @@
-/* Daggerheart Quick Actions - Coin Tier Settings Menu */
+/* Daggerheart Quick Actions - Loot & Consumables Settings Menu */
 
-.daggerheart-quickactions.coin-tier-settings {
+.daggerheart-quickactions.loot-consumable-settings {
     --primary-accent: #C9A060;
     --primary-bg: rgba(0, 0, 0, 0.2);
     --card-bg: rgba(255, 255, 255, 0.03);
@@ -61,6 +61,36 @@
             font-weight: bold;
             margin-bottom: 6px;
             color: #e0e0e0;
+        }
+
+        & select {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 4px;
+            height: 32px;
+            padding: 0 8px;
+
+            &:focus {
+                outline: none;
+                border-color: var(--primary-accent);
+                box-shadow: 0 0 5px rgba(201, 160, 96, 0.2);
+            }
+        }
+
+        /* The select's own <option> list is painted by the OS, which ignores the dark palette
+           above — force a readable pairing so the dropdown isn't white-on-white on Windows. */
+        & select option {
+            background: #1c1c1c;
+            color: #fff;
+        }
+
+        & .field-hint {
+            margin: 8px 0 0;
+            font-size: 0.85em;
+            line-height: 1.4;
+            color: var(--text-dim);
         }
     }
 

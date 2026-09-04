@@ -25,7 +25,7 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 ### 🛠️ GM Utilities
 
 * **🪂 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far/Very Far", and "Collision" tiers, with dice formulas the GM can fully customize.
-* **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label. If the GM has assigned an image to that roll's case (see **Cinematic Roll Images** below), it's sent as a "cinematic" full-screen prompt instead of a plain chat message.
+* **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label. As long as the roll's case has an image assigned (see **Cinematic Roll Images** below — all nine ship with one), it's sent as a "cinematic" full-screen prompt instead of a plain chat message.
 * **💬 Whisper:** Send a private message to any number of connected users, via `QuickActions.Whisper()`. Pick the recipients from the list (GMs are flagged with a crown), type the message, and hit send — it arrives as a whispered chat card visible only to them. The text is plain: anything you type is delivered literally, so pasted HTML shows up as text instead of being rendered. Ctrl+Enter sends without leaving the keyboard.
 
   <p align="center"><img width="800" src="docs/whisper.webp" alt="Whisper"></p>
@@ -39,7 +39,7 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
   <p align="center"><img width="800" src="docs/barter.webp" alt="Barter"></p>
 
 * **🆙 Level Up:** Walk a player character through leveling up directly from the menu.
-* **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving player's character sheet when possible.
+* **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving sheet when possible. Loot and consumables are drawn from the Daggerheart system's own roll tables, chosen in **Loot & Consumables Configuration**. Tap **+** to stack more d12s and reach rarer entries further down the table (capped at 5d12 — the tables hold 60 rarity-ordered entries); a hint under the stepper shows what the current pool reaches. **Add to Roll** stacks several draws — "3d12 loot, then 2d12 loot, then Tier 2 coins" — and a single **ROLL** resolves them all into one chat card. When your character belongs to a party sheet you own, a toggle sends the haul to the **party stash** instead of your own sheet, and the card records which.
 * **✨ Spend Hope:** A quick picker for spending 1–6 Hope from the selected token's actor.
 * **📐 Templates:** Place attack templates (cone, line, circle, rectangle, and more) on the scene using Daggerheart's `@Template[...]` chat code syntax.
 
@@ -90,8 +90,8 @@ Most features work out of the box, but a few can be tuned from **Configure Setti
 * **Hide Biography Tab (per user):** hides the Biography tab on character sheets for you only (off by default). Honored only while the GM leaves the world setting on *Each user decides*. Stays in the settings list rather than in the GM-only Interface Settings window, so every player can reach it.
 * **Scan Configuration:** enable the Scan macro for players and customize the labels/descriptions it shows.
 * **Falling Damage Formulas:** customize the dice formula for each fall height tier, with a one-click reset to the official defaults.
-* **Coin Tier Configuration:** customize the min/max coin range rolled for each Loot coin tier.
-* **Cinematic Roll Images:** assign an image to each Request Roll case (the six traits, Hope, Fear, and the generic Duality Roll fallback). A case only uses the full-screen cinematic prompt when it has an image configured here — cases left empty fall back to a plain chat message, and the feature does nothing at all until at least one image is set.
+* **Loot & Consumables Configuration (GM):** one window for everything `QuickActions.LootConsumable()` rolls. **Table Source** picks which Daggerheart roll tables loot and consumables come from — *Core Set only*, *Hope & Fear only*, or *Core Set + Hope & Fear* (default). With both enabled the two books share one rarity scale rather than being chained end to end, so a `1d12` sees **24** common items instead of 12; a second, visible d12 decides which book the entry comes from (1–6 Core Set, 7–12 Hope & Fear). **Coin Tier Ranges** customizes the min/max coins rolled for each tier.
+* **Cinematic Roll Images:** assign an image to each Request Roll case (the six traits, Hope, Fear, and the generic Duality Roll fallback). Every case ships with a core Foundry icon, so the full-screen cinematic prompt works out of the box — point a case at your own artwork to replace it, or clear it to fall back to a plain chat message. **Reset to Default** restores all nine stock icons (worlds created before 0.6.7 start out blank and need this once), and **Clear All** blanks every case, turning the feature off.
 
 ## ⚙️ Usage
 

@@ -86,4 +86,42 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    /* Bulk actions. The list above scrolls (flex: 1), so the footer stays pinned to the bottom
+       of the window rather than sliding away with the rows. */
+    & .dqa-ci-footer {
+        display: flex;
+        gap: 8px;
+        flex: 0 0 auto;
+        padding-top: 10px;
+        border-top: 1px solid var(--daggerheart-quickactions-border, rgba(255, 255, 255, 0.1));
+    }
+
+    & .dqa-ci-footer-btn {
+        flex: 1;
+        padding: 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        background: var(--daggerheart-quickactions-row-bg, rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--daggerheart-quickactions-accent, #C9A060);
+        color: var(--daggerheart-quickactions-accent, #C9A060);
+        transition: background 0.2s;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+    }
+
+    /* Clearing every case switches the whole feature off, so it reads as the destructive one. */
+    & .dqa-ci-danger {
+        border-color: rgba(255, 107, 107, 0.6);
+        color: #ff6b6b;
+
+        &:hover {
+            background: rgba(255, 107, 107, 0.12);
+            color: #ff9b9b;
+        }
+    }
 }

@@ -35,7 +35,7 @@ import { registerScanSettings } from "./scan-settings.js";
 // Import Falling Damage Settings
 import { registerFallingDamageSettings } from "./falling-damage-settings.js";
 // Import Coin Tier Settings
-import { registerCoinTierSettings } from "./loot-consumable-settings.js";
+import { registerLootConsumableSettings } from "./loot-consumable-settings.js";
 // Import Biography Tab visibility
 import { registerBiographyTabSettings, initBiographyTab } from "./biography-tab.js";
 // Import Quick Actions macro list (settings menu + character sheet header button)
@@ -251,7 +251,7 @@ Hooks.once("init", () => {
 
     registerScanSettings();
     registerFallingDamageSettings();
-    registerCoinTierSettings();
+    registerLootConsumableSettings();
     registerBiographyTabSettings();
     registerQuickActionsMacrosSettings();
     registerCinematicImagesSettings();

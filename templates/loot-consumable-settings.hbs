@@ -1,4 +1,24 @@
-<div class="coin-tier-settings">
+<div class="loot-consumable-settings-body">
+
+    <div class="config-card">
+        <h3><i class="fas fa-treasure-chest"></i> Loot &amp; Consumable Tables</h3>
+
+        <div class="form-group">
+            <label for="dh-qa-loot-source">Table Source</label>
+            <select id="dh-qa-loot-source" name="source">
+                {{#each sources}}
+                <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+                {{/each}}
+            </select>
+            <p class="field-hint">
+                Which Daggerheart roll tables the loot and consumable rolls draw from. With
+                <strong>Core Set + Hope &amp; Fear</strong> the two books share one rarity scale, so a
+                1d12 sees 24 common items instead of 12 — a second d12 decides which book the entry
+                comes from (1&ndash;6 Core Set, 7&ndash;12 Hope &amp; Fear). It widens the pick at
+                every rarity; it does not make loot rarer.
+            </p>
+        </div>
+    </div>
 
     <div class="config-card">
         <h3><i class="fas fa-coins"></i> Coin Tier Ranges</h3>

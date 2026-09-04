@@ -4,7 +4,7 @@
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, LOOT_CONSUMABLE_SOURCE, LOOT_CONSUMABLE_TABLES, LOOT_SOURCE } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -199,34 +199,122 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // ==================================================================
 // 4. LOOT & CONSUMABLES APP
 // ==================================================================
+
+/**
+ * How many d12s may be stacked. Each Daggerheart table holds 60 rarity-ordered entries — five
+ * bands of twelve — so 5d12 (max 60) already reaches the last one. The ceiling does not change
+ * with the source: both books share one rarity scale, they do not extend it.
+ * @type {number}
+ */
+const MAX_DICE = 5;
+
+/** Actor type of the Daggerheart party sheet, which carries its own inventory and gold. */
+const PARTY_TYPE = "party";
+
+/**
+ * Party sheets the given character belongs to and that this user can write to. `Actor#parties` is
+ * maintained by the system — DhParty#prepareBaseData registers the party on each of its members —
+ * so it is the same relationship the sheet's own "view party" button follows. OWNER is required
+ * because handing loot over means creating items on the party actor.
+ * @param {foundry.documents.Actor|null} actor - The rolling user's linked character.
+ * @returns {Array<foundry.documents.Actor>} Eligible parties, the world's active party first.
+ */
+function getOwnedParties(actor) {
+    const parties = [...(actor?.parties ?? [])].filter(p => p?.type === PARTY_TYPE && p.isOwner);
+    const active = game.actors.party;
+    return parties.sort((a, b) => (b === active) - (a === active));
+}
+
+/**
+ * One-line summary of a queued draw, shown in the dialog's pending list.
+ * @param {{type: string, diceCount?: number, coinsTier?: number}} entry - Queue entry.
+ * @returns {string} Label such as "Loot — 3d12" or "Coins — Tier 2".
+ */
+function describeQueueEntry(entry) {
+    return entry.type === "Coins" ? `Coins — Tier ${entry.coinsTier}` : `${entry.type} — ${entry.diceCount}d12`;
+}
+
 class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
-    constructor(options) { super(options); this.localState = { type: "Loot", formula: "1d12", coinsTier: 1 }; }
+    constructor(options) {
+        super(options);
+        this.localState = { type: "Loot", diceCount: 1, coinsTier: 1, queue: [], toParty: false };
+    }
     static DEFAULT_OPTIONS = {
         tag: "form", id: "loot-consumable-app", classes: ["dh-qa-app", "loot-consumable-app"],
         window: { title: "Loot & Consumables", icon: "fas fa-treasure-chest", resizable: false, controls: [] },
         position: { width: 450, height: "auto" },
-        actions: { selectType: LootConsumableApp.prototype._onSelectType, setFormula: LootConsumableApp.prototype._onSetFormula, selectTier: LootConsumableApp.prototype._onSelectTier, roll: LootConsumableApp.prototype._onRoll }
+        actions: {
+            selectType: LootConsumableApp.prototype._onSelectType,
+            adjustDice: LootConsumableApp.prototype._onAdjustDice,
+            selectTier: LootConsumableApp.prototype._onSelectTier,
+            queueRoll: LootConsumableApp.prototype._onQueueRoll,
+            unqueueRoll: LootConsumableApp.prototype._onUnqueueRoll,
+            selectDestination: LootConsumableApp.prototype._onSelectDestination,
+            roll: LootConsumableApp.prototype._onRoll
+        }
     };
     static PARTS = { form: { template: `modules/${MODULE_ID}/templates/lootConsumable.hbs` } };
 
+    /** @returns {number} How many books the configured source draws from — 2 for "Both". */
+    get tableCount() {
+        return game.settings.get(MODULE_ID, LOOT_CONSUMABLE_SOURCE) === LOOT_SOURCE.BOTH ? 2 : 1;
+    }
+
+    /** @returns {number} Largest dice pool that can still land on a new rarity position. */
+    get maxDice() { return MAX_DICE; }
+
     /**
-     * Builds context for the template, including coins mode flags and tier ranges.
+     * Builds context for the template: mode flags, the dice pool and its live ceiling, the
+     * pending queue, and where the results are headed.
      * @param {object} options - Render options.
      * @returns {Promise<object>} Template context.
      */
     async _prepareContext(options) {
-        const isCoins = this.localState.type === "Coins";
+        const maxDice = this.maxDice;
+        const diceCount = Math.min(this.localState.diceCount, maxDice);
+        this.localState.diceCount = diceCount;
+
+        // Spells out what the current pool actually buys: the rarity band it can land on, and how
+        // many entries sit on that band once both books are in play. This is the whole point of
+        // the second source — twice the candidates at the same rarity, not rarer loot.
+        const reachHint = `Reaches ${diceCount}–${diceCount * 12} · ${(diceCount * 12 - diceCount + 1) * this.tableCount} items in reach`;
+
+        const linkedActor = game.user.character;
+        const party = getOwnedParties(linkedActor)[0] ?? null;
+        if (!party) this.localState.toParty = false;
+
         return {
             isLoot: this.localState.type === "Loot",
             isConsumable: this.localState.type === "Consumable",
-            isCoins,
-            formula: this.localState.formula,
-            coinsTier: this.localState.coinsTier
+            isCoins: this.localState.type === "Coins",
+            diceCount,
+            maxDice,
+            reachHint,
+            atMinDice: diceCount <= 1,
+            atMaxDice: diceCount >= maxDice,
+            coinsTier: this.localState.coinsTier,
+            queue: this.localState.queue.map((entry, index) => ({ index, label: describeQueueEntry(entry) })),
+            queueSize: this.localState.queue.length,
+            hasQueue: this.localState.queue.length > 0,
+            hasParty: Boolean(party),
+            toParty: this.localState.toParty,
+            partyName: party?.name ?? ""
         };
     }
 
     _onSelectType(event, target) { this.localState.type = target.dataset.type; this.render(); }
-    _onSetFormula(event, target) { this.localState.formula = target.dataset.formula; this.render(); }
+
+    /**
+     * Adds or removes a d12 from the roll pool. More dice push the (bell-curved) total further
+     * down the rarity-ordered table — and, with the "Both" source, into the Hope & Fear range.
+     * @param {PointerEvent} event - Click event.
+     * @param {HTMLElement} target - The clicked +/- button, carrying data-delta.
+     */
+    _onAdjustDice(event, target) {
+        const delta = Number(target.dataset.delta) || 0;
+        this.localState.diceCount = Math.max(1, Math.min(this.maxDice, this.localState.diceCount + delta));
+        this.render();
+    }
 
     /**
      * Stores the selected coin tier in local state and re-renders.
@@ -235,84 +323,216 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     _onSelectTier(event, target) { this.localState.coinsTier = Number(target.dataset.tier); this.render(); }
 
+    /** @returns {object} The dialog's current selection, as a queue entry. */
+    _currentEntry() {
+        const { type, diceCount, coinsTier } = this.localState;
+        return type === "Coins" ? { type, coinsTier } : { type, diceCount };
+    }
+
+    /**
+     * Stacks the current selection onto the pending queue, so a GM call like "3d12 loot and then
+     * 2d12 loot" is set up once and resolved by a single ROLL into a single chat card.
+     * Triggered by `data-action="queueRoll"`.
+     */
+    _onQueueRoll() {
+        this.localState.queue.push(this._currentEntry());
+        this.render();
+    }
+
+    /**
+     * Drops one pending entry from the queue.
+     * @param {PointerEvent} event - Click event.
+     * @param {HTMLElement} target - The clicked remove button, carrying data-index.
+     */
+    _onUnqueueRoll(event, target) {
+        this.localState.queue.splice(Number(target.dataset.index), 1);
+        this.render();
+    }
+
+    /**
+     * Picks where the results land — the rolling character's own sheet, or their party stash.
+     * The two buttons behave as a radio pair, so exactly one is always active.
+     * @param {PointerEvent} event - Click event.
+     * @param {HTMLElement} target - The clicked button, carrying data-destination.
+     */
+    _onSelectDestination(event, target) {
+        this.localState.toParty = target.dataset.destination === "party";
+        this.render();
+    }
+
+    /**
+     * Resolves one queued loot/consumable draw against the configured table(s).
+     * @param {{type: string, diceCount: number}} entry - Queue entry to resolve.
+     * @returns {Promise<object|null>} The draw, or null when the tables could not be resolved
+     *                                (a notification has already been raised).
+     */
+    async _resolveDraw(entry) {
+        // Resolved by stable compendium id (fromUuid), never by name: Daggerheart 2.9.2 renamed
+        // these tables ("Loot" -> "Core Set Items", "Consumables" -> "Core Set Consumables").
+        const uuids = LOOT_CONSUMABLE_TABLES[entry.type];
+        if (!uuids) { ui.notifications.error(`Unknown loot type '${entry.type}'.`); return null; }
+
+        const source = game.settings.get(MODULE_ID, LOOT_CONSUMABLE_SOURCE);
+        const sourceKeys = source === LOOT_SOURCE.BOTH ? [LOOT_SOURCE.CORE, LOOT_SOURCE.HOPE_AND_FEAR] : [source];
+
+        const tables = [];
+        for (const key of sourceKeys) {
+            const doc = await fromUuid(uuids[key]);
+            if (doc) tables.push(doc);
+        }
+        if (!tables.length) { ui.notifications.error("Daggerheart loot/consumable roll table not found — is the system installed?"); return null; }
+
+        // Both books share ONE rarity scale rather than being chained end to end: position 7 is
+        // the seventh-cheapest entry in *either* book. Chaining them would bury the Hope & Fear
+        // commons past position 60, where no sane dice pool reaches them — this way a 1d12 sees
+        // 24 common items instead of 12, which is the point of enabling the second source.
+        const byPosition = new Map();
+        let span = 0;
+        for (const t of tables) {
+            for (const r of t.results) {
+                span = Math.max(span, r.range[1]);
+                for (let p = r.range[0]; p <= r.range[1]; p++) {
+                    if (!byPosition.has(p)) byPosition.set(p, []);
+                    byPosition.get(p).push({ table: t, result: r });
+                }
+            }
+        }
+
+        const formula = `${Math.max(1, Number(entry.diceCount) || 1)}d12`;
+        const roll = new Roll(formula);
+        await roll.evaluate();
+
+        // A second, visible d12 picks the book — 1-6 Core Set, 7-12 Hope & Fear — so the table
+        // watches the choice happen instead of trusting a hidden coin flip.
+        const pickRoll = tables.length > 1 ? new Roll("1d12") : null;
+        if (pickRoll) await pickRoll.evaluate();
+
+        if (game.dice3d) {
+            await game.dice3d.showForRoll(roll, game.user, true);
+            if (pickRoll) await game.dice3d.showForRoll(pickRoll, game.user, true);
+        }
+
+        const total = Math.max(1, Math.min(span, roll.total));
+        // Candidates land in table order, so index 0 is always the Core Set entry. A position only
+        // one book covers has a single candidate, and the pick die is ignored rather than
+        // discarding the result.
+        const candidates = byPosition.get(total) ?? [];
+        const picked = (pickRoll && candidates.length > 1 && pickRoll.total > 6) ? candidates[1] : candidates[0];
+
+        // TableResult#uuid is the *result document's own* uuid — linking it opens the Table Result
+        // sheet instead of the item. The referenced document lives in `documentUuid` (V13+ schema).
+        const result = picked?.result ?? null;
+        return {
+            formula,
+            total,
+            result,
+            table: picked?.table ?? null,
+            referencedUuid: result?.type === "document" ? result.documentUuid : null
+        };
+    }
+
     async _onRoll(event, target) {
         // Whisper to GM(s) and the rolling user only — deduplicate in case the roller is also GM.
         const gmIds = ChatMessage.getWhisperRecipients("GM").map(u => u.id);
         const whisper = [...new Set([...gmIds, game.user.id])];
 
-        // Coins mode: pick a random integer within the configured tier range
-        if (this.localState.type === "Coins") {
-            const tiers = game.settings.get(MODULE_ID, "coinTierRanges");
-            const key = `tier${this.localState.coinsTier}`;
-            const { min, max } = tiers[key];
-            const amount = Math.floor(Math.random() * (max - min + 1)) + min;
+        // ROLL resolves the whole pending queue; with nothing queued it just rolls what is on
+        // screen, which keeps the one-off case a single click.
+        const entries = this.localState.queue.length ? [...this.localState.queue] : [this._currentEntry()];
 
-            // Add coins to the rolling user's linked actor if system.gold.coins exists.
-            const linkedActor = game.user.character;
-            if (linkedActor) {
-                const currentCoins = foundry.utils.getProperty(linkedActor, "system.gold.coins");
-                if (currentCoins !== undefined) {
-                    await linkedActor.update({ "system.gold.coins": currentCoins + amount });
-                }
-            }
-
-            const content = buildChatCard("Coins", `
-                <div style="color: #C9A060 !important; font-size: 2em; font-weight: bold; text-shadow: 0px 0px 12px #C9A060; font-family: 'Lato', sans-serif;"><i class="fas fa-coins"></i> ${amount} Coins</div>
-            `);
-            await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
-            return;
-        }
-
-        const formData = new FormData(this.element);
-        const rollFormula = formData.get("formula") || this.localState.formula;
-        const pack = game.packs.get("daggerheart.rolltables");
-        if (!pack) { ui.notifications.error(`Compendium 'daggerheart.rolltables' not found.`); return; }
-
-        let tableName = this.localState.type === "Consumable" ? "Consumables" : this.localState.type;
-        const documents = await pack.getDocuments();
-        const table = documents.find(d => d.name === tableName);
-        if (!table) { ui.notifications.error(`Table '${tableName}' not found in compendium.`); return; }
-
-        let roll;
-        try { roll = new Roll(rollFormula); await roll.evaluate(); } catch (err) { ui.notifications.error("Invalid roll formula."); return; }
-        if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-
-        let rollTotal = Math.max(1, Math.min(60, roll.total));
-        const drawResult = table.results.find(r => rollTotal >= r.range[0] && rollTotal <= r.range[1]);
-
-        // TableResult#uuid is the *result document's own* uuid — linking it opens the Table Result
-        // sheet instead of the item. The referenced document lives in `documentUuid` (V13+ schema).
-        const referencedUuid = drawResult?.type === "document" ? drawResult.documentUuid : null;
-
-        let displayHtml = "Nothing found";
-        if (drawResult) {
-            let itemName = drawResult.name || drawResult.description;
-            if (referencedUuid) {
-                displayHtml = `@UUID[${referencedUuid}]{${itemName}}`;
-            } else { displayHtml = itemName; }
-        }
-
-        // Automatically add the rolled item to the linked actor's inventory.
         const linkedActor = game.user.character;
-        if (linkedActor && referencedUuid) {
-            try {
-                const sourceDoc = await fromUuid(referencedUuid);
-                // Guard: only embed if the resolved document is actually an Item.
-                if (sourceDoc instanceof Item) {
-                    await linkedActor.createEmbeddedDocuments("Item", [sourceDoc.toObject()]);
+        const party = getOwnedParties(linkedActor)[0] ?? null;
+        const destination = (this.localState.toParty && party) ? party : linkedActor;
+
+        const rows = [];
+        const drawnUuids = [];
+        let coinTotal = 0;
+
+        for (const entry of entries) {
+            if (entry.type === "Coins") {
+                const tier = game.settings.get(MODULE_ID, "coinTierRanges")?.[`tier${entry.coinsTier}`];
+                // Bail before any write, so a misconfigured tier can't take the rest of the
+                // queue down with it.
+                if (!tier) { ui.notifications.error(`Coin tier ${entry.coinsTier} is not configured.`); return; }
+                const amount = Math.floor(Math.random() * (tier.max - tier.min + 1)) + tier.min;
+                coinTotal += amount;
+                rows.push(this._buildRow(`Coins &middot; Tier ${entry.coinsTier}`, `<i class="fas fa-coins"></i> ${amount} Coins`, null, rows.length));
+                continue;
+            }
+
+            const draw = await this._resolveDraw(entry);
+            // Nothing has been written yet, so bailing here leaves the queue and both actors
+            // untouched — the GM can fix the source setting and roll again.
+            if (!draw) return;
+
+            if (draw.referencedUuid) drawnUuids.push(draw.referencedUuid);
+            const name = draw.result ? (draw.result.name || draw.result.description) : "Nothing found";
+            const display = draw.referencedUuid ? `@UUID[${draw.referencedUuid}]{${name}}` : name;
+            const meta = `${entry.type} &middot; ${draw.formula} &rarr; ${draw.total}${draw.table ? ` &middot; ${foundry.utils.escapeHTML(draw.table.name)}` : ""}`;
+            rows.push(this._buildRow(meta, display, draw.result?.img ?? null, rows.length));
+        }
+
+        // One batch per collection rather than a write per queue entry.
+        if (destination) {
+            if (drawnUuids.length) {
+                try {
+                    const sources = [];
+                    for (const uuid of drawnUuids) {
+                        const doc = await fromUuid(uuid);
+                        // Guard: only embed if the resolved document is actually an Item.
+                        if (doc instanceof Item) sources.push(doc.toObject());
+                    }
+                    if (sources.length) await destination.createEmbeddedDocuments("Item", sources);
+                } catch (err) {
+                    console.error(`${MODULE_ID} | Failed to add rolled items to ${destination.name}:`, err);
                 }
-            } catch (err) {
-                console.error(`${MODULE_ID} | Failed to add rolled item to actor inventory:`, err);
+            }
+            if (coinTotal) {
+                const currentCoins = foundry.utils.getProperty(destination, "system.gold.coins");
+                if (currentCoins !== undefined) {
+                    await destination.update({ "system.gold.coins": currentCoins + coinTotal });
+                }
             }
         }
 
-        const content = buildChatCard(`${this.localState.type} Roll`, `
-            <div style="color: #ffffff; font-size: 0.9em;">Result: <strong>${rollTotal}</strong> (${rollFormula})</div>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.3); width: 80%; margin: 10px 0;">
-            <div style="color: #ffffff !important; font-size: 1.5em; font-weight: bold; text-shadow: 0px 0px 10px #C9A060; font-family: 'Lato', sans-serif; line-height: 1.2;">${displayHtml}</div>
-            ${drawResult && drawResult.img ? `<img src="${drawResult.img}" style="margin-top: 10px; max-width: 48px; border: none;" />` : ''}
-        `);
-        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
+        // Record where everything landed, so the table can see whether it went to the party stash
+        // or into one character's pocket.
+        const granted = drawnUuids.length > 0 || coinTotal > 0;
+        const destinationLine = (destination && granted)
+            ? `<div style="color: #ccc; font-size: 0.85em; margin-bottom: 10px; font-style: italic;">
+                   <i class="fas ${destination === party ? "fa-users" : "fa-user"}"></i>
+                   Sent to <strong style="color: #C9A060;">${foundry.utils.escapeHTML(destination.name)}</strong>${destination === party ? " (party stash)" : ""}
+               </div>`
+            : "";
+
+        const title = entries.length > 1 ? "Loot & Consumables" : `${entries[0].type} Roll`;
+        const content = buildChatCard(title, `${destinationLine}${rows.join("")}`);
+        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
+
+        this.localState.queue = [];
+        this.render();
+    }
+
+    /**
+     * One result block of the chat card. Kept inline-styled like every other card in this module,
+     * since chat content is stored as raw HTML and cannot rely on the module stylesheet.
+     * @param {string} metaHtml - Small caption line (type, formula, total, table).
+     * @param {string} bodyHtml - The result itself — an @UUID link, a name, or a coin amount.
+     * @param {string|null} img - Optional artwork for the drawn entry.
+     * @param {number} index - Position in the card; anything past the first gets a separator.
+     * @returns {string} HTML for the row.
+     */
+    _buildRow(metaHtml, bodyHtml, img, index) {
+        const separator = index > 0 ? "border-top: 1px solid rgba(255,255,255,0.15); margin-top: 10px; padding-top: 10px;" : "";
+        const artwork = img ? `<img src="${img}" style="width: 40px; height: 40px; border: none; flex: 0 0 auto;" />` : "";
+        return `
+            <div style="width: 100%; ${separator}">
+                <div style="color: #C9A060; font-size: 0.8em; letter-spacing: 0.5px; margin-bottom: 4px;">${metaHtml}</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    ${artwork}
+                    <div style="color: #ffffff !important; font-size: 1.3em; font-weight: bold; text-shadow: 0px 0px 10px #C9A060; font-family: 'Lato', sans-serif; line-height: 1.2;">${bodyHtml}</div>
+                </div>
+            </div>`;
     }
 }
 
