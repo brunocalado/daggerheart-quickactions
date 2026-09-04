@@ -128,3 +128,13 @@
     color: #a335ee;
     font-size: var(--font-size-20, 1.25rem);
 }
+
+/* Hide the oversized Daggerheart logo the system injects into the Settings sidebar's
+   "Game System" info block (templates/sidebar/settings/info-insert.hbs) — it dominates
+   that panel for no informational gain; the version string and Wiki/Discord links stay.
+   Full system selector reproduced so specificity matches the system rule in
+   styles/less/ui/sidebar/settings.less exactly; ours then wins on load order, no
+   !important needed. System-owned element, so outside the .daggerheart-quickactions scope. */
+.tab.sidebar-tab.settings-sidebar.dh-sidebar-settings .sidebar-settings-dh-info img {
+    display: none;
+}
