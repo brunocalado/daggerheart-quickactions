@@ -149,9 +149,19 @@
                                         <i class="fas fa-heart"></i>
                                     </button>
                                     {{/if}}
+                                    {{#if this.canBeOasisSlot}}
+                                    <button type="button" class="dui-oasis-badge {{#if this.isOasisSlot}}active{{/if}}" data-action="toggleOasisSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisSlot}}Remove Oasis reroll{{else}}Use the Oasis reroll here (reroll the die, keep the higher){{/if}}">
+                                        <i class="fas fa-tint"></i>
+                                    </button>
+                                    {{/if}}
+                                    {{#if this.canBeOasisGrantedSlot}}
+                                    <button type="button" class="dui-oasis-granted-badge {{#if this.isOasisGrantedSlot}}active{{/if}}" data-action="toggleOasisGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisGrantedSlot}}Remove ally's Oasis reroll{{else}}Use the ally's Oasis reroll here{{/if}}">
+                                        <i class="fas fa-hand-holding-water"></i>
+                                    </button>
+                                    {{/if}}
                                 </div>
                                 {{/each}}
-                            {{else if this.isBonusMove}}
+                            {{else if this.isForagerMove}}
                                 {{#if this.count}}
                                 <select class="dui-forager-select" data-actor-id="{{../actorId}}" {{#unless ../canInteract}}disabled{{/unless}} title="Your choice if you roll a 6">
                                     {{#each ../../foragerOptions}}
@@ -175,6 +185,16 @@
                                     {{#if this.canBeRecoveryGrantedSlot}}
                                     <button type="button" class="dui-recovery-granted-badge {{#if this.isRecoveryGrantedSlot}}active{{/if}}" data-action="toggleRecoveryGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoveryGrantedSlot}}Remove Recovery Grant Slot{{else}}Use as Recovery Grant Slot (Long Rest effect, ally's Hope){{/if}}">
                                         <i class="fas fa-heart"></i>
+                                    </button>
+                                    {{/if}}
+                                    {{#if this.canBeOasisSlot}}
+                                    <button type="button" class="dui-oasis-badge {{#if this.isOasisSlot}}active{{/if}}" data-action="toggleOasisSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisSlot}}Remove Oasis reroll{{else}}Use the Oasis reroll here (reroll the die, keep the higher){{/if}}">
+                                        <i class="fas fa-tint"></i>
+                                    </button>
+                                    {{/if}}
+                                    {{#if this.canBeOasisGrantedSlot}}
+                                    <button type="button" class="dui-oasis-granted-badge {{#if this.isOasisGrantedSlot}}active{{/if}}" data-action="toggleOasisGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisGrantedSlot}}Remove ally's Oasis reroll{{else}}Use the ally's Oasis reroll here{{/if}}">
+                                        <i class="fas fa-hand-holding-water"></i>
                                     </button>
                                     {{/if}}
                                 </div>
@@ -230,6 +250,46 @@
                 </div>
                 {{/if}}{{/if}}
 
+                {{#if this.hasOasis}}{{#if ../isShort}}
+                <div class="dui-recovery-selector">
+                    <div class="dui-efficient-indicator dui-oasis-indicator">
+                        <i class="fas fa-tint"></i>
+                        <span class="dui-efficient-text">Oasis</span>
+                        <span class="dui-efficient-tooltip">Reroll one downtime move die and keep the higher result</span>
+                    </div>
+                    <select class="dui-oasis-beneficiary-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Give your Oasis reroll to an ally instead of using it yourself">
+                        <option value="">Keep the reroll...</option>
+                        {{#each this.oasisAllyOptions}}
+                        <option value="{{this.id}}" {{#if (eq this.id ../oasisBeneficiary)}}selected{{/if}}>&rarr; {{this.name}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                {{/if}}{{/if}}
+
+                {{#if this.hasOasisGrant}}{{#if ../isShort}}
+                <div class="dui-efficient-indicator dui-oasis-grant-indicator">
+                    <i class="fas fa-hand-holding-water"></i>
+                    <span class="dui-efficient-text">Oasis Granted</span>
+                    <span class="dui-efficient-tooltip">An ally gave you their Oasis reroll — mark the move that should use it</span>
+                </div>
+                {{/if}}{{/if}}
+
+                {{#if this.hasTimekeepersPendant}}
+                <div class="dui-efficient-indicator dui-timekeeper-indicator">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span class="dui-efficient-text">Timekeeper's Pendant</span>
+                    <span class="dui-efficient-tooltip">+1 downtime move each rest</span>
+                </div>
+                {{/if}}
+
+                {{#if this.hasPipeweed}}
+                <div class="dui-efficient-indicator dui-pipeweed-indicator">
+                    <i class="fas fa-cannabis"></i>
+                    <span class="dui-efficient-text">Pipeweed</span>
+                    <span class="dui-efficient-tooltip">Smoke it alongside Clear Stress to clear +1 Stress for every PC who chose Clear Stress</span>
+                </div>
+                {{/if}}
+
                 {{#if this.hasRecoveryGrant}}{{#if ../isShort}}
                 <div class="dui-efficient-indicator dui-recovery-grant-indicator">
                     <i class="fas fa-heart"></i>
@@ -251,6 +311,14 @@
                     <i class="fas fa-shield-alt"></i>
                     <span class="dui-efficient-text">Armorer</span>
                     <span class="dui-efficient-tooltip">When you Repair Armor, all allies also clear an Armor Slot</span>
+                </div>
+                {{/if}}
+
+                {{#if this.hasSelfHealingArmor}}
+                <div class="dui-efficient-indicator dui-selfhealing-indicator">
+                    <i class="fas fa-shield-heart"></i>
+                    <span class="dui-efficient-text">Self-Healing</span>
+                    <span class="dui-efficient-tooltip">Worn armour clears 1 Armor Slot on every rest</span>
                 </div>
                 {{/if}}
 

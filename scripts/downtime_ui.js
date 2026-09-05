@@ -11,7 +11,7 @@
  * Contains the full Downtime UI system (DowntimeUIApp, helpers, and exported activation functions).
  */
 
-import { rollD4WithDiceSoNice, rollD6WithDiceSoNice } from "./apps.js";
+import { rollD4WithDiceSoNice } from "./apps.js";
 import { MODULE_ID, DOWNTIME_DISABLED_USERS } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -37,6 +37,40 @@ const FORAGER_OPTIONS = [
     { value: 4, label: "A healing vial", effect: "Clear 2 Hit Points", itemUuid: `Compendium.${MODULE_ID}.items.Item.C1lOuQ5TGYVCIOqB` },
     { value: 5, label: "A luck charm", effect: "Reroll any die", itemUuid: `Compendium.${MODULE_ID}.items.Item.Fm6XzoBkT7G4a9La` }
 ];
+
+/**
+ * Moves whose outcome has no short/long rest distinction, so the Efficient / Recovery badges —
+ * which upgrade one chosen move to long rest quality — have nothing to act on and are not offered.
+ * @type {Set<string>}
+ */
+const NO_UPGRADE_MOVES = new Set([
+    "prepare",
+    "core_favor",
+    "core_changeShape",
+    "core_onlySkinDeep"
+]);
+
+/**
+ * Moves that are granted on top of the actor's normal allowance, so they never count towards the
+ * move limit shown on their row.
+ * @type {Set<string>}
+ */
+const BONUS_MOVES = new Set(["core_forager", "core_pipeweed"]);
+
+/**
+ * Moves that resolve by rolling a die during a short rest, which is what Duneborne's Oasis
+ * ("reroll a die used for a downtime move and take the higher result") can act on. On a long rest
+ * these same moves resolve at full effect without rolling, so Oasis is never offered there.
+ * @type {Set<string>}
+ */
+const ROLLING_MOVES = new Set(["tendWounds", "clearStress", "repairArmor", "core_forager"]);
+
+/**
+ * Key the Daggerheart system uses for the Self-Healing armour feature, in an armour item's
+ * `system.armorFeatures` list.
+ * @type {string}
+ */
+const SELF_HEALING_ARMOR_FEATURE = "selfHealing";
 
 // ==================================================================
 // DOWNTIME UI HELPERS
@@ -73,9 +107,12 @@ function _emptyDowntimeChoices() {
         efficientSlot: null,
         recoverySlot: null,
         recoveryGrantedSlot: null,
+        oasisSlot: null,
+        oasisGrantedSlot: null,
         foragerChoice: null,
         eloquentBeneficiary: null,
-        recoveryBeneficiary: null
+        recoveryBeneficiary: null,
+        oasisBeneficiary: null
     };
 }
 
@@ -118,9 +155,12 @@ function _normalizeChoices(raw) {
         efficientSlot: idForKey(raw.efficientSlot),
         recoverySlot: idForKey(raw.recoverySlot),
         recoveryGrantedSlot: idForKey(raw.recoveryGrantedSlot),
+        oasisSlot: idForKey(raw.oasisSlot),
+        oasisGrantedSlot: idForKey(raw.oasisGrantedSlot),
         foragerChoice: raw.foragerChoice ?? null,
         eloquentBeneficiary: raw.eloquentBeneficiary ?? null,
-        recoveryBeneficiary: raw.recoveryBeneficiary ?? null
+        recoveryBeneficiary: raw.recoveryBeneficiary ?? null,
+        oasisBeneficiary: raw.oasisBeneficiary ?? null
     };
 }
 
@@ -151,10 +191,21 @@ function _getMaxHope(actor) {
     return actor.system.resources.hope.max ?? 0;
 }
 
-function _hasCoreFeature(actor, featureKey, fallbackName) {
+/**
+ * The item name a core feature is currently matched by. The GM can relabel a core feature (or
+ * point it at homebrew) in the Downtime configuration's Core tab, in which case that label is what
+ * we look for on the sheet; otherwise the stock name applies.
+ * @param {string} featureKey - Core feature key, e.g. "pipeweed".
+ * @param {string} fallbackName - Stock item name to use when the key is not configured.
+ * @returns {string} The item name to match against the actor's inventory.
+ */
+function _coreFeatureName(featureKey, fallbackName) {
     const coreFeatures = game.settings.get(MODULE_ID, "downtimeCoreFeatures") ?? [];
-    const feature = coreFeatures.find(f => f.key === featureKey);
-    const name = feature?.label || fallbackName;
+    return coreFeatures.find(f => f.key === featureKey)?.label || fallbackName;
+}
+
+function _hasCoreFeature(actor, featureKey, fallbackName) {
+    const name = _coreFeatureName(featureKey, fallbackName);
     return actor.items.some(i => i.name === name);
 }
 
@@ -192,6 +243,78 @@ function _hasArmorerFeature(actor) {
 
 function _hasBeastboundFeature(actor) {
     return _hasCoreFeature(actor, "beastbound", "Beastbound");
+}
+
+function _hasFavorFeature(actor) {
+    return _hasCoreFeature(actor, "favor", "Favor");
+}
+
+/**
+ * Whether the actor is wearing armour with the Self-Healing feature ("When you take a rest, clear
+ * an Armor Slot"). The system models this as an entry in the armour's own `system.armorFeatures`
+ * rather than as a separate item, so matching the feature covers the Trollhide Cuirass and any
+ * homebrew armour carrying it — a name match would only ever catch the one. Unworn armour does
+ * nothing, hence the `equipped` check.
+ * @param {Actor} actor - The actor to test.
+ * @returns {boolean} True when equipped armour grants Self-Healing.
+ */
+function _hasSelfHealingArmor(actor) {
+    return actor.items.some(item =>
+        item.type === "armor"
+        && item.system?.equipped
+        && (item.system?.armorFeatures ?? []).some(f => f?.value === SELF_HEALING_ARMOR_FEATURE));
+}
+
+function _hasChangeShapeFeature(actor) {
+    return _hasCoreFeature(actor, "changeShape", "Change Shape");
+}
+
+function _hasOnlySkinDeepFeature(actor) {
+    return _hasCoreFeature(actor, "onlySkinDeep", "Only Skin Deep");
+}
+
+function _hasOasisFeature(actor) {
+    return _hasCoreFeature(actor, "oasis", "Oasis");
+}
+
+function _hasTimekeepersPendant(actor) {
+    return _hasCoreFeature(actor, "timekeepersPendant", "Timekeeper's Pendant");
+}
+
+function _hasPipeweed(actor) {
+    return _hasCoreFeature(actor, "pipeweed", "Pipeweed");
+}
+
+/**
+ * Rolls one downtime die, optionally applying Duneborne's Oasis reroll.
+ * Both dice are shown through Dice So Nice so the table sees the reroll happen.
+ * @param {string} formula - Dice formula to evaluate (e.g. "1d4").
+ * @param {boolean} useOasis - Whether this instance holds the Oasis reroll.
+ * @returns {Promise<{total: number, text: string}>} The kept total and how to render it.
+ */
+async function _rollDowntimeDie(formula, useOasis) {
+    const roll = new Roll(formula);
+    await roll.evaluate();
+    if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
+    if (!useOasis) return { total: roll.total, text: `${roll.total}` };
+
+    const reroll = new Roll(formula);
+    await reroll.evaluate();
+    if (game.dice3d) await game.dice3d.showForRoll(reroll, game.user, true);
+    const best = Math.max(roll.total, reroll.total);
+    return { total: best, text: `${roll.total}→${reroll.total} Oasis, kept ${best}` };
+}
+
+/**
+ * Spends one unit of a quantity-carrying item, deleting it once the last one is used.
+ * @param {Actor} actor - Owner of the item.
+ * @param {Item} item - The item to consume.
+ * @returns {Promise<void>}
+ */
+async function _consumeOne(actor, item) {
+    const quantity = item.system?.quantity ?? 1;
+    if (quantity > 1) await item.update({ "system.quantity": quantity - 1 });
+    else await actor.deleteEmbeddedDocuments("Item", [item.id]);
 }
 
 async function _getBeastboundCompanion(actor) {
@@ -291,6 +414,15 @@ async function _applyDowntimeEffects() {
     const preparers = includedActors.filter(a => a.actorState.actions.some(i => i.key === "prepare"));
     const prepareBonus = preparers.length >= 2 ? 2 : 1;
 
+    // Pipeweed is party-wide — "Any other PCs who chose the Clear Stress downtime move also gain
+    // this benefit" — so it has to be totalled before anyone's Clear Stress is resolved, the same
+    // way the Prepare pairing bonus is. Each leaf smoked contributes its own +1, so two smokers
+    // clear two extra Stress for everyone on Clear Stress. Short rest only.
+    const pipeweedSmokers = isLong
+        ? []
+        : includedActors.filter(a => a.actorState.actions.some(i => i.key === "core_pipeweed"));
+    const pipeweedBonus = pipeweedSmokers.length;
+
     // Per-actor effects
     const resultsByActor = new Map();
 
@@ -326,6 +458,17 @@ async function _applyDowntimeEffects() {
             ? (recoveryGrantor.actor.system.resources?.hope?.value ?? 0)
             : 0;
 
+        // Oasis (Duneborne): one reroll per short rest, kept for yourself or handed to an ally.
+        // Unlike Recovery there is no Hope cost, so a granted reroll needs no execution-time check.
+        const hasOasis = _hasOasisFeature(actor);
+        const oasisSlot = actorState.oasisSlot ?? null;
+        const oasisGranted = includedActors.some(a =>
+            a.actor.id !== actor.id &&
+            _hasOasisFeature(a.actor) &&
+            a.actorState.oasisBeneficiary === actor.id
+        );
+        const oasisGrantedSlot = actorState.oasisGrantedSlot ?? null;
+
         for (const instance of actorState.actions) {
             // Keep `action` = the move key so every branch below (tendWounds, custom_, …) is unchanged.
             const action = instance.key;
@@ -336,6 +479,12 @@ async function _applyDowntimeEffects() {
                 || (hasEfficient && instance.id === efficientSlot)
                 || (hasRecovery && instance.id === recoverySlot)
                 || (recoveryGrantedSlot !== null && instance.id === recoveryGrantedSlot && grantorCurrentHope >= 1);
+            // The Oasis reroll only has a die to act on while the move still rolls one, so an
+            // instance upgraded to long-rest quality quietly gives it up.
+            const useOasis = !effectiveLong && (
+                (hasOasis && instance.id === oasisSlot)
+                || (oasisGranted && instance.id === oasisGrantedSlot)
+            );
 
             if (action === "tendWounds") {
                 // Read the target actor's modifier (when healing others, use target's modifier)
@@ -348,9 +497,7 @@ async function _applyDowntimeEffects() {
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
                     actorEvents.push(`Tend to Wounds${target} (Recover All HP)`);
                 } else {
-                    const roll = new Roll("1d4");
-                    await roll.evaluate();
-                    if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
+                    const roll = await _rollDowntimeDie("1d4", useOasis);
                     const recovery = roll.total + tier + targetHpMod + soothingBonus;
                     const currentHP = targetActor.system.resources?.hitPoints?.value ?? 0;
                     const newHP = Math.max(0, currentHP - recovery);
@@ -358,7 +505,7 @@ async function _applyDowntimeEffects() {
                     const modText = targetHpMod > 0 ? ` +${targetHpMod} mod` : "";
                     const soothText = soothingBonus > 0 ? " +1 Soothing Speech" : "";
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    actorEvents.push(`Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.total}${modText}${soothText}])`);
+                    actorEvents.push(`Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.text}${modText}${soothText}])`);
                 }
                 // Soothing Speech self-heal: clear 2 HP on the caster when tending another
                 if (hasSoothing && !isSelf) {
@@ -390,17 +537,16 @@ async function _applyDowntimeEffects() {
 
                     actorEvents.push(eventText);
                 } else {
-                    const roll = new Roll("1d4");
-                    await roll.evaluate();
-                    if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
+                    const roll = await _rollDowntimeDie("1d4", useOasis);
                     const bedrollBonus = hasBedroll ? 1 : 0;
-                    const recovery = roll.total + tier + stressModifier + bedrollBonus;
+                    const recovery = roll.total + tier + stressModifier + bedrollBonus + pipeweedBonus;
                     const currentStress = actor.system.resources?.stress?.value ?? 0;
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
                     const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
                     const bedrollText = hasBedroll ? " +1 Bedroll" : "";
-                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.total} +${tier} Tier${modText}${bedrollText}])`;
+                    const pipeweedText = pipeweedBonus > 0 ? ` +${pipeweedBonus} Pipeweed` : "";
+                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.text} +${tier} Tier${modText}${bedrollText}${pipeweedText}])`;
 
                     // Beastbound: clear companion stress if Beastbound feature present
                     if (_hasBeastboundFeature(actor)) {
@@ -425,14 +571,12 @@ async function _applyDowntimeEffects() {
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
                     actorEvents.push(`Repair Armor${target} (Recover All Armor Slots)`);
                 } else {
-                    const roll = new Roll("1d4");
-                    await roll.evaluate();
-                    if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
+                    const roll = await _rollDowntimeDie("1d4", useOasis);
                     const reduction = roll.total + tier + targetArmorMod;
                     await _reduceArmorMarks(targetActor, reduction);
                     const modText = targetArmorMod > 0 ? ` +${targetArmorMod} mod` : "";
                     const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    actorEvents.push(`Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.total}${modText}])`);
+                    actorEvents.push(`Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.text}${modText}])`);
                 }
             }
 
@@ -462,9 +606,39 @@ async function _applyDowntimeEffects() {
                 actorEvents.push(`${itemName}`);
             }
 
+            // Feature-driven moves that resolve entirely in the fiction — the player narrates the
+            // tribute, the new shape, or the swapped ancestry feature, and applies whatever the
+            // sheet needs themselves. The summary only records that the move was spent, which is
+            // what the table needs to see; nothing is written to the actor.
+            if (action === "core_favor") {
+                actorEvents.push("Show Tribute (Favor — gain Favor equal to your Spellcast trait)");
+            }
+
+            if (action === "core_changeShape") {
+                actorEvents.push("Change Shape (Shapeshifter — swapped ancestry)");
+            }
+
+            if (action === "core_onlySkinDeep") {
+                actorEvents.push("Only Skin Deep (Shapeshifter — swapped ancestry feature)");
+            }
+
+            // Pipeweed: the +1 Stress it grants is already folded into every Clear Stress above
+            // via pipeweedBonus, since the leaf helps the whole party and had to be counted before
+            // anyone resolved. All that is left here is spending the consumable.
+            if (action === "core_pipeweed") {
+                const leaf = actor.items.find(i => i.name === _coreFeatureName("pipeweed", "Pipeweed"));
+                if (leaf) {
+                    await _consumeOne(actor, leaf);
+                    actorEvents.push("Smoke Pipeweed (−1 Pipeweed → +1 Stress cleared for everyone on Clear Stress)");
+                } else {
+                    actorEvents.push("Smoke Pipeweed (no Pipeweed left to smoke)");
+                }
+            }
+
             // Forager core feature action
             if (action === "core_forager") {
-                const foragerRoll = await rollD6WithDiceSoNice();
+                const foragerDie = await _rollDowntimeDie("1d6", useOasis);
+                const foragerRoll = foragerDie.total;
                 if (foragerRoll !== null) {
                     let resultOption;
                     if (foragerRoll <= 5) {
@@ -475,7 +649,7 @@ async function _applyDowntimeEffects() {
                         resultOption = FORAGER_OPTIONS[choice - 1] ?? FORAGER_OPTIONS[0];
                     }
                     const chosenText = foragerRoll === 6 ? " (Chose)" : "";
-                    actorEvents.push(`Forage [Roll: ${foragerRoll}${chosenText}] — ${resultOption.label} (${resultOption.effect})`);
+                    actorEvents.push(`Forage [Roll: ${foragerDie.text}${chosenText}] — ${resultOption.label} (${resultOption.effect})`);
 
                     // Grant the foraged item to the actor's inventory
                     if (resultOption.itemUuid) {
@@ -537,6 +711,18 @@ async function _applyDowntimeEffects() {
         await actor.update({ "system.resources.stress.value": newStress });
         if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
         resultsByActor.get(actor.id).events.push(`Premium Bedroll (Automatically clear 1 Stress)`);
+    }
+
+    // Self-Healing armour: "When you take a rest, clear an Armor Slot." Unconditional on any rest,
+    // so unlike Premium Bedroll (whose +1 is folded into the Clear Stress roll) it stacks on top of
+    // Repair Armor rather than being skipped when that move was chosen.
+    for (const { actor } of includedActors) {
+        if (!_hasSelfHealingArmor(actor)) continue;
+        const marks = actor.system.resources?.armor?.value ?? 0;
+        if (marks <= 0) continue;
+        await _reduceArmorMarks(actor, 1);
+        if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
+        resultsByActor.get(actor.id).events.push(`Self-Healing (Automatically clear 1 Armor Slot)`);
     }
 
     // Armorer bonus: when an actor with Armorer uses Repair Armor, all other included actors clear 1 Armor Slot
@@ -803,7 +989,13 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
             { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." },
             { key: "beastbound", label: "Beastbound", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "If you choose a downtime move that clears your Stress, your companion clears an equal amount." },
-            { key: "recovery", label: "Recovery", itemUuid: "Compendium.daggerheart.domains.Item.gsiQFT6q3WOgqerJ", description: "During a short rest, you can choose a long rest downtime move instead. You can spend 1 Hope to let an ally do the same." }
+            { key: "recovery", label: "Recovery", itemUuid: "Compendium.daggerheart.domains.Item.gsiQFT6q3WOgqerJ", description: "During a short rest, you can choose a long rest downtime move instead. You can spend 1 Hope to let an ally do the same." },
+            { key: "favor", label: "Favor", itemUuid: "Compendium.daggerheart.classes.Item.OGPn7DUJoJwAXh8o", description: "Adds the \"Show Tribute\" downtime move: describe how you honour your patron and gain Favor equal to your Spellcast trait. Spends one move; the Favor itself is applied by the player." },
+            { key: "changeShape", label: "Change Shape", itemUuid: "Compendium.daggerheart.transformations.Item.P1sdtkECFSdLz02W", description: "Shapeshifter. Adds the \"Change Shape\" downtime move: swap your current ancestry for another and describe how your appearance changes. Spends one move; the swap itself is applied by the player." },
+            { key: "onlySkinDeep", label: "Only Skin Deep", itemUuid: "Compendium.daggerheart.transformations.Item.qXA130mgMnvPZfNF", description: "Shapeshifter. Adds the \"Only Skin Deep\" downtime move: choose a different feature from your current ancestry. Spends one move; the swap itself is applied by the player." },
+            { key: "oasis", label: "Oasis", itemUuid: "Compendium.daggerheart.communities.Item.DOrvaVrES1HYhG2u", description: "Duneborne. During a short rest, reroll one die used for a downtime move and keep the higher result. Mark the move with the water badge, or hand the reroll to an ally." },
+            { key: "timekeepersPendant", label: "Timekeeper's Pendant", itemUuid: "Compendium.daggerheart.loot.Item.4qUp8YWnsgi7ws8Q", description: "Grants one additional downtime move each rest." },
+            { key: "pipeweed", label: "Pipeweed", itemUuid: "Compendium.daggerheart.consumables.Item.eBQAxdk4y85I7xQe", description: "Adds the free \"Smoke Pipeweed\" move during a short rest. Smoking one clears an additional Stress for every PC who chose Clear Stress, and spends one Pipeweed." }
         ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
         const coreRaw = defaultCore.map(d => {
@@ -1220,6 +1412,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             toggleEfficientSlot: DowntimeUIApp.prototype._onToggleEfficientSlot,
             toggleRecoverySlot: DowntimeUIApp.prototype._onToggleRecoverySlot,
             toggleRecoveryGrantedSlot: DowntimeUIApp.prototype._onToggleRecoveryGrantedSlot,
+            toggleOasisSlot: DowntimeUIApp.prototype._onToggleOasisSlot,
+            toggleOasisGrantedSlot: DowntimeUIApp.prototype._onToggleOasisGrantedSlot,
             openMovesConfig: DowntimeUIApp.prototype._onOpenMovesConfig,
             resendDowntime: DowntimeUIApp.prototype._onResendDowntime
         }
@@ -1265,6 +1459,10 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (_hasCelestialTranceFeature(actor)) {
                 maxChoices += 1;
             }
+            // Timekeeper's Pendant: "You can choose an additional downtime move each rest."
+            if (_hasTimekeepersPendant(actor)) {
+                maxChoices += 1;
+            }
             // Eloquent bonus: +1 move if chosen by another party member
             const playerChoices = _readDowntimeChoices(user);
             const eloquentGiver = allActors.find(a => a.id !== actorId && _hasEloquentFeature(a.actor));
@@ -1273,8 +1471,8 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 maxChoices += 1;
             }
 
-            // Exclude bonus moves (e.g. Forager) from the move count
-            const selectedCount = playerChoices.actions.filter(i => i.key !== "core_forager").length;
+            // Exclude bonus moves (Forage, Smoke Pipeweed) from the move count
+            const selectedCount = playerChoices.actions.filter(i => !BONUS_MOVES.has(i.key)).length;
             const isOverLimit = selectedCount > maxChoices;
 
             // Build craft downtime actions from global setting
@@ -1354,23 +1552,65 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Ally grant is only selectable if actor has at least 1 Hope (read directly to avoid forward reference)
             const canSelectRecoveryAlly = (actor.system.resources?.hope?.value ?? 0) >= 1;
 
+            // Oasis (Duneborne): one short-rest reroll, kept or handed to an ally. Mirrors the
+            // Recovery grant above, minus the Hope cost the feature does not charge.
+            const hasOasis = _hasOasisFeature(actor);
+            const oasisSlot = playerChoices.oasisSlot ?? null;
+            const oasisBeneficiary = playerChoices.oasisBeneficiary ?? "";
+            const hasOasisGrant = allActors.some(a => {
+                if (a.id === actorId) return false;
+                if (!_hasOasisFeature(a.actor)) return false;
+                const grantorUser = game.users.find(u => u.character?.id === a.id);
+                return grantorUser?.getFlag(MODULE_ID, "downtimeChoices")?.oasisBeneficiary === actorId;
+            });
+            const oasisGrantedSlot = playerChoices.oasisGrantedSlot ?? null;
+            const oasisAllyOptions = [];
+            if (hasOasis && !isLong) {
+                for (const other of allActors) {
+                    if (other.id === actorId) continue;
+                    oasisAllyOptions.push({ id: other.id, name: other.name });
+                }
+            }
+
             const actorAvailableActions = ((hasEfficient || hasRecovery || hasRecoveryGrant) && !isLong) ? longActions : availableActions;
 
             // Forager feature: bonus action that doesn't count towards move limit
             const hasForager = _hasForagerFeature(actor);
 
             const allActions = [...actorAvailableActions, ...extraActions];
+            // Feature-granted moves that spend one of the actor's choices, unlike Forager's free
+            // bonus below. All are offered on both rest types, since none of the features draw a
+            // short/long distinction.
+            if (_hasFavorFeature(actor)) {
+                allActions.push({ key: "core_favor", label: "Show Tribute", hasTarget: false });
+            }
+            if (_hasChangeShapeFeature(actor)) {
+                allActions.push({ key: "core_changeShape", label: "Change Shape", hasTarget: false });
+            }
+            if (_hasOnlySkinDeepFeature(actor)) {
+                allActions.push({ key: "core_onlySkinDeep", label: "Only Skin Deep", hasTarget: false });
+            }
             // Add Forager as a bonus action if the actor has it
             if (hasForager) {
-                allActions.push({ key: "core_forager", label: "Forage", hasTarget: false, isBonusMove: true });
+                allActions.push({ key: "core_forager", label: "Forage", hasTarget: false, isBonusMove: true, isForagerMove: true });
+            }
+            // Pipeweed is opt-in: owning the leaf offers the move, choosing it smokes one. Short
+            // rest only, and free — it is the consumable that is spent, not a downtime move.
+            if (!isLong && _hasPipeweed(actor)) {
+                allActions.push({ key: "core_pipeweed", label: "Smoke Pipeweed", hasTarget: false, isBonusMove: true });
             }
 
             // Each available move carries the list of its selected instances so the
             // same move can be queued multiple times, each with its own target/slot.
             const annotatedActions = allActions.map(a => {
-                const canBeEfficientSlot = hasEfficient && !isLong && a.key !== "prepare";
-                const canBeRecoverySlot = hasRecovery && !isLong && a.key !== "prepare";
-                const canBeRecoveryGrantedSlot = hasRecoveryGrant && grantorHasHope && !isLong && a.key !== "prepare";
+                const canUpgrade = !NO_UPGRADE_MOVES.has(a.key);
+                const canBeEfficientSlot = hasEfficient && !isLong && canUpgrade;
+                const canBeRecoverySlot = hasRecovery && !isLong && canUpgrade;
+                const canBeRecoveryGrantedSlot = hasRecoveryGrant && grantorHasHope && !isLong && canUpgrade;
+                // Oasis rerolls a die, so it is only offered on the moves that roll one.
+                const rolls = !isLong && ROLLING_MOVES.has(a.key);
+                const canBeOasisSlot = hasOasis && rolls;
+                const canBeOasisGrantedSlot = hasOasisGrant && rolls;
                 const instances = playerChoices.actions
                     .filter(inst => inst.key === a.key)
                     .map(inst => ({
@@ -1381,14 +1621,19 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                         isRecoverySlot: inst.id === recoverySlot,
                         canBeRecoverySlot,
                         isRecoveryGrantedSlot: inst.id === recoveryGrantedSlot,
-                        canBeRecoveryGrantedSlot
+                        canBeRecoveryGrantedSlot,
+                        isOasisSlot: inst.id === oasisSlot,
+                        canBeOasisSlot,
+                        isOasisGrantedSlot: inst.id === oasisGrantedSlot,
+                        canBeOasisGrantedSlot
                     }));
                 return {
                     ...a,
                     count: instances.length,
                     selected: instances.length > 0,
                     // Move-level gate so standalone moves without any slot skip per-instance rows.
-                    hasSlots: canBeEfficientSlot || canBeRecoverySlot || canBeRecoveryGrantedSlot,
+                    hasSlots: canBeEfficientSlot || canBeRecoverySlot || canBeRecoveryGrantedSlot
+                        || canBeOasisSlot || canBeOasisGrantedSlot,
                     instances
                 };
             });
@@ -1413,6 +1658,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const hasSoothingSpeech = _hasSoothingSpeechFeature(actor);
             const hasArmorer = _hasArmorerFeature(actor);
             const hasPremiumBedroll = _hasPremiumBedrollFeature(actor);
+            const hasSelfHealingArmor = _hasSelfHealingArmor(actor);
             const hasCelestialTrance = _hasCelestialTranceFeature(actor);
 
             // Eloquent feature: prepare options for beneficiary selection
@@ -1498,6 +1744,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasSoothingSpeech,
                 hasArmorer,
                 hasPremiumBedroll,
+                hasSelfHealingArmor,
                 hasCelestialTrance,
                 hasBeastbound,
                 beastboundInfo,
@@ -1509,7 +1756,15 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 hasRecoveryGrant,
                 grantorHasHope,
                 recoveryGrantedSlot,
-                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasCelestialTrance || hasBeastbound || (hasRecovery && !isLong) || (hasRecoveryGrant && !isLong),
+                hasOasis,
+                oasisSlot,
+                oasisBeneficiary,
+                oasisAllyOptions,
+                hasOasisGrant,
+                oasisGrantedSlot,
+                hasTimekeepersPendant: _hasTimekeepersPendant(actor),
+                hasPipeweed: !isLong && _hasPipeweed(actor),
+                showFeaturesRow: hasEloquent || (hasEfficient && !isLong) || hasSoothingSpeech || hasArmorer || hasPremiumBedroll || hasSelfHealingArmor || hasCelestialTrance || hasBeastbound || (hasRecovery && !isLong) || (hasRecoveryGrant && !isLong) || (hasOasis && !isLong) || (hasOasisGrant && !isLong) || _hasTimekeepersPendant(actor),
                 domainCardStatus,
                 hp,
                 stress,
@@ -1553,6 +1808,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
             if (event.target.classList.contains("dui-recovery-beneficiary-select")) {
                 this._onSetRecoveryBeneficiary(event);
+            }
+            if (event.target.classList.contains("dui-oasis-beneficiary-select")) {
+                this._onSetOasisBeneficiary(event);
             }
         });
 
@@ -1833,6 +2091,44 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _onToggleRecoveryGrantedSlot(event, target) {
         await this._toggleSlot(target, "recoveryGrantedSlot");
+    }
+
+    /**
+     * Toggles the Oasis reroll slot for a move instance (actor's own Duneborne feature).
+     * @param {Event} event
+     * @param {HTMLElement} target
+     * @returns {Promise<void>}
+     */
+    async _onToggleOasisSlot(event, target) {
+        await this._toggleSlot(target, "oasisSlot");
+    }
+
+    /**
+     * Toggles the Oasis reroll slot for a move instance (beneficiary of an ally's Oasis).
+     * @param {Event} event
+     * @param {HTMLElement} target
+     * @returns {Promise<void>}
+     */
+    async _onToggleOasisGrantedSlot(event, target) {
+        await this._toggleSlot(target, "oasisGrantedSlot");
+    }
+
+    /**
+     * Stores which ally receives this actor's Oasis reroll. Clearing the selection keeps the
+     * reroll for the actor themselves.
+     * @param {Event} event - Change event from the beneficiary select.
+     * @returns {Promise<void>}
+     */
+    async _onSetOasisBeneficiary(event) {
+        const select = event.target;
+        const ownerUser = game.users.find(u => !u.isGM && u.character?.id === select.dataset.actorId);
+        if (!ownerUser) return;
+
+        const choices = _readDowntimeChoices(ownerUser);
+        choices.oasisBeneficiary = select.value || null;
+        // Handing the reroll away releases the slot the actor had marked for themselves.
+        if (choices.oasisBeneficiary) choices.oasisSlot = null;
+        await this._writeChoices(ownerUser, choices);
     }
 
     async _onSetTarget(event) {

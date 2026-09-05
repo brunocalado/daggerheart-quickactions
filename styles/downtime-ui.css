@@ -832,6 +832,36 @@
         }
     }
 
+    /* Oasis Reroll Badge — desert-water blue, mirrors the recovery badges */
+    & .dui-oasis-badge,
+    & .dui-oasis-granted-badge {
+        background: none;
+        border: none;
+        color: #555;
+        cursor: pointer;
+        font-size: 10px;
+        padding: 0 4px;
+        line-height: 1;
+        height: 100%;
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.15s;
+
+        &.active {
+            color: #6FB7E8;
+            text-shadow: 0 0 4px rgba(111, 183, 232, 0.6);
+        }
+
+        &:hover:not(:disabled) {
+            color: #6FB7E8;
+        }
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.4;
+        }
+    }
+
     /* Bonus Move */
     & .dui-bonus-move {
         border-style: dashed;
@@ -1012,6 +1042,30 @@
         color: #E08080;
 
         & .dui-efficient-text { color: #E08080; }
+    }
+
+    & .dui-oasis-indicator,
+    & .dui-oasis-grant-indicator {
+        color: #6FB7E8;
+
+        & .dui-efficient-text { color: #6FB7E8; }
+    }
+
+    & .dui-timekeeper-indicator {
+        color: #C9A060;
+
+        & .dui-efficient-text { color: #C9A060; }
+    }
+
+    & .dui-pipeweed-indicator {
+        color: #8FBF6F;
+
+        & .dui-efficient-text { color: #8FBF6F; }
+    }
+
+    & .dui-oasis-beneficiary-select {
+        margin-left: 6px;
+        max-width: 170px;
     }
 
     /* Efficient Feature Indicator */
