@@ -35,11 +35,25 @@
     box-shadow: 0 0 10px rgba(201, 160, 96, 0.2);
 }
 
+/* Selected state is a solid gold fill rather than a glow: at a glance the picked option has to
+   read as picked even next to a hovered neighbour, which the border-only version did not. */
 .loot-consumable-app .type-btn.active {
-    background: #191919;
+    background: linear-gradient(180deg, #E0BC7E 0%, #C9A060 100%);
+    color: #191919;
     opacity: 1;
+    border-color: #F0D9A8;
     border-width: 2px;
-    box-shadow: 0 0 15px rgba(201, 160, 96, 0.6);
+    box-shadow: 0 0 15px rgba(201, 160, 96, 0.6), inset 0 0 12px rgba(0, 0, 0, 0.25);
+}
+
+/* The table icons sit directly on the fill now, so they need their own edge to stay readable. */
+.loot-consumable-app .type-btn.active img {
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.85)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+.loot-consumable-app .type-btn.active span {
+    color: #191919;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .loot-consumable-app .type-btn img {
@@ -228,8 +242,11 @@
 }
 
 .loot-consumable-app .destination-btn.active {
+    background: linear-gradient(180deg, #E0BC7E 0%, #C9A060 100%);
+    color: #191919;
+    border-color: #F0D9A8;
     border-width: 2px;
-    box-shadow: 0 0 12px rgba(201, 160, 96, 0.6);
+    box-shadow: 0 0 12px rgba(201, 160, 96, 0.6), inset 0 0 10px rgba(0, 0, 0, 0.25);
 }
 
 .loot-consumable-app .footer-row {
@@ -294,6 +311,9 @@
 }
 
 .loot-consumable-app .tier-btn.active {
+    background: linear-gradient(180deg, #E0BC7E 0%, #C9A060 100%);
+    color: #191919;
+    border-color: #F0D9A8;
     border-width: 2px;
-    box-shadow: 0 0 12px rgba(201, 160, 96, 0.6);
+    box-shadow: 0 0 12px rgba(201, 160, 96, 0.6), inset 0 0 10px rgba(0, 0, 0, 0.25);
 }

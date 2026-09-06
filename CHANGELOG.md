@@ -1,3 +1,11 @@
+# 0.6.9
+
+- [Changed] Loot & Consumables: resolving a queued roll is roughly twice as fast. The book-picking die used to be thrown once per draw, right after that draw's own d12 pool, so a queue of four with both books enabled sat through eight Dice So Nice animations one after another. All the picks are now settled in a **single throw of coins** at the start — one coin per draw, heads for Hope & Fear, tails for Core Set — and each draw still gets its own d12 moment afterwards, so the same queue of four costs five animations instead of eight.
+- [Changed] Loot & Consumables: the book-picking die is a **coin** rather than a second d12. Thrown together the way they now are, a d12 picking the book was indistinguishable from the d12s rolling the pool — a coin reads as a coin flip at a glance. The odds are unchanged: it was 1–6 / 7–12 before and it is tails / heads now, 50/50 either way. A coin is only thrown for draws that actually have a choice to make; with a single book configured, nothing is flipped. A queue long enough to out-run Dice So Nice's 20-dice ceiling splits across several throws rather than flipping coins nobody sees land.
+- [Changed] Loot & Consumables: the roll tables are read **once per ROLL** instead of once per queued draw. A queue of five used to re-fetch the same compendium documents and rebuild the same rarity index five times over. Drawing the same item twice in one queue now loads it once too, and still creates both copies.
+- [Changed] Loot & Consumables: an unconfigured coin tier or an unreachable roll table is now reported **before any die is thrown**, rather than partway through a queue whose animations had already started playing.
+- [Changed] Loot & Consumables: a selected button is filled solid gold instead of only carrying a brighter border and glow — at a glance the chosen Loot / Consumable / Coins type, coin tier, and To Myself / To Party destination now read as chosen even next to a hovered neighbour.
+
 # 0.6.8
 
 - [Added] Downtime UI: the **Shapeshifter** transformation's two downtime moves — **Change Shape** (swap your ancestry) and **Only Skin Deep** (swap which ancestry feature is active). Both spend a move and are recorded in the resolution summary; the swap itself stays the player's to apply, since either would otherwise mean deleting and recreating sheet items on the module's guess.

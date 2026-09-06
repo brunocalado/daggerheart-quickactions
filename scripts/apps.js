@@ -208,6 +208,14 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
  */
 const MAX_DICE = 5;
 
+/**
+ * How many dice Dice So Nice renders in one throw. The queue's source coins are flipped together
+ * so the picks cost a single animation, which means a long enough queue could out-run that cap —
+ * such a queue is split into several throws rather than flipping coins nobody sees land.
+ * @type {number}
+ */
+const MAX_DSN_DICE = 20;
+
 /** Actor type of the Daggerheart party sheet, which carries its own inventory and gold. */
 const PARTY_TYPE = "party";
 
@@ -361,16 +369,20 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     /**
-     * Resolves one queued loot/consumable draw against the configured table(s).
-     * @param {{type: string, diceCount: number}} entry - Queue entry to resolve.
-     * @returns {Promise<object|null>} The draw, or null when the tables could not be resolved
-     *                                (a notification has already been raised).
+     * Loads the roll table(s) for one draw type and flattens them into a rarity-position index.
+     * Done once per type per ROLL rather than once per queue entry: the tables cannot change
+     * mid-roll, so a queue of five draws used to re-read the same compendium documents and
+     * rebuild the same index five times over.
+     * @param {string} type - Draw type, "Loot" or "Consumable".
+     * @returns {Promise<{tables: Array<foundry.documents.RollTable>, byPosition: Map<number, Array<object>>, span: number}|null>}
+     *          The loaded index, or null when the tables could not be resolved (a notification has
+     *          already been raised).
      */
-    async _resolveDraw(entry) {
+    async _resolveTableSet(type) {
         // Resolved by stable compendium id (fromUuid), never by name: Daggerheart 2.9.2 renamed
         // these tables ("Loot" -> "Core Set Items", "Consumables" -> "Core Set Consumables").
-        const uuids = LOOT_CONSUMABLE_TABLES[entry.type];
-        if (!uuids) { ui.notifications.error(`Unknown loot type '${entry.type}'.`); return null; }
+        const uuids = LOOT_CONSUMABLE_TABLES[type];
+        if (!uuids) { ui.notifications.error(`Unknown loot type '${type}'.`); return null; }
 
         const source = game.settings.get(MODULE_ID, LOOT_CONSUMABLE_SOURCE);
         const sourceKeys = source === LOOT_SOURCE.BOTH ? [LOOT_SOURCE.CORE, LOOT_SOURCE.HOPE_AND_FEAR] : [source];
@@ -398,26 +410,56 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             }
         }
 
+        return { tables, byPosition, span };
+    }
+
+    /**
+     * Flips the source coins for a whole queue in one throw, before any draw happens — heads takes
+     * the Hope & Fear entry, tails the Core Set one.
+     *
+     * A coin rather than the old second d12 because it is unmistakable: it lands among nothing but
+     * d12s and reads as a coin flip at a glance, where a second d12 needed its own separate throw
+     * to be told apart from the pool. Thrown up front rather than per draw because the source pick
+     * is not the dramatic beat — the pool is. This trades N single-die animations for one, and
+     * every draw still gets its own d12 moment afterwards.
+     * @param {number} count - How many coins to flip; 0 throws nothing.
+     * @returns {Promise<Array<boolean>>} One flag per coin, in order: true when Hope & Fear won.
+     */
+    async _flipSourceCoins(count) {
+        const flips = [];
+        for (let thrown = 0; thrown < count; thrown += MAX_DSN_DICE) {
+            const roll = new Roll(`${Math.min(MAX_DSN_DICE, count - thrown)}dc`);
+            await roll.evaluate();
+            if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
+            // Coin#getResultLabel maps 1 to heads and 0 to tails. Read the faces individually —
+            // roll.total would just sum them into a meaningless count of heads.
+            for (const r of roll.dice[0].results) flips.push(r.result === 1);
+        }
+        return flips;
+    }
+
+    /**
+     * Resolves one queued loot/consumable draw against an already-loaded table index.
+     * @param {{type: string, diceCount: number}} entry - Queue entry to resolve.
+     * @param {object} tableSet - The index for this entry's type, from _resolveTableSet.
+     * @param {boolean} hopeAndFear - Whether this draw's source coin came up heads.
+     * @returns {Promise<object>} The draw.
+     */
+    async _resolveDraw(entry, tableSet, hopeAndFear) {
+        const { byPosition, span } = tableSet;
+
         const formula = `${Math.max(1, Number(entry.diceCount) || 1)}d12`;
         const roll = new Roll(formula);
         await roll.evaluate();
 
-        // A second, visible d12 picks the book — 1-6 Core Set, 7-12 Hope & Fear — so the table
-        // watches the choice happen instead of trusting a hidden coin flip.
-        const pickRoll = tables.length > 1 ? new Roll("1d12") : null;
-        if (pickRoll) await pickRoll.evaluate();
-
-        if (game.dice3d) {
-            await game.dice3d.showForRoll(roll, game.user, true);
-            if (pickRoll) await game.dice3d.showForRoll(pickRoll, game.user, true);
-        }
+        if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
 
         const total = Math.max(1, Math.min(span, roll.total));
         // Candidates land in table order, so index 0 is always the Core Set entry. A position only
-        // one book covers has a single candidate, and the pick die is ignored rather than
-        // discarding the result.
+        // one book covers has a single candidate, and the coin is ignored rather than discarding
+        // the result.
         const candidates = byPosition.get(total) ?? [];
-        const picked = (pickRoll && candidates.length > 1 && pickRoll.total > 6) ? candidates[1] : candidates[0];
+        const picked = (hopeAndFear && candidates.length > 1) ? candidates[1] : candidates[0];
 
         // TableResult#uuid is the *result document's own* uuid — linking it opens the Table Result
         // sheet instead of the item. The referenced document lives in `documentUuid` (V13+ schema).
@@ -440,6 +482,33 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // screen, which keeps the one-off case a single click.
         const entries = this.localState.queue.length ? [...this.localState.queue] : [this._currentEntry()];
 
+        // Every table the queue touches, loaded once up front. This also settles which draws even
+        // need a source coin: with a single configured book there is nothing to choose between.
+        const tableSets = new Map();
+        const coinTiers = new Map();
+        for (const entry of entries) {
+            if (entry.type === "Coins") {
+                if (coinTiers.has(entry.coinsTier)) continue;
+                const tier = game.settings.get(MODULE_ID, "coinTierRanges")?.[`tier${entry.coinsTier}`];
+                if (!tier) { ui.notifications.error(`Coin tier ${entry.coinsTier} is not configured.`); return; }
+                coinTiers.set(entry.coinsTier, tier);
+                continue;
+            }
+            if (tableSets.has(entry.type)) continue;
+            const set = await this._resolveTableSet(entry.type);
+            // Nothing has been written yet and no die has been thrown, so bailing anywhere in this
+            // pre-flight leaves the queue and both actors untouched — the GM can fix the setting
+            // and roll again without having watched a doomed roll play out first.
+            if (!set) return;
+            tableSets.set(entry.type, set);
+        }
+
+        // One throw settles every source pick in the queue, then the draws roll one at a time.
+        const needsCoin = entries.map(e => e.type !== "Coins" && tableSets.get(e.type).tables.length > 1);
+        const flips = await this._flipSourceCoins(needsCoin.filter(Boolean).length);
+        let flipIndex = 0;
+        const hopeAndFearByEntry = needsCoin.map(needs => needs && flips[flipIndex++]);
+
         const linkedActor = game.user.character;
         const party = getOwnedParties(linkedActor)[0] ?? null;
         const destination = (this.localState.toParty && party) ? party : linkedActor;
@@ -448,22 +517,16 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const drawnUuids = [];
         let coinTotal = 0;
 
-        for (const entry of entries) {
+        for (const [index, entry] of entries.entries()) {
             if (entry.type === "Coins") {
-                const tier = game.settings.get(MODULE_ID, "coinTierRanges")?.[`tier${entry.coinsTier}`];
-                // Bail before any write, so a misconfigured tier can't take the rest of the
-                // queue down with it.
-                if (!tier) { ui.notifications.error(`Coin tier ${entry.coinsTier} is not configured.`); return; }
+                const tier = coinTiers.get(entry.coinsTier);
                 const amount = Math.floor(Math.random() * (tier.max - tier.min + 1)) + tier.min;
                 coinTotal += amount;
                 rows.push(this._buildRow(`Coins &middot; Tier ${entry.coinsTier}`, `<i class="fas fa-coins"></i> ${amount} Coins`, null, rows.length));
                 continue;
             }
 
-            const draw = await this._resolveDraw(entry);
-            // Nothing has been written yet, so bailing here leaves the queue and both actors
-            // untouched — the GM can fix the source setting and roll again.
-            if (!draw) return;
+            const draw = await this._resolveDraw(entry, tableSets.get(entry.type), hopeAndFearByEntry[index]);
 
             if (draw.referencedUuid) drawnUuids.push(draw.referencedUuid);
             const name = draw.result ? (draw.result.name || draw.result.description) : "Nothing found";
@@ -477,8 +540,12 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (drawnUuids.length) {
                 try {
                     const sources = [];
+                    // Cached because a queue can draw the same entry twice — two copies of one
+                    // item is a legitimate result, but it is not two reasons to load it.
+                    const resolved = new Map();
                     for (const uuid of drawnUuids) {
-                        const doc = await fromUuid(uuid);
+                        if (!resolved.has(uuid)) resolved.set(uuid, await fromUuid(uuid));
+                        const doc = resolved.get(uuid);
                         // Guard: only embed if the resolved document is actually an Item.
                         if (doc instanceof Item) sources.push(doc.toObject());
                     }
