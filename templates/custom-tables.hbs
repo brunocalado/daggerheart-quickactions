@@ -1,0 +1,84 @@
+<div class="custom-tables-container">
+
+    {{#if hasTables}}
+    <!-- 1. Which table to roll. A select rather than the SRD roller's image buttons: the list is
+         whatever the GM configured, so it has no fixed length to lay out. -->
+    <div class="table-row">
+        <label for="dh-qa-custom-table">Table</label>
+        <select id="dh-qa-custom-table" class="table-select" name="table">
+            {{#each tables}}
+            <option value="{{this.uuid}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+            {{/each}}
+        </select>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 2. How many times to draw from that table. Each draw is a separate roll of the table's
+         own formula, so there is no ceiling to show here — unlike the SRD roller, where the pool
+         size is bounded by the 60 rarity positions its tables hold. -->
+    <div class="draws-row">
+        <button type="button" class="draw-adjust" data-action="adjustDraws" data-delta="-1"
+            title="One draw fewer" {{#if atMinDraws}}disabled{{/if}}>&minus;</button>
+        <div class="draws-display"><span class="draws-count">{{draws}}</span>&times; draw</div>
+        <button type="button" class="draw-adjust" data-action="adjustDraws" data-delta="1"
+            title="One draw more">+</button>
+    </div>
+
+    <!-- 3. Queue: stack draws from several tables and resolve them all with a single ROLL, into a
+         single chat card. -->
+    <div class="queue-row">
+        <button type="button" class="queue-add-btn" data-action="queueRoll" title="Stack this draw and set up another">
+            <i class="fas fa-layer-group"></i> Add to Roll
+        </button>
+    </div>
+
+    {{#if hasQueue}}
+    <ul class="queue-list">
+        {{#each queue}}
+        <li class="queue-item">
+            <span class="queue-label">{{this.label}}</span>
+            <button type="button" class="queue-remove" data-action="unqueueRoll" data-index="{{this.index}}" title="Remove">&times;</button>
+        </li>
+        {{/each}}
+    </ul>
+    {{/if}}
+
+    {{#if hasParty}}
+    <!-- 4. Where the results land — a radio pair, only offered when the linked character belongs
+         to a party sheet this user owns. Either way the choice is recorded in the chat card. -->
+    <div class="destination-row">
+        <button type="button" class="destination-btn {{#unless toParty}}active{{/unless}}"
+            data-action="selectDestination" data-destination="self"
+            title="Keep the results on your own sheet">
+            <i class="fas fa-user"></i>
+            <span>To Myself</span>
+        </button>
+        <button type="button" class="destination-btn {{#if toParty}}active{{/if}}"
+            data-action="selectDestination" data-destination="party"
+            title="Send the results to {{partyName}}">
+            <i class="fas fa-users"></i>
+            <span>To Party</span>
+        </button>
+    </div>
+    {{/if}}
+
+    <!-- 5. Footer: big ROLL button -->
+    <div class="footer-row">
+        <button type="button" class="main-roll-btn" data-action="roll">
+            <i class="fas fa-dice"></i> ROLL{{#if hasQueue}} &times;{{queueSize}}{{/if}}
+        </button>
+    </div>
+
+    {{else}}
+    <div class="empty-state">
+        <i class="fas fa-dice-d20"></i>
+        <p>No custom tables configured yet.</p>
+        <p class="empty-hint">
+            A GM can add them in <strong>Configure Settings &rarr; Daggerheart: Quick Actions
+            &rarr; Custom Tables Configuration</strong>.
+        </p>
+    </div>
+    {{/if}}
+
+</div>

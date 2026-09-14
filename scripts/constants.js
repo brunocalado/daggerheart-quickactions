@@ -100,6 +100,16 @@ export const LOOT_SOURCE_LABELS = Object.freeze({
 });
 
 /**
+ * World setting key holding the GM's list of custom roll tables for the Custom Tables roller.
+ * Stored as an array of { uuid, label } snapshots — the label is captured when the table is
+ * dropped so a queued entry still reads correctly after the table is renamed or removed.
+ * Deliberately separate from LOOT_CONSUMABLE_SOURCE: the SRD roller reads a rarity-ordered
+ * index, this one lets each table roll its own formula.
+ * @type {string}
+ */
+export const CUSTOM_TABLES = "customTables";
+
+/**
  * Setting keys for the Biography tab visibility feature.
  * @type {Readonly<{POLICY: string, HIDE: string}>}
  */

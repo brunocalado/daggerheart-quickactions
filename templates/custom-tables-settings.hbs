@@ -1,0 +1,62 @@
+<div class="custom-tables-settings-body">
+
+    <div class="config-card">
+        <h3><i class="fas fa-dice-d20"></i> Custom Tables</h3>
+
+        <p class="dqa-ct-hint">
+            Drag roll tables here from the Rollable Tables directory or from a compendium. They
+            will be listed by <strong>QuickActions.CustomTables()</strong>.
+        </p>
+
+        <div class="dqa-drop-zone">
+            <i class="fas fa-dice-d20"></i>
+            <span>Drop a Rollable Table here</span>
+        </div>
+
+        <ol class="dqa-table-list">
+            {{#each tables}}
+            <li class="dqa-table-row {{#if this.missing}}dqa-missing{{/if}}">
+                <div class="dqa-table-info">
+                    <span class="dqa-table-name">{{this.label}}</span>
+                    <span class="dqa-table-source">
+                        {{#if this.missing}}Not found — the table was deleted or its compendium is unavailable{{else}}{{this.results}} entries{{/if}}
+                    </span>
+                </div>
+                <button type="button" class="dqa-icon-btn" data-action="removeTable" data-uuid="{{this.uuid}}"
+                        data-tooltip="Remove" aria-label="Remove {{this.label}}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </li>
+            {{/each}}
+
+            {{#unless hasTables}}
+            <li class="dqa-empty">No tables configured yet.</li>
+            {{/unless}}
+        </ol>
+
+        <button type="button" class="reset-btn" data-action="clearTables" {{#unless hasTables}}disabled{{/unless}}>
+            <i class="fas fa-trash"></i> Clear All
+        </button>
+    </div>
+
+    <div class="config-card">
+        <h3><i class="fas fa-circle-info"></i> Before You Start</h3>
+
+        <p class="field-hint">
+            <strong>Players need to see the table.</strong> A roll table created in the sidebar
+            starts with no player access at all, so it works for you and fails for them. Set its
+            ownership to <em>Observer</em> — and do the same for the compendium holding the items
+            it hands out, which is one setting for the whole pack.
+        </p>
+        <p class="field-hint">
+            <strong>Items only.</strong> Results are handed to the sheet when they point at an
+            Item. A text entry, or a link to an actor or journal, is shown in the chat card but
+            nothing is added.
+        </p>
+        <p class="field-hint">
+            <strong>Every draw is independent.</strong> A table set to draw without replacement
+            still repeats, because the roller never writes back to your table.
+        </p>
+    </div>
+
+</div>

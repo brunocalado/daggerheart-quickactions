@@ -14,7 +14,7 @@
 import { MODULE_ID, DOWNTIME_DISABLED_USERS, HOPE_BAR_ENABLED } from "./constants.js";
 
 // Import all functions from consolidated files
-import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
+import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, activateCustomTables, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
 import { activateTemplateCreator } from "./template-creator.js";
 import { activateDowntimeUI, getDowntimeUIInstance, openDowntimeUIForPlayer } from "./downtime_ui.js";
 import { activateRequestRoll, showCinematicPrompt } from "./request_roll.js";
@@ -36,6 +36,8 @@ import { registerScanSettings } from "./scan-settings.js";
 import { registerFallingDamageSettings } from "./falling-damage-settings.js";
 // Import Coin Tier Settings
 import { registerLootConsumableSettings } from "./loot-consumable-settings.js";
+// Import Custom Tables (GM-curated roll tables for the Custom Tables roller)
+import { registerCustomTablesSettings } from "./custom-tables-settings.js";
 // Import Biography Tab visibility
 import { registerBiographyTabSettings, initBiographyTab } from "./biography-tab.js";
 // Import Quick Actions macro list (settings menu + character sheet header button)
@@ -252,6 +254,7 @@ Hooks.once("init", () => {
     registerScanSettings();
     registerFallingDamageSettings();
     registerLootConsumableSettings();
+    registerCustomTablesSettings();
     registerBiographyTabSettings();
     registerQuickActionsMacrosSettings();
     registerCinematicImagesSettings();
@@ -273,6 +276,7 @@ Hooks.once("init", () => {
         HelpAnAlly: helpAnAlly,
         ScarCheck: scarCheck,
         LootConsumable: activateLootConsumable,
+        CustomTables: activateCustomTables,
         SpotlightToken: spotlightToken,
         ShowMacros: showMacros,
         QuickActionsMenu: showQuickActionsMacros,

@@ -39,7 +39,8 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
   <p align="center"><img width="800" src="docs/barter.webp" alt="Barter"></p>
 
 * **🆙 Level Up:** Walk a player character through leveling up directly from the menu.
-* **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving sheet when possible. Loot and consumables are drawn from the Daggerheart system's own roll tables, chosen in **Loot & Consumables Configuration**. Tap **+** to stack more d12s and reach rarer entries further down the table (capped at 5d12 — the tables hold 60 rarity-ordered entries); a hint under the stepper shows what the current pool reaches. **Add to Roll** stacks several draws — "3d12 loot, then 2d12 loot, then Tier 2 coins" — and a single **ROLL** resolves them all into one chat card. When your character belongs to a party sheet you own, a toggle sends the haul to the **party stash** instead of your own sheet, and the card records which.
+* **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving sheet when possible. Loot and consumables are drawn from the Daggerheart system's own roll tables, chosen in **Loot & Consumables Configuration**. Tap **+** to stack more d12s and reach rarer entries further down the table (capped at 5d12 — the tables hold 60 rarity-ordered entries). The **Mod** field beside the stepper covers what the stepper cannot say on its own, since it only moves twelve at a time: type `+5` to shift the band, `+1d6` for a spread between 1d12 and 2d12, or `-2` to pull the band down. The hint underneath always reports what the *combined* formula reaches — `+5` reads "Reaches 6–17", and a formula that overshoots the table reads "Reaches 60–60", which tells you the dice have stopped deciding. **Add to Roll** stacks several draws — "3d12 loot, then 2d12+5 loot, then Tier 2 coins" — and a single **ROLL** resolves them all into one chat card. When your character belongs to a party sheet you own, a toggle sends the haul to the **party stash** instead of your own sheet, and the card records which.
+* **🎲 Custom Tables:** Roll the GM's *own* roll tables — homebrew loot, a third-party adventure's treasure list, a translated table — and hand out what they give. Separate from Loot & Consumables on purpose: that roller reads the Daggerheart tables as one rarity-ordered scale, while this one lets each table roll with **its own formula**, exactly as its author built it (nested tables are followed too). Pick a table, tap **+** for more draws, and **Add to Roll** stacks draws from several tables into one **ROLL** and one chat card — with the same **To Myself / To Party** choice. The tables are curated by the GM in **Custom Tables Configuration**; results that point at an Item land on the sheet, anything else is just reported in the card. Opened with the **Custom Tables** macro from this module's Macros compendium, or with `QuickActions.CustomTables()`.
 * **✨ Spend Hope:** A quick picker for spending 1–6 Hope from the selected token's actor.
 * **📐 Templates:** Place attack templates (cone, line, circle, rectangle, and more) on the scene using Daggerheart's `@Template[...]` chat code syntax.
 
@@ -91,6 +92,10 @@ Most features work out of the box, but a few can be tuned from **Configure Setti
 * **Scan Configuration:** enable the Scan macro for players and customize the labels/descriptions it shows.
 * **Falling Damage Formulas:** customize the dice formula for each fall height tier, with a one-click reset to the official defaults.
 * **Loot & Consumables Configuration (GM):** one window for everything `QuickActions.LootConsumable()` rolls. **Table Source** picks which Daggerheart roll tables loot and consumables come from — *Core Set only*, *Hope & Fear only*, or *Core Set + Hope & Fear* (default). With both enabled the two books share one rarity scale rather than being chained end to end, so a `1d12` sees **24** common items instead of 12; a visible coin flip then decides which book the entry comes from (tails Core Set, heads Hope & Fear). **Coin Tier Ranges** customizes the min/max coins rolled for each tier.
+* **Custom Tables Configuration (GM):** curate the roll tables `QuickActions.CustomTables()` draws from. Drag tables in from the **Rollable Tables** directory or from any compendium, and remove the ones you don't want; a table that was deleted or whose compendium is gone is flagged rather than dropped silently. Three things are worth knowing before you add one:
+  * **Players need to see the table.** A roll table created in the sidebar starts with *no* player access, so it works for you and fails for them — set its ownership to **Observer**. Do the same for the compendium holding the items it hands out, which is a single setting for the whole pack.
+  * **Items only.** A result that points at an Item is added to the sheet. Text entries, or links to actors and journals, appear in the chat card but nothing is written.
+  * **Every draw is independent.** A table set to draw *without replacement* still repeats, because the roller never writes back to your table.
 * **Cinematic Roll Images:** assign an image to each Request Roll case (the six traits, Hope, Fear, and the generic Duality Roll fallback). Every case ships with a core Foundry icon, so the full-screen cinematic prompt works out of the box — point a case at your own artwork to replace it, or clear it to fall back to a plain chat message. **Reset to Default** restores all nine stock icons (worlds created before 0.6.7 start out blank and need this once), and **Clear All** blanks every case, turning the feature off.
 
 ## ⚙️ Usage
@@ -148,6 +153,13 @@ QuickActions.Barter();
 ```javascript
 // Opens the Loot & Consumables roller
 QuickActions.LootConsumable();
+```
+
+```javascript
+// Opens the Custom Tables roller — rolls the roll tables the GM curated in
+// Configure Settings → Daggerheart: Quick Actions → Custom Tables Configuration.
+// Each table is rolled with its own formula, so any table works, not just SRD-shaped ones.
+QuickActions.CustomTables();
 ```
 
 ```javascript

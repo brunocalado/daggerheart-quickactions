@@ -1,0 +1,182 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* Custom Tables — settings menu (drag & drop roll table list).
+   Self-contained on purpose: every class the menu uses is defined here rather than borrowed from
+   quick-actions-macros.css, so editing either feature cannot reach the other. */
+
+.daggerheart-quickactions.custom-tables-settings {
+    --primary-accent: #C9A060;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-main: #f0f0e0;
+    --text-dim: #aaa;
+
+    font-family: "Signika", sans-serif;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+
+    /* -- CONFIGURATION CARD -- */
+    & .config-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+
+        & h3 {
+            padding-bottom: 5px;
+            margin: 0 0 15px 0;
+            color: var(--primary-accent);
+            font-family: "Aleo", serif;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+    }
+
+    & .dqa-ct-hint {
+        font-size: var(--font-size-13);
+        text-align: left;
+        margin: 0 0 10px;
+        color: var(--text-dim);
+    }
+
+    & .field-hint {
+        margin: 0 0 10px;
+        font-size: 0.85em;
+        line-height: 1.45;
+        color: var(--text-dim);
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        & strong {
+            color: var(--primary-accent);
+        }
+    }
+
+    /* -- DROP ZONE -- */
+    & .dqa-drop-zone {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px;
+        margin-bottom: 10px;
+        border: 2px dashed var(--primary-accent);
+        border-radius: 4px;
+        color: var(--primary-accent);
+        text-transform: uppercase;
+        font-weight: bold;
+        transition: all 0.2s;
+
+        &.dqa-dragging {
+            background: rgba(201, 160, 96, 0.15);
+            box-shadow: 0 0 8px var(--primary-accent) inset;
+        }
+    }
+
+    /* -- TABLE LIST -- */
+    & .dqa-table-list {
+        list-style: none;
+        margin: 0 0 10px;
+        padding: 0;
+        max-height: 260px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    & .dqa-table-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 8px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+
+        /* A table that no longer resolves is kept on the list rather than dropped silently — the
+           GM decides whether it moved or should go. */
+        &.dqa-missing {
+            border-color: var(--color-level-error, #e7442e);
+            opacity: 0.75;
+        }
+    }
+
+    & .dqa-table-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-width: 0;
+    }
+
+    & .dqa-table-name {
+        color: var(--primary-accent);
+        font-weight: bold;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    & .dqa-table-source {
+        font-size: var(--font-size-11);
+        color: var(--text-dim);
+    }
+
+    & .dqa-icon-btn {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        color: var(--primary-accent);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--color-level-error, #e7442e);
+            color: #fff;
+        }
+    }
+
+    & .dqa-empty {
+        padding: 10px;
+        text-align: center;
+        font-style: italic;
+        color: var(--text-dim);
+    }
+
+    /* -- CLEAR BUTTON -- */
+    & .reset-btn {
+        width: 100%;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px dashed rgba(255, 255, 255, 0.15);
+        color: var(--text-dim);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+
+        &:hover:not(:disabled) {
+            color: #fff;
+            border-color: var(--primary-accent);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+    }
+}

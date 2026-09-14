@@ -4,7 +4,7 @@
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
-import { MODULE_ID, LOOT_CONSUMABLE_SOURCE, LOOT_CONSUMABLE_TABLES, LOOT_SOURCE } from "./constants.js";
+import { MODULE_ID, LOOT_CONSUMABLE_SOURCE, LOOT_CONSUMABLE_TABLES, LOOT_SOURCE, CUSTOM_TABLES } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -234,18 +234,39 @@ function getOwnedParties(actor) {
 }
 
 /**
+ * The roll formula for one draw: the d12 pool, plus the GM's optional modifier.
+ *
+ * The pool and the modifier are kept apart rather than exposing one editable formula field, which
+ * what this dialog had before 0.6.7. The pool stays bounded and covers the common case in a click;
+ * the modifier expresses what the stepper cannot, since it only moves in steps of twelve — "+5" to
+ * shift the band, or "+1d6" for a finer spread than 1d12 to 2d12.
+ * @param {number} diceCount - Size of the d12 pool.
+ * @param {string} [mod] - Optional modifier term, with or without a leading sign.
+ * @returns {string} A roll formula such as "2d12", "2d12 + 5" or "1d12 + 1d6".
+ */
+function buildDrawFormula(diceCount, mod) {
+    const pool = `${Math.max(1, Number(diceCount) || 1)}d12`;
+    const term = String(mod ?? "").trim();
+    if (!term) return pool;
+    // "+5" and "5" are both natural to type; only the unsigned form needs an operator added.
+    return /^[+-]/.test(term) ? `${pool} ${term}` : `${pool} + ${term}`;
+}
+
+/**
  * One-line summary of a queued draw, shown in the dialog's pending list.
- * @param {{type: string, diceCount?: number, coinsTier?: number}} entry - Queue entry.
- * @returns {string} Label such as "Loot — 3d12" or "Coins — Tier 2".
+ * @param {{type: string, diceCount?: number, mod?: string, coinsTier?: number}} entry - Queue entry.
+ * @returns {string} Label such as "Loot — 3d12", "Loot — 2d12 + 5" or "Coins — Tier 2".
  */
 function describeQueueEntry(entry) {
-    return entry.type === "Coins" ? `Coins — Tier ${entry.coinsTier}` : `${entry.type} — ${entry.diceCount}d12`;
+    return entry.type === "Coins"
+        ? `Coins — Tier ${entry.coinsTier}`
+        : `${entry.type} — ${buildDrawFormula(entry.diceCount, entry.mod)}`;
 }
 
 class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(options) {
         super(options);
-        this.localState = { type: "Loot", diceCount: 1, coinsTier: 1, queue: [], toParty: false };
+        this.localState = { type: "Loot", diceCount: 1, mod: "", coinsTier: 1, queue: [], toParty: false };
     }
     static DEFAULT_OPTIONS = {
         tag: "form", id: "loot-consumable-app", classes: ["dh-qa-app", "loot-consumable-app"],
@@ -282,10 +303,31 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const diceCount = Math.min(this.localState.diceCount, maxDice);
         this.localState.diceCount = diceCount;
 
-        // Spells out what the current pool actually buys: the rarity band it can land on, and how
-        // many entries sit on that band once both books are in play. This is the whole point of
-        // the second source — twice the candidates at the same rarity, not rarer loot.
-        const reachHint = `Reaches ${diceCount}–${diceCount * 12} · ${(diceCount * 12 - diceCount + 1) * this.tableCount} items in reach`;
+        // Spells out what the current formula actually buys: the rarity band it can land on, and
+        // how many entries sit on that band once both books are in play. This is the whole point
+        // of the second source — twice the candidates at the same rarity, not rarer loot.
+        //
+        // Derived from the formula rather than from diceCount arithmetic, because the modifier
+        // can be anything. The bounds are clamped the same way _resolveDraw clamps the total, so a
+        // formula that overshoots reads as "Reaches 60–60" — which says on its own that the dice
+        // are no longer deciding anything. MAX_DICE * 12 stands in for the span here; the roll
+        // itself still reads the real span off the loaded tables.
+        const mod = this.localState.mod ?? "";
+        const formula = buildDrawFormula(diceCount, mod);
+        const span = MAX_DICE * 12;
+        let reachHint;
+        try {
+            const bound = async options => {
+                const roll = await new Roll(formula).evaluate(options);
+                return Math.max(1, Math.min(span, roll.total));
+            };
+            const min = await bound({ minimize: true });
+            const max = await bound({ maximize: true });
+            const count = (max - min + 1) * this.tableCount;
+            reachHint = `Reaches ${min}–${max} · ${count} item${count === 1 ? "" : "s"} in reach`;
+        } catch (_err) {
+            reachHint = "That formula cannot be rolled.";
+        }
 
         const linkedActor = game.user.character;
         const party = getOwnedParties(linkedActor)[0] ?? null;
@@ -297,6 +339,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             isCoins: this.localState.type === "Coins",
             diceCount,
             maxDice,
+            mod,
             reachHint,
             atMinDice: diceCount <= 1,
             atMaxDice: diceCount >= maxDice,
@@ -311,6 +354,32 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     _onSelectType(event, target) { this.localState.type = target.dataset.type; this.render(); }
+
+    /**
+     * Binds the modifier field. The actions map only covers clicks, so a text input is wired
+     * here; `change` fires on blur, which is also when the re-render below is harmless.
+     * Triggered by the AppV2 render lifecycle.
+     * @param {object} _context - Render context (unused).
+     * @param {object} _options - Render options (unused).
+     * @returns {void}
+     */
+    _onRender(_context, _options) {
+        const field = this.element.querySelector(".mod-formula");
+        if (!field) return;
+
+        field.addEventListener("change", event => {
+            const value = event.target.value.trim();
+            // Validated here rather than at roll time: a bad formula found partway through a queue
+            // of five would already have played the earlier animations.
+            if (value && !Roll.validate(buildDrawFormula(this.localState.diceCount, value))) {
+                ui.notifications.warn(`"${value}" is not a valid roll formula.`);
+                event.target.value = this.localState.mod ?? "";
+                return;
+            }
+            this.localState.mod = value;
+            this.render();
+        });
+    }
 
     /**
      * Adds or removes a d12 from the roll pool. More dice push the (bell-curved) total further
@@ -333,8 +402,8 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     /** @returns {object} The dialog's current selection, as a queue entry. */
     _currentEntry() {
-        const { type, diceCount, coinsTier } = this.localState;
-        return type === "Coins" ? { type, coinsTier } : { type, diceCount };
+        const { type, diceCount, mod, coinsTier } = this.localState;
+        return type === "Coins" ? { type, coinsTier } : { type, diceCount, mod };
     }
 
     /**
@@ -448,7 +517,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _resolveDraw(entry, tableSet, hopeAndFear) {
         const { byPosition, span } = tableSet;
 
-        const formula = `${Math.max(1, Number(entry.diceCount) || 1)}d12`;
+        const formula = buildDrawFormula(entry.diceCount, entry.mod);
         const roll = new Roll(formula);
         await roll.evaluate();
 
@@ -846,11 +915,294 @@ class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 
 // ==================================================================
+// 4b. CUSTOM TABLES APP
+// ==================================================================
+
+/**
+ * The GM's configured table list, as stored by the Custom Tables settings menu.
+ * @returns {Array<{uuid: string, label: string}>} The list, or an empty array when unset.
+ */
+function getCustomTables() {
+    const stored = game.settings.get(MODULE_ID, CUSTOM_TABLES);
+    return Array.isArray(stored) ? stored : [];
+}
+
+/**
+ * One-line summary of a queued custom draw, shown in the dialog's pending list.
+ * @param {{label: string, draws: number}} entry - Queue entry.
+ * @returns {string} Label such as "Trinkets — 3x".
+ */
+function describeCustomEntry(entry) {
+    return `${entry.label} — ${entry.draws}×`;
+}
+
+/**
+ * Rolls the GM's own roll tables and hands the drawn items out, as a deliberate sibling of
+ * LootConsumableApp rather than a mode inside it.
+ *
+ * The two rollers look alike and share nothing. LootConsumableApp reads the Daggerheart tables as
+ * one rarity-ordered index — position 7 is the seventh-cheapest entry — which only holds because
+ * those tables ship in that exact shape. An arbitrary table carries its own formula and its own
+ * weighting, so this app delegates the whole draw to RollTable#roll() and never second-guesses it.
+ * Keeping them apart means the SRD roller's assumptions stay true in the only place they are
+ * stated, and a change here cannot reach it.
+ */
+class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
+    constructor(options) {
+        super(options);
+        this.localState = { uuid: null, draws: 1, queue: [], toParty: false };
+    }
+
+    static DEFAULT_OPTIONS = {
+        tag: "form", id: "custom-tables-app", classes: ["dh-qa-app", "custom-tables-app"],
+        window: { title: "Custom Tables", icon: "fas fa-dice-d20", resizable: false, controls: [] },
+        position: { width: 450, height: "auto" },
+        actions: {
+            adjustDraws: CustomTablesApp.prototype._onAdjustDraws,
+            queueRoll: CustomTablesApp.prototype._onQueueRoll,
+            unqueueRoll: CustomTablesApp.prototype._onUnqueueRoll,
+            selectDestination: CustomTablesApp.prototype._onSelectDestination,
+            roll: CustomTablesApp.prototype._onRoll
+        }
+    };
+
+    static PARTS = { form: { template: `modules/${MODULE_ID}/templates/custom-tables.hbs` } };
+
+    /**
+     * Builds context for the template: the configured tables, the draw count, the pending queue,
+     * and where the results are headed.
+     * @param {object} options - Render options.
+     * @returns {Promise<object>} Template context.
+     */
+    async _prepareContext(options) {
+        const tables = getCustomTables();
+
+        // The stored list can change under an open dialog, so the selection is re-resolved by uuid
+        // on every render and falls back to the first entry rather than pointing at nothing.
+        const selected = tables.find(t => t.uuid === this.localState.uuid) ?? tables[0] ?? null;
+        this.localState.uuid = selected?.uuid ?? null;
+
+        const draws = Math.max(1, this.localState.draws);
+        this.localState.draws = draws;
+
+        const linkedActor = game.user.character;
+        const party = getOwnedParties(linkedActor)[0] ?? null;
+        if (!party) this.localState.toParty = false;
+
+        return {
+            tables: tables.map(t => ({ uuid: t.uuid, label: t.label, selected: t.uuid === selected?.uuid })),
+            hasTables: tables.length > 0,
+            draws,
+            atMinDraws: draws <= 1,
+            queue: this.localState.queue.map((entry, index) => ({ index, label: describeCustomEntry(entry) })),
+            queueSize: this.localState.queue.length,
+            hasQueue: this.localState.queue.length > 0,
+            hasParty: Boolean(party),
+            toParty: this.localState.toParty,
+            partyName: party?.name ?? ""
+        };
+    }
+
+    /**
+     * Binds the table picker. The actions map only covers clicks, so a <select> is wired here.
+     * Triggered by the AppV2 render lifecycle.
+     * @param {object} _context - Render context (unused).
+     * @param {object} _options - Render options (unused).
+     * @returns {void}
+     */
+    _onRender(_context, _options) {
+        const picker = this.element.querySelector(".table-select");
+        if (picker) picker.addEventListener("change", event => { this.localState.uuid = event.target.value; });
+    }
+
+    /**
+     * Adds or removes a draw. Uncapped on purpose: the SRD roller's 5d12 ceiling comes from its
+     * tables holding exactly 60 rarity positions, and a homebrew table has no such number. The
+     * stepper is +/- only, so a runaway count would cost a click per draw.
+     * @param {PointerEvent} event - Click event.
+     * @param {HTMLElement} target - The clicked +/- button, carrying data-delta.
+     */
+    _onAdjustDraws(event, target) {
+        const delta = Number(target.dataset.delta) || 0;
+        this.localState.draws = Math.max(1, this.localState.draws + delta);
+        this.render();
+    }
+
+    /** @returns {object|null} The dialog's current selection, as a queue entry. */
+    _currentEntry() {
+        const table = getCustomTables().find(t => t.uuid === this.localState.uuid);
+        if (!table) return null;
+        // The label is snapshotted so a queued entry still reads correctly if the GM edits the
+        // configured list while this dialog is open.
+        return { uuid: table.uuid, label: table.label, draws: this.localState.draws };
+    }
+
+    /**
+     * Stacks the current selection onto the pending queue, so "3 from Trinkets, then 1 from
+     * Relics" is set up once and resolved by a single ROLL into a single chat card.
+     * Triggered by `data-action="queueRoll"`.
+     */
+    _onQueueRoll() {
+        const entry = this._currentEntry();
+        if (!entry) { ui.notifications.warn("Custom Tables: no table is configured."); return; }
+        this.localState.queue.push(entry);
+        this.render();
+    }
+
+    /**
+     * Drops one pending entry from the queue.
+     * @param {PointerEvent} event - Click event.
+     * @param {HTMLElement} target - The clicked remove button, carrying data-index.
+     */
+    _onUnqueueRoll(event, target) {
+        this.localState.queue.splice(Number(target.dataset.index), 1);
+        this.render();
+    }
+
+    /**
+     * Picks where the results land — the rolling character's own sheet, or their party stash.
+     * The two buttons behave as a radio pair, so exactly one is always active.
+     * @param {PointerEvent} event - Click event.
+     * @param {HTMLElement} target - The clicked button, carrying data-destination.
+     */
+    _onSelectDestination(event, target) {
+        this.localState.toParty = target.dataset.destination === "party";
+        this.render();
+    }
+
+    async _onRoll(event, target) {
+        // Whisper to GM(s) and the rolling user only — deduplicate in case the roller is also GM.
+        const gmIds = ChatMessage.getWhisperRecipients("GM").map(u => u.id);
+        const whisper = [...new Set([...gmIds, game.user.id])];
+
+        // ROLL resolves the whole pending queue; with nothing queued it just rolls what is on
+        // screen, which keeps the one-off case a single click.
+        const current = this._currentEntry();
+        const entries = this.localState.queue.length ? [...this.localState.queue] : (current ? [current] : []);
+        if (!entries.length) { ui.notifications.warn("Custom Tables: no table is configured."); return; }
+
+        // Every table the queue touches, resolved once up front. Nothing has been written yet and
+        // no die has been thrown, so bailing anywhere in this pre-flight leaves the queue and both
+        // actors untouched — the GM can fix the configuration and roll again.
+        const tables = new Map();
+        for (const entry of entries) {
+            if (tables.has(entry.uuid)) continue;
+            const doc = await fromUuid(entry.uuid);
+            if (!doc || doc.documentName !== "RollTable") {
+                // The common cause is ownership: a world RollTable is created with no player
+                // access at all, so the GM sees it and the players do not.
+                ui.notifications.error(`Custom Tables: "${entry.label}" could not be found. Check that the table still exists and that players can see it.`);
+                return;
+            }
+            tables.set(entry.uuid, doc);
+        }
+
+        const linkedActor = game.user.character;
+        const party = getOwnedParties(linkedActor)[0] ?? null;
+        const destination = (this.localState.toParty && party) ? party : linkedActor;
+
+        const rows = [];
+        const drawnUuids = [];
+
+        for (const entry of entries) {
+            const table = tables.get(entry.uuid);
+            for (let i = 0; i < entry.draws; i++) {
+                // roll() rather than draw(): it does not write to the GM's table and does not post
+                // a chat card of its own, which would compete with the one built below. The cost
+                // is that a table set to "no replacement" still repeats — documented in settings.
+                const { roll, results } = await table.roll({ recursive: true });
+                if (game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
+
+                const meta = `${foundry.utils.escapeHTML(entry.label)} &middot; ${roll.formula} &rarr; ${roll.total}`;
+                if (!results.length) {
+                    rows.push(this._buildRow(meta, "Nothing found", null, rows.length));
+                    continue;
+                }
+
+                for (const result of results) {
+                    // TableResult#uuid is the *result document's own* uuid — linking it opens the
+                    // Table Result sheet instead of the item. The referenced document lives in
+                    // `documentUuid` (V13+ schema).
+                    const referencedUuid = result.type === "document" ? result.documentUuid : null;
+                    if (referencedUuid) drawnUuids.push(referencedUuid);
+                    const name = result.name || result.description || "Nothing found";
+                    const display = referencedUuid ? `@UUID[${referencedUuid}]{${name}}` : name;
+                    rows.push(this._buildRow(meta, display, result.img ?? null, rows.length));
+                }
+            }
+        }
+
+        // One batch rather than a write per draw. Items only: this roller is for tables that hand
+        // out equipment, so a text entry or a link to an Actor or Journal is reported in the card
+        // and nothing is written to the sheet.
+        let grantedCount = 0;
+        if (destination && drawnUuids.length) {
+            try {
+                const sources = [];
+                // Cached because a queue can draw the same entry twice — two copies of one item is
+                // a legitimate result, but it is not two reasons to load it.
+                const resolved = new Map();
+                for (const uuid of drawnUuids) {
+                    if (!resolved.has(uuid)) resolved.set(uuid, await fromUuid(uuid));
+                    const doc = resolved.get(uuid);
+                    if (doc instanceof Item) sources.push(doc.toObject());
+                }
+                if (sources.length) {
+                    await destination.createEmbeddedDocuments("Item", sources);
+                    grantedCount = sources.length;
+                }
+            } catch (err) {
+                console.error(`${MODULE_ID} | Failed to add rolled items to ${destination.name}:`, err);
+            }
+        }
+
+        // Record where everything landed, so the table can see whether it went to the party stash
+        // or into one character's pocket.
+        const destinationLine = (destination && grantedCount)
+            ? `<div style="color: #ccc; font-size: 0.85em; margin-bottom: 10px; font-style: italic;">
+                   <i class="fas ${destination === party ? "fa-users" : "fa-user"}"></i>
+                   Sent to <strong style="color: #C9A060;">${foundry.utils.escapeHTML(destination.name)}</strong>${destination === party ? " (party stash)" : ""}
+               </div>`
+            : "";
+
+        const title = entries.length > 1 ? "Custom Tables" : entries[0].label;
+        const content = buildChatCard(title, `${destinationLine}${rows.join("")}`);
+        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
+
+        this.localState.queue = [];
+        this.render();
+    }
+
+    /**
+     * One result block of the chat card. Kept inline-styled like every other card in this module,
+     * since chat content is stored as raw HTML and cannot rely on the module stylesheet.
+     * @param {string} metaHtml - Small caption line (table label, formula, total).
+     * @param {string} bodyHtml - The result itself — an @UUID link or a name.
+     * @param {string|null} img - Optional artwork for the drawn entry.
+     * @param {number} index - Position in the card; anything past the first gets a separator.
+     * @returns {string} HTML for the row.
+     */
+    _buildRow(metaHtml, bodyHtml, img, index) {
+        const separator = index > 0 ? "border-top: 1px solid rgba(255,255,255,0.15); margin-top: 10px; padding-top: 10px;" : "";
+        const artwork = img ? `<img src="${img}" style="width: 40px; height: 40px; border: none; flex: 0 0 auto;" />` : "";
+        return `
+            <div style="width: 100%; ${separator}">
+                <div style="color: #C9A060; font-size: 0.8em; letter-spacing: 0.5px; margin-bottom: 4px;">${metaHtml}</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    ${artwork}
+                    <div style="color: #ffffff !important; font-size: 1.3em; font-weight: bold; text-shadow: 0px 0px 10px #C9A060; font-family: 'Lato', sans-serif; line-height: 1.2;">${bodyHtml}</div>
+                </div>
+            </div>`;
+    }
+}
+
+// ==================================================================
 // EXPORTED FUNCTIONS
 // ==================================================================
 export async function activateDowntime() { new DowntimeApp().render(true); }
 export async function activateFallingDamage() { new FallingDamageApp().render(true); }
 export async function activateLootConsumable() { new LootConsumableApp().render(true); }
+export async function activateCustomTables() { new CustomTablesApp().render(true); }
 export async function activateSpendHope() { new HopeSpenderApp().render(true); }
 
 export async function activateLevelUp() {

@@ -38,11 +38,23 @@
          total can only run past the last one and get clamped back. The hint says what the current
          pool actually buys, including how much wider the pick gets with both books enabled. -->
     <div class="dice-pool-row">
-        <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="-1"
-            title="Remove a d12" {{#if atMinDice}}disabled{{/if}}>&minus;</button>
-        <div class="dice-pool-display"><span class="dice-pool-count">{{diceCount}}</span>d12</div>
-        <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="1"
-            title="Add a d12 (max {{maxDice}}d12)" {{#if atMaxDice}}disabled{{/if}}>+</button>
+        <div class="pool-group">
+            <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="-1"
+                title="Remove a d12" {{#if atMinDice}}disabled{{/if}}>&minus;</button>
+            <div class="dice-pool-display"><span class="dice-pool-count">{{diceCount}}</span>d12</div>
+            <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="1"
+                title="Add a d12 (max {{maxDice}}d12)" {{#if atMaxDice}}disabled{{/if}}>+</button>
+        </div>
+
+        <!-- Optional modifier, for the calls the stepper cannot express: it only moves in steps
+             of twelve, so "+5" to shift the band and "+1d6" for a spread between 1d12 and 2d12
+             both need to be typed. Left blank the roll is exactly the pool beside it, as before.
+             Sits on the same line because the two together are one formula. -->
+        <div class="mod-group">
+            <label for="dh-qa-mod-formula">Mod</label>
+            <input type="text" id="dh-qa-mod-formula" class="mod-formula" name="mod"
+                value="{{mod}}" placeholder="+5, +1d6, -2 …" autocomplete="off">
+        </div>
     </div>
 
     <div class="reach-hint">{{reachHint}}</div>
