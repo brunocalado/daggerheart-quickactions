@@ -28,6 +28,16 @@ const LIGHT_SOURCES_MODULE_ID = "light-sources";
  * describe a 1-round duration, which has no direct minute equivalent — set to 1 minute as the
  * practical floor. All of these can be adjusted by the GM afterward in the Light Sources
  * module's Configure Light Sources window.
+ *
+ * The last four entries point at the Daggerheart system's own Hope & Fear items rather than
+ * this module's compendium. Mandragorian Torch is described as visible only to its bearer,
+ * which a token light cannot express, so it ships as an ordinary torch that is never consumed
+ * (it is durable loot). Glowmoss Mushroom lasts "until your next long rest", which has no
+ * minute equivalent, so it is unlimited and put out by hand. Sunlight Orb covers an area; a
+ * player who wants it to stay put can drop it from the Token HUD.
+ *
+ * Color intensity (`alpha`) stays within 0.1–0.2 on every pattern: higher values wash the
+ * scene out in the light's color.
  * @type {Readonly<object[]>}
  */
 const LIGHT_SOURCE_ENTRIES = Object.freeze([
@@ -36,7 +46,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Standard",
-                light: { dim: 10, bright: 5, angle: 360, color: "#ffaa55", alpha: 0.2, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
+                light: { dim: 10, bright: 5, angle: 360, color: "#ffaa55", alpha: 0.11, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
             }
         ],
         consume: true,
@@ -48,7 +58,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Blinding Light",
-                light: { dim: 240, bright: 120, angle: 360, color: "#eebbff", alpha: 0.6, animation: { type: "ghost", speed: 3, intensity: 4, reverse: false } }
+                light: { dim: 240, bright: 120, angle: 360, color: "#eebbff", alpha: 0.17, animation: { type: "ghost", speed: 3, intensity: 4, reverse: false } }
             }
         ],
         consume: false,
@@ -60,7 +70,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Open",
-                light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.4, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
+                light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
             },
             {
                 name: "Shuttered",
@@ -76,7 +86,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Forward Beam",
-                light: { dim: 60, bright: 30, angle: 60, color: "#ffcc44", alpha: 0.35, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
+                light: { dim: 60, bright: 30, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
         consume: false,
@@ -88,7 +98,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Directional Beam",
-                light: { dim: 120, bright: 60, angle: 60, color: "#ffcc44", alpha: 0.4, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
+                light: { dim: 120, bright: 60, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
             }
         ],
         consume: false,
@@ -100,11 +110,11 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "High Beam",
-                light: { dim: 120, bright: 60, angle: 30, color: "#ffffff", alpha: 0.6, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+                light: { dim: 120, bright: 60, angle: 30, color: "#ffffff", alpha: 0.17, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             },
             {
                 name: "Strobe",
-                light: { dim: 60, bright: 30, angle: 30, color: "#ffffff", alpha: 0.8, animation: { type: "pulse", speed: 10, intensity: 10, reverse: false } }
+                light: { dim: 60, bright: 30, angle: 30, color: "#ffffff", alpha: 0.2, animation: { type: "pulse", speed: 10, intensity: 10, reverse: false } }
             }
         ],
         consume: false,
@@ -116,7 +126,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Camera Flash",
-                light: { dim: 30, bright: 15, angle: 90, color: "#ddddff", alpha: 0.3, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+                light: { dim: 30, bright: 15, angle: 90, color: "#ddddff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
         ],
         consume: false,
@@ -128,7 +138,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Lit",
-                light: { dim: 40, bright: 20, angle: 360, color: "#ffaa55", alpha: 0.4, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
+                light: { dim: 40, bright: 20, angle: 360, color: "#ffaa55", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
         consume: false,
@@ -140,7 +150,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Standard",
-                light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.4, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
+                light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
         consume: false,
@@ -152,7 +162,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Spark",
-                light: { dim: 10, bright: 5, angle: 360, color: "#ffdd44", alpha: 0.2, animation: { type: "pulse", speed: 8, intensity: 2, reverse: false } }
+                light: { dim: 10, bright: 5, angle: 360, color: "#ffdd44", alpha: 0.11, animation: { type: "pulse", speed: 8, intensity: 2, reverse: false } }
             }
         ],
         consume: true,
@@ -164,7 +174,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Neon Green",
-                light: { dim: 20, bright: 10, angle: 360, color: "#00ff00", alpha: 0.4, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+                light: { dim: 20, bright: 10, angle: 360, color: "#00ff00", alpha: 0.14, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
         ],
         consume: true,
@@ -176,7 +186,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Standard",
-                light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.5, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
+                light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
             }
         ],
         consume: true,
@@ -188,7 +198,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Sputtering Red",
-                light: { dim: 100, bright: 50, angle: 360, color: "#ff2200", alpha: 0.6, animation: { type: "roiling", speed: 7, intensity: 8, reverse: false } }
+                light: { dim: 100, bright: 50, angle: 360, color: "#ff2200", alpha: 0.17, animation: { type: "flame", speed: 7, intensity: 8, reverse: false } }
             }
         ],
         consume: true,
@@ -200,12 +210,60 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 name: "Standard",
-                light: { dim: 30, bright: 15, angle: 360, color: "#ffbb44", alpha: 0.35, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
+                light: { dim: 30, bright: 15, angle: 360, color: "#ffbb44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
         consume: false,
         durationMode: "world",
         durationMinutes: 360
+    },
+    {
+        uuid: "Compendium.daggerheart.loot.Item.kE0lB97shhgr3DuE", // Mandragorian Torch (Hope & Fear)
+        patterns: [
+            {
+                name: "Standard",
+                light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
+            }
+        ],
+        consume: false,
+        durationMode: "world",
+        durationMinutes: 0
+    },
+    {
+        uuid: "Compendium.daggerheart.consumables.Item.lyjoUIVjjhd78Sqr", // Warding Candle (Hope & Fear)
+        patterns: [
+            {
+                name: "Halo",
+                light: { dim: 30, bright: 15, angle: 360, color: "#ffdd88", alpha: 0.12, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
+            }
+        ],
+        consume: true,
+        durationMode: "world",
+        durationMinutes: 60
+    },
+    {
+        uuid: "Compendium.daggerheart.consumables.Item.Qnvfa3o3EaHskRZ7", // Glowmoss Mushroom (Hope & Fear)
+        patterns: [
+            {
+                name: "Blue Glow",
+                light: { dim: 20, bright: 10, angle: 360, color: "#3399ff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+            }
+        ],
+        consume: true,
+        durationMode: "world",
+        durationMinutes: 0
+    },
+    {
+        uuid: "Compendium.daggerheart.consumables.Item.cdb3AMaxRazFahUL", // Sunlight Orb (Hope & Fear)
+        patterns: [
+            {
+                name: "Daylight",
+                light: { dim: 120, bright: 90, angle: 360, color: "#fff4d6", alpha: 0.2, animation: { type: "sunburst", speed: 1, intensity: 2, reverse: false } }
+            }
+        ],
+        consume: true,
+        durationMode: "world",
+        durationMinutes: 1440
     }
 ]);
 
