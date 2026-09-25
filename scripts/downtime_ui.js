@@ -1729,7 +1729,9 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 targetOptions,
                 isOwnRow,
                 isGM,
-                canInteract: isOwnRow,
+                // The GM may fill in any row (e.g. for absent players); _writeChoices
+                // routes GM edits to the row owner's flag, last write wins.
+                canInteract: isOwnRow || isGM,
                 selectedCount,
                 isOverLimit,
                 hasPrepare,

@@ -10,9 +10,6 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 
 <p align="center"><img width="900" src="docs/feature.webp"></p>
 
-<p align="center"><img width="600" src="docs/character-token-tooltips-hope-bar.webp"></p>
-
-
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-Donate-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/mestredigital) [![More Modules](https://img.shields.io/badge/Foundry%20VTT-More%20Modules-red?style=for-the-badge&logo=gamepad)](https://mestredigital.online/pages/projetos-en)
 
 ## 🌟 Features
@@ -20,6 +17,9 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 ### 🛌 Downtime
 
 * **Downtime UI:** A full-screen manager for downtime moves. Players pick their moves (Tend to Wounds, Prepare, Work a Trade, and more, including any homebrew moves the GM adds), the same move can be chosen more than once when the rules allow it, and the GM resolves everything — resource costs, Fear gained, and rest results — with one click. Automatically handles features and items that hook into downtime: Efficient, Forager, Recovery, Armorer, Celestial Trance, Premium Bedroll, Eloquent, Soothing Speech, the Warlock's Favor, the Shapeshifter's Change Shape and Only Skin Deep, Duneborne's Oasis reroll, Timekeeper's Pendant, Pipeweed, and Self-Healing armour.
+  * **Absent players:** the GM can pick moves, targets and feature options on any player's row, not just watch them. Switch an offline player's row on with its **Include** toggle (offline players start excluded) and choose their moves as they would. Players still edit only their own row; if the GM and that player change the same row at once, the last click wins.
+  * **Config:** the gear button in the toolbar opens the Downtime Config window. Its **Core** tab repoints each supported feature at homebrew or renamed items. **Craft** pairs a recipe item with what it crafts, so an actor holding the recipe gets the item on their sheet. **Custom** adds freeform moves, and **Item Moves** adds moves that only appear for actors who own a given item. **Users** excludes table members who should never take part in a rest (spectators, a second screen).
+  * **Short rest counter:** the pips beside the Short / Long switch track consecutive short rests. The GM can click them to correct the count by hand.
 * **Quick Earn Fear:** A lightweight "Short Rest / Long Rest" dialog for GMs who just want to roll Fear without opening the full Downtime UI.
 
 ### 🛠️ GM Utilities
@@ -76,7 +76,7 @@ Available through `QuickActions.Features()`, meant to be wired up to specific su
 
 ### 🔦 Optional Integrations
 
-* **Light Sources:** If the [Light Sources](https://github.com/brunocalado/light-sources) module is installed and active, every light-bearing item in this module's Items compendium — Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, and Emergency Flare — is registered with it automatically. Equip one from the Token HUD and it lights up, no manual configuration needed.
+* **Light Sources:** If the [Light Sources](https://github.com/brunocalado/light-sources) module is installed and active, every light-bearing item in this module's Items compendium — Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, and Emergency Flare — is registered with it automatically, along with four *Hope & Fear* items from the Daggerheart system's own compendiums: Mandragorian Torch, Warding Candle, Glowmoss Mushroom, and Sunlight Orb. Equip one from the Token HUD and it lights up, no manual configuration needed.
 
 ## ⚙️ Settings
 
