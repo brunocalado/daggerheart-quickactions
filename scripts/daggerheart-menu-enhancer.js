@@ -81,6 +81,30 @@ export function initDaggerheartMenuEnhancer() {
     Hooks.once("ready", () => {
         if (ui.sidebar?.element) applyMenuTabIcon(ui.sidebar.element);
     });
+
+    // setup rather than init: ui.sidebar is only instantiated afterwards (Game#initializeUI),
+    // and by then every module has had its init pass to add or replace sidebar tabs.
+    Hooks.once("setup", moveMenuTabBelowChat);
+}
+
+/**
+ * Moves the Daggerheart menu's sidebar tab from just above Settings to just below Chat.
+ * The core Sidebar derives the tab buttons, their parts and panels from the key order of
+ * `CONFIG.ui.sidebar.TABS`, so rebuilding that object with the same entries is enough.
+ * No-ops if either tab is missing (another sidebar class, or a renamed system tab).
+ * @returns {void}
+ */
+function moveMenuTabBelowChat() {
+    const SidebarClass = CONFIG.ui.sidebar;
+    const { [MENU_TAB]: menuTab, ...tabs } = SidebarClass.TABS ?? {};
+    if (!menuTab || !("chat" in tabs)) return;
+
+    const reordered = {};
+    for (const [key, tab] of Object.entries(tabs)) {
+        reordered[key] = tab;
+        if (key === "chat") reordered[MENU_TAB] = menuTab;
+    }
+    SidebarClass.TABS = reordered;
 }
 
 /**

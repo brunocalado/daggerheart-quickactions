@@ -1,3 +1,9 @@
+# 0.7.4
+
+- [Changed] GM Menu: the Daggerheart system's sidebar tab (the purple skull) now sits **right below Chat** instead of at the bottom of the tab strip, just above Settings, so the GM's most-used tools are one short reach from the chat. The tab keeps its skull icon, its menu and its GM-only visibility; only its position changed. The module rebuilds the sidebar's tab list with the same entries in a new order, before the sidebar is created, which is the same mechanism the system uses to add the tab in the first place. If the system tab or Chat is missing, for example because another module replaced the sidebar, nothing is moved. There is no setting for this.
+- Checked in a disposable Foundry 14.368 / Daggerheart 2.10.6 world as GM: the tab strip read Chat, Daggerheart menu, Combat, … Compendium, Settings, both in the rendered buttons and in `CONFIG.ui.sidebar.TABS`, and it kept that order after the sidebar was re-rendered. Clicking the tab opened the menu with the skull and its sections in place, and switching back to Chat worked. Nothing went to the error log or notifications. The player view was not opened; the tab is GM-only, and that check does not depend on the order.
+
+
 # 0.7.3
 
 - [Changed] Downtime UI: the GM can now pick moves, targets and feature options on **any player's row**, not only watch them. When a player misses the session, the GM switches their row on with the **Include** toggle (offline players still start excluded) and chooses their moves directly. The GM can also fill in a row for a connected player who asks for help. Players still edit only their own row. The choices are stored on the player's user exactly as if they had made them, so **Start Downtime** applies them the same way. If the GM and that player edit the row at the same moment, the last click wins. The GM reviews the result before starting the rest.
