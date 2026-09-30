@@ -238,7 +238,7 @@ QuickActions.Scan();
 Install via the Foundry VTT Module browser or use this manifest link:
 
 ```javascript
-https://raw.githubusercontent.com/brunocalado/daggerheart-quickactions/main/module.json
+https://github.com/brunocalado/daggerheart-quickactions/releases/latest/download/module.json
 ```
 
 ## ⚖️ Credits & License
