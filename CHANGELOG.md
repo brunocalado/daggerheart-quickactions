@@ -1,4 +1,4 @@
-# Unreleased
+# 0.7.5
 
 - [Changed] Light Sources integration: the eighteen sources now use Light Sources' new `consume` values and require Light Sources 0.2.1 or later. Torches, candles, matches, glowsticks, flares and the three *Hope & Fear* consumables are `"copy"`: lighting one spends one from the stack, as before. Lanterns, the Oil Lamp, the Candelabra, the Miner's Helmet, the Tactical Flashlight, the Smartphone, Alistair's Torch and the Mandragorian Torch are `"none"`: lighting spends nothing and the light burns on the item. The new Light Sources refuses the old `true`/`false` values, so with it installed nothing from this module registered until this change.
 - A GM who customized one of these sources in Light Sources' editor must open it and save it, or click **Restore Module Default**. A customized source keeps the old boolean, and it lights without spending anything until that is done.
