@@ -15,10 +15,13 @@ const LIGHT_SOURCES_MODULE_ID = "light-sources";
  * Light source definitions for every light-bearing item in this module's Items compendium.
  * Matches the Entry Schema of the Light Sources module's `registerSources` API.
  *
- * `consume` is `true` only for items that are single-use/expendable by nature (Candle, Torch,
- * Matches, Glowstick, Emergency Flare) — durable fuel-burning equipment (lanterns, Oil Lamp,
- * Candelabra, Miner's Helmet) is not consumed by this flag since its actual fuel (e.g. oil
- * flasks) is tracked as a separate item outside this compendium.
+ * `consume` is `"copy"` only for items that are single-use/expendable by nature (Candle, Torch,
+ * Matches, Glowstick, Emergency Flare): each is a stack counted by `system.quantity`, and
+ * lighting spends one copy that becomes the flame. Durable fuel-burning equipment (lanterns,
+ * Oil Lamp, Candelabra, Miner's Helmet) is `"none"`, so lighting spends nothing and the light
+ * burns on the item, since its actual fuel (e.g. oil flasks) is tracked as a separate item
+ * outside this compendium — and Light Sources has no mode that spends fuel from another item.
+ * None of these is a single object with uses, so none is `"charge"`.
  *
  * Duration values are converted to minutes from the "Duration:" line in each item's
  * description. Two items describe two possible fuel/duration options but ship with a single
@@ -31,7 +34,7 @@ const LIGHT_SOURCES_MODULE_ID = "light-sources";
  *
  * The last four entries point at the Daggerheart system's own Hope & Fear items rather than
  * this module's compendium. Mandragorian Torch is described as visible only to its bearer,
- * which a token light cannot express, so it ships as an ordinary torch that is never consumed
+ * which a token light cannot express, so it ships as an ordinary torch with `consume: "none"`
  * (it is durable loot). Glowmoss Mushroom lasts "until your next long rest", which has no
  * minute equivalent, so it is unlimited and put out by hand. Sunlight Orb covers an area; a
  * player who wants it to stay put can drop it from the Token HUD.
@@ -49,7 +52,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 10, bright: 5, angle: 360, color: "#ffaa55", alpha: 0.11, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 60
     },
@@ -61,7 +64,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 240, bright: 120, angle: 360, color: "#eebbff", alpha: 0.17, animation: { type: "ghost", speed: 3, intensity: 4, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 0
     },
@@ -77,7 +80,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 5, bright: 0, angle: 360, color: "#ffcc44", alpha: 0.1, animation: { type: "torch", speed: 2, intensity: 1, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 360
     },
@@ -89,7 +92,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 60, bright: 30, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 60
     },
@@ -101,7 +104,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 120, bright: 60, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 360
     },
@@ -117,7 +120,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 60, bright: 30, angle: 30, color: "#ffffff", alpha: 0.2, animation: { type: "pulse", speed: 10, intensity: 10, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 120
     },
@@ -129,7 +132,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 30, bright: 15, angle: 90, color: "#ddddff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 240
     },
@@ -141,7 +144,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 40, bright: 20, angle: 360, color: "#ffaa55", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 60
     },
@@ -153,7 +156,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 360
     },
@@ -165,7 +168,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 10, bright: 5, angle: 360, color: "#ffdd44", alpha: 0.11, animation: { type: "pulse", speed: 8, intensity: 2, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 1
     },
@@ -177,7 +180,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 20, bright: 10, angle: 360, color: "#00ff00", alpha: 0.14, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 720
     },
@@ -189,7 +192,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 60
     },
@@ -201,7 +204,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 100, bright: 50, angle: 360, color: "#ff2200", alpha: 0.17, animation: { type: "flame", speed: 7, intensity: 8, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 30
     },
@@ -213,7 +216,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 30, bright: 15, angle: 360, color: "#ffbb44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 360
     },
@@ -225,7 +228,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
             }
         ],
-        consume: false,
+        consume: "none",
         durationMode: "world",
         durationMinutes: 0
     },
@@ -237,7 +240,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 30, bright: 15, angle: 360, color: "#ffdd88", alpha: 0.12, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 60
     },
@@ -249,7 +252,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 20, bright: 10, angle: 360, color: "#3399ff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 0
     },
@@ -261,7 +264,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
                 light: { dim: 120, bright: 90, angle: 360, color: "#fff4d6", alpha: 0.2, animation: { type: "sunburst", speed: 1, intensity: 2, reverse: false } }
             }
         ],
-        consume: true,
+        consume: "copy",
         durationMode: "world",
         durationMinutes: 1440
     }

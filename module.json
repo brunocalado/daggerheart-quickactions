@@ -33,7 +33,7 @@
         "title": "Light Sources",
         "manifest": "https://raw.githubusercontent.com/brunocalado/light-sources/refs/heads/main/module.json",
         "compatibility": {
-          "minimum": "0.0.9"
+          "minimum": "0.2.1"
         }
       }
     ]
