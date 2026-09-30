@@ -1,0 +1,38 @@
+{
+  "name": "Glowstick",
+  "type": "loot",
+  "img": "icons/commodities/tech/electronics-tech-sensor-teal.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Translucent plastic tube; internal glass vial; chemical solutions.</p><p><strong>Physical Description:</strong> A plastic tube that, when bent to break the inner glass vial, mixes chemicals to produce a steady, eerie glow. It produces no heat, no sparks, and is completely waterproof and safe in explosive environments.</p><p><strong>Duration:</strong> 12 hours</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 2,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "fxRWWh0F5VCo4FNR",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305963,
+    "modifiedTime": 1784132305963,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!fxRWWh0F5VCo4FNR"
+}

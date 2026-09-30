@@ -1,0 +1,38 @@
+{
+  "name": "Tactical Flashlight",
+  "type": "loot",
+  "img": "icons/sundries/lights/flash-light.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Aircraft-grade aluminum body; high-intensity LED bulb; rechargeable lithium batteries.</p><p><strong>Physical Description:</strong> A compact, durable, and waterproof cylinder. It casts a blindingly bright cone of white light. Many models feature a strobe function to disorient attackers and a jagged strike bezel for self-defense.</p><p><strong>Duration:</strong> 12 hours (Low) / 2 hours (High)</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 20,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "JxH9qnuJWQsmCsQL",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305963,
+    "modifiedTime": 1784132305963,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!JxH9qnuJWQsmCsQL"
+}

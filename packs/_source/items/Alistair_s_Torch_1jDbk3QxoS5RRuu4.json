@@ -1,0 +1,38 @@
+{
+  "name": "Alistair’s Torch",
+  "type": "loot",
+  "img": "icons/sundries/lights/torch-brown-lit.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Ancient enchanted wood; eternal flame.</p><p><strong>Physical Description:</strong> You can light this magic torch at will. The flame’s light fills a much larger space than it should, enough to illuminate a cave bright as day.</p><p><strong>Duration:</strong> Permanent</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 150,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "1jDbk3QxoS5RRuu4",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305960,
+    "modifiedTime": 1784132305960,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!1jDbk3QxoS5RRuu4"
+}

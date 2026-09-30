@@ -1,0 +1,28 @@
+{
+  "name": "Scan Target",
+  "type": "script",
+  "command": "/* WARNING: This will only work if you enable the module setting.\nThis allows the player to obtain information about a targeted adversary token. \nThey will be informed about the HP and Stress status without revealing numerical values. \nDuring the game, it is common for players to ask: \"I look at the goblin, how does it look?\" \nThe GM usually responds: \"He looks quite wounded and exhausted.\" \nThis macro aims to give players the autonomy to do this themselves. \nExample output: \nPhysical State: Injured \nMental State: Completely overwhelmed, paralyzed by panic and unable to think clearly \n*/\n\nQuickActions.Scan();",
+  "img": "/icons/skills/targeting/crosshair-bars-yellow.webp",
+  "_id": "tYyZ6fVQcceAxckQ",
+  "author": "GDXePEMsAu5yRTkz",
+  "scope": "global",
+  "folder": null,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.0",
+    "createdTime": 1783693613777,
+    "modifiedTime": 1783693700389,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "sort": 0,
+  "_key": "!macros!tYyZ6fVQcceAxckQ"
+}

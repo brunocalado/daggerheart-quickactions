@@ -1,0 +1,28 @@
+{
+  "name": "Falling And Collision Damage",
+  "type": "script",
+  "command": "QuickActions.FallingDamage();",
+  "img": "icons/environment/wilderness/cave-entrance-vulcano.webp",
+  "author": "YUtlcC1DVzkirPaJ",
+  "scope": "global",
+  "folder": null,
+  "ownership": {
+    "default": 0,
+    "YUtlcC1DVzkirPaJ": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.1.2",
+    "createdTime": 1759149209382,
+    "modifiedTime": 1771088773062,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "FUXtgmbsROZ9EZ64",
+  "sort": 600000,
+  "_key": "!macros!FUXtgmbsROZ9EZ64"
+}

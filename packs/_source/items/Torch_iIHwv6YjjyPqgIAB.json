@@ -1,0 +1,38 @@
+{
+  "name": "Torch",
+  "type": "loot",
+  "img": "icons/sundries/lights/torch-brown.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Hardwood stave; resin, pitch, or oil-soaked rags.</p><p><strong>Physical Description:</strong> A rugged, heavy wooden club, roughly two feet long, with its upper end tightly bound in coarse, blackened cloth saturated with tar or animal fat. It is sticky to the touch and constantly drips hot residue and sparks when ignited.</p><p><strong>Duration:</strong> 1 hour</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 1,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "iIHwv6YjjyPqgIAB",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305960,
+    "modifiedTime": 1784132305960,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!iIHwv6YjjyPqgIAB"
+}

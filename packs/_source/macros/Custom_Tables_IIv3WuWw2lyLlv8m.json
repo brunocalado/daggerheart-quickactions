@@ -1,0 +1,28 @@
+{
+  "name": "Custom Tables",
+  "type": "script",
+  "_id": "IIv3WuWw2lyLlv8m",
+  "author": "GDXePEMsAu5yRTkz",
+  "img": "icons/sundries/scrolls/scroll-runed-brown-grey.webp",
+  "scope": "global",
+  "command": "QuickActions.CustomTables();",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.367",
+    "systemId": "daggerheart",
+    "systemVersion": "2.9.4",
+    "createdTime": 1789388014742,
+    "modifiedTime": 1789388064540,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!macros!IIv3WuWw2lyLlv8m"
+}

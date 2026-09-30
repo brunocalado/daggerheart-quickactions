@@ -1,0 +1,38 @@
+{
+  "name": "Miner's Helmet",
+  "type": "loot",
+  "img": "icons/equipment/head/helmet-mining-lamp.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Boiled leather or steel skullcap; metal bracket; candle or small oil lamp.</p><p><strong>Physical Description:</strong> A sturdy helmet with a specialized bracket riveted to the front, holding a secure socket for a candle or a miniaturized oil lamp. This setup provides a cone of light directly where the wearer looks while leaving both hands completely free for combat, climbing, or mining.</p><p><strong>Duration:</strong> 1 hour (Candle) / 4 hours (Small Oil Lamp)</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 10,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "9JnM53wNZLEZGyFy",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305962,
+    "modifiedTime": 1784132305962,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!9JnM53wNZLEZGyFy"
+}

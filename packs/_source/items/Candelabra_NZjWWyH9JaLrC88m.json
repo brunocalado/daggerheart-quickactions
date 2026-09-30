@@ -1,0 +1,38 @@
+{
+  "name": "Candelabra",
+  "type": "loot",
+  "img": "icons/magic/light/light-candles-lit-white.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Wrought iron, brass, or silver; multiple wax candles.</p><p><strong>Physical Description:</strong> A branched, decorative candle holder designed to hold three or more candles at once. By burning multiple candles simultaneously, it produces a much brighter light than a single candle, though it is bulky to carry and consumes candles rapidly.</p><p><strong>Duration:</strong> 1 hour per set of candles</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 15,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "NZjWWyH9JaLrC88m",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305961,
+    "modifiedTime": 1784132305961,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!NZjWWyH9JaLrC88m"
+}

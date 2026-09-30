@@ -1,0 +1,38 @@
+{
+  "name": "Candle",
+  "type": "loot",
+  "img": "icons/sundries/lights/candle-lit-yellow.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Beeswax, tallow (animal fat), or paraffin; braided cotton wick.</p><p><strong>Physical Description:</strong> A slender, pale wax cylinder, highly susceptible to warping under heat. It features a fully exposed, fragile wick at the top. As it burns, it leaves a messy trail of hardened, uneven wax drippings down its sides.</p><p><strong>Duration:</strong> 1 hour</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 1,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "1fFTkBx73yzxOlV3",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305958,
+    "modifiedTime": 1784132305958,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!1fFTkBx73yzxOlV3"
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Quick Actions",
+  "type": "feature",
+  "img": "icons/magic/movement/chevrons-down-yellow.webp",
+  "system": {
+    "attribution": {},
+    "description": "<p>Execute the macro on this item to easily access common functions.</p>",
+    "resource": null,
+    "actions": {
+      "clhzRrUWMJqlVuW8": {
+        "type": "macro",
+        "_id": "clhzRrUWMJqlVuW8",
+        "systemPath": "actions",
+        "baseAction": false,
+        "description": "",
+        "chatDisplay": false,
+        "originItem": {
+          "type": "itemCollection"
+        },
+        "actionType": "action",
+        "cost": [],
+        "uses": {
+          "value": null,
+          "max": "",
+          "recovery": null,
+          "consumeOnSuccess": false
+        },
+        "macro": "Compendium.daggerheart-quickactions.macros.Macro.jo5JYUntssedoYuE",
+        "name": "Click Here!",
+        "range": ""
+      }
+    },
+    "originItemType": null,
+    "multiclassOrigin": false,
+    "featureForm": "passive"
+  },
+  "effects": [],
+  "folder": null,
+  "ownership": {
+    "default": 2,
+    "zWDd1mciIe4rp82O": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.9.3",
+    "createdTime": 1767887424472,
+    "modifiedTime": 1773751662627,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "AkeksLhcZRrF9PEv",
+  "sort": 0,
+  "_key": "!items!AkeksLhcZRrF9PEv"
+}

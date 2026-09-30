@@ -1,0 +1,28 @@
+{
+  "name": "Spend Hope",
+  "type": "script",
+  "author": "3eQnOSvnfoYbqF31",
+  "img": "icons/magic/holy/chalice-glowing-yellow-blue.webp",
+  "scope": "global",
+  "command": "QuickActions.SpendHope();",
+  "folder": "Hz442cHCkERSfi2B",
+  "ownership": {
+    "default": 2,
+    "3eQnOSvnfoYbqF31": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.5.4",
+    "createdTime": 1769031318476,
+    "modifiedTime": 1769031318476,
+    "lastModifiedBy": "3eQnOSvnfoYbqF31"
+  },
+  "_id": "LQpsOcTnbk1xgfWT",
+  "sort": 0,
+  "_key": "!macros!LQpsOcTnbk1xgfWT"
+}

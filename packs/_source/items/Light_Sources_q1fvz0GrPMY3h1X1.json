@@ -1,0 +1,23 @@
+{
+  "name": "Light Sources",
+  "type": "Item",
+  "color": "#644302",
+  "_id": "q1fvz0GrPMY3h1X1",
+  "description": "",
+  "folder": null,
+  "sorting": "a",
+  "sort": 200000,
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305944,
+    "modifiedTime": 1784132305975,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!folders!q1fvz0GrPMY3h1X1"
+}

@@ -1,0 +1,23 @@
+{
+  "type": "Item",
+  "folder": null,
+  "name": "Forager",
+  "color": null,
+  "sorting": "a",
+  "_id": "vzkqqM5n5jTmVLU4",
+  "description": "",
+  "sort": 100000,
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.7.1",
+    "createdTime": 1771527749761,
+    "modifiedTime": 1771527749795,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_key": "!folders!vzkqqM5n5jTmVLU4"
+}

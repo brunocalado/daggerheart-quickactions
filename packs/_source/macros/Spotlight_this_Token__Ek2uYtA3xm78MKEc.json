@@ -1,0 +1,28 @@
+{
+  "name": "Spotlight this Token!",
+  "type": "script",
+  "command": "QuickActions.SpotlightToken();",
+  "img": "icons/skills/wounds/injury-face-impact-orange.webp",
+  "author": "YUtlcC1DVzkirPaJ",
+  "scope": "global",
+  "folder": null,
+  "ownership": {
+    "default": 0,
+    "YUtlcC1DVzkirPaJ": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.1.2",
+    "createdTime": 1756753904074,
+    "modifiedTime": 1771088773062,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "Ek2uYtA3xm78MKEc",
+  "sort": 500000,
+  "_key": "!macros!Ek2uYtA3xm78MKEc"
+}

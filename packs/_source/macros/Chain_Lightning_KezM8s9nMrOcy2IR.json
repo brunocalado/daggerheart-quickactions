@@ -1,0 +1,28 @@
+{
+  "folder": "IRFDsa1UOlWkSSyh",
+  "name": "Chain Lightning",
+  "type": "script",
+  "author": "zWDd1mciIe4rp82O",
+  "img": "icons/magic/lightning/bolts-strike-salvo-blue.webp",
+  "scope": "global",
+  "command": "// GM use only. Player rolls spellcasting and damage. GM enters values into this macro after selecting the source token.\n\n\nQuickActions.Features('Chain Lightning');",
+  "ownership": {
+    "default": 0,
+    "zWDd1mciIe4rp82O": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.4.4",
+    "createdTime": 1767969877693,
+    "modifiedTime": 1767970303917,
+    "lastModifiedBy": "zWDd1mciIe4rp82O"
+  },
+  "_id": "KezM8s9nMrOcy2IR",
+  "sort": 0,
+  "_key": "!macros!KezM8s9nMrOcy2IR"
+}

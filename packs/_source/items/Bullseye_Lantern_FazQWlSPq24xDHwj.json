@@ -1,0 +1,38 @@
+{
+  "name": "Bullseye Lantern",
+  "type": "loot",
+  "img": "icons/sundries/lights/lantern-bullseye-signal-copper.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Sheet iron or steel; polished concave metal reflector; thick convex glass lens.</p><p><strong>Physical Description:</strong> A boxy or cylindrical metal container dominated by a single, protruding, bulbous glass lens on its front face. The interior features a highly polished silver or brass mirror positioned directly behind the flame to direct the light, while a hinged door on the back allows access to the oil chamber and wick.</p><p><strong>Duration:</strong> 6 hours per flask of oil</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 5,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "FazQWlSPq24xDHwj",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305958,
+    "modifiedTime": 1784132305958,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!FazQWlSPq24xDHwj"
+}

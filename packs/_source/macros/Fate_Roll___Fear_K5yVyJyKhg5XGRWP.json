@@ -1,0 +1,29 @@
+{
+  "name": "Fate Roll - Fear",
+  "type": "script",
+  "author": "zWDd1mciIe4rp82O",
+  "img": "icons/magic/death/skull-humanoid-white-red.webp",
+  "scope": "global",
+  "command": "QuickActions.Fate('fear');\n\n//QuickActions.Fate('fear', 'ask'); // This will ask the user to choose a die.\n//QuickActions.Fate('fear', \"system\"); // This will use the system fate roll.",
+  "folder": "Hz442cHCkERSfi2B",
+  "ownership": {
+    "default": 2,
+    "YUtlcC1DVzkirPaJ": 3,
+    "zWDd1mciIe4rp82O": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.4.4",
+    "createdTime": 1767885740487,
+    "modifiedTime": 1769371480858,
+    "lastModifiedBy": "3eQnOSvnfoYbqF31"
+  },
+  "_id": "K5yVyJyKhg5XGRWP",
+  "sort": 600000,
+  "_key": "!macros!K5yVyJyKhg5XGRWP"
+}

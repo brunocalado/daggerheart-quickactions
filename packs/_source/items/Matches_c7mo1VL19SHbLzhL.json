@@ -1,0 +1,38 @@
+{
+  "name": "Matches",
+  "type": "loot",
+  "img": "icons/magic/light/torch-fire-orange.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Small wooden sticks; combustible alchemical tip.</p><p><strong>Physical Description:</strong> Tiny wooden splints tipped with an ignitable chemical. When struck against a rough surface, they burst into a small flame. While they provide barely any light on their own, they are essential for quickly lighting other light sources, campfires, or fuses.</p><p><strong>Duration:</strong> 1 round</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 1,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "c7mo1VL19SHbLzhL",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305961,
+    "modifiedTime": 1784132305961,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!c7mo1VL19SHbLzhL"
+}

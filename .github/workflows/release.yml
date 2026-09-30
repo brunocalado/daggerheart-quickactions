@@ -46,6 +46,14 @@ jobs:
             exit 1
           fi
 
+      # Only the JSON source of the compendiums is committed; the LevelDB packs
+      # that module.json points at are compiled here.
+      - name: Compile compendium packs
+        if: steps.check.outputs.new == 'true'
+        run: |
+          npm ci
+          npm run pack
+
       - name: Build module.json and module.zip
         if: steps.check.outputs.new == 'true'
         run: |
@@ -55,9 +63,8 @@ jobs:
           mv module.json.tmp module.json
           # Files go at the zip root, with no wrapper folder: hosts with their own
           # extractor (such as Sqyre) don't search subfolders for module.json the
-          # way Foundry's installer does. packs/*/lost holds LevelDB recovery
-          # debris that Foundry never reads.
-          zip -r module.zip module.json LICENSE scripts styles templates assets packs -x "packs/*/lost/*"
+          # way Foundry's installer does.
+          zip -r module.zip module.json LICENSE scripts styles templates assets packs -x "packs/_source/*"
 
       - name: Create GitHub release
         if: steps.check.outputs.new == 'true'

@@ -1,0 +1,29 @@
+{
+  "folder": null,
+  "name": "Level Up Players",
+  "type": "script",
+  "author": "1XySCPpaFX8RnFhs",
+  "img": "icons/magic/symbols/star-solid-gold.webp",
+  "scope": "global",
+  "command": "QuickActions.LevelUp();",
+  "ownership": {
+    "default": 0,
+    "zWDd1mciIe4rp82O": 3,
+    "1XySCPpaFX8RnFhs": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.7.1",
+    "createdTime": 1771088773045,
+    "modifiedTime": 1771088773062,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "lCUMICW6mnhBgfXG",
+  "sort": 300000,
+  "_key": "!macros!lCUMICW6mnhBgfXG"
+}

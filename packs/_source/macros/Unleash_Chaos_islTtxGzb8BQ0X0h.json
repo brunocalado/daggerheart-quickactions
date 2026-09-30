@@ -1,0 +1,28 @@
+{
+  "name": "Unleash Chaos",
+  "type": "script",
+  "command": "QuickActions.Features('Unleash Chaos');",
+  "img": "icons/magic/light/projectiles-star-purple.webp",
+  "author": "1XySCPpaFX8RnFhs",
+  "scope": "global",
+  "folder": "IRFDsa1UOlWkSSyh",
+  "ownership": {
+    "default": 0,
+    "1XySCPpaFX8RnFhs": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.9.3",
+    "createdTime": 1773757613289,
+    "modifiedTime": 1773757613289,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "islTtxGzb8BQ0X0h",
+  "sort": 0,
+  "_key": "!macros!islTtxGzb8BQ0X0h"
+}

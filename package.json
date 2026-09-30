@@ -1,0 +1,12 @@
+{
+  "name": "daggerheart-quickactions",
+  "private": true,
+  "description": "Build tooling for the Daggerheart: Quick Actions compendium packs.",
+  "scripts": {
+    "pack": "node tools/build-packs.mjs pack",
+    "unpack": "node tools/build-packs.mjs unpack"
+  },
+  "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^3.0.4"
+  }
+}

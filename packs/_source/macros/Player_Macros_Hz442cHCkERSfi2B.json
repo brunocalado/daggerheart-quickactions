@@ -1,0 +1,23 @@
+{
+  "type": "Macro",
+  "folder": null,
+  "name": "Player Macros",
+  "color": "#007007",
+  "sorting": "a",
+  "_id": "Hz442cHCkERSfi2B",
+  "description": "",
+  "sort": 100000,
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.4.4",
+    "createdTime": 1767885740481,
+    "modifiedTime": 1767885740504,
+    "lastModifiedBy": "zWDd1mciIe4rp82O"
+  },
+  "_key": "!folders!Hz442cHCkERSfi2B"
+}

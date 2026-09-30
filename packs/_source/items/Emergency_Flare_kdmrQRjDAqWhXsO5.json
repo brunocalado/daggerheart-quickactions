@@ -1,0 +1,38 @@
+{
+  "name": "Emergency Flare",
+  "type": "loot",
+  "img": "icons/weapons/thrown/dynamite-red.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Cardboard tube; combustible chemical mix; striker cap.</p><p><strong>Physical Description:</strong> A thick red tube that, when ignited via its striker cap, burns violently. It produces an incredibly bright, sputtering crimson light and thick, acrid smoke. It burns hot enough to ignite flammable materials and is nearly impossible to extinguish until it burns out.</p><p><strong>Duration:</strong> 30 minutes</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 5,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "kdmrQRjDAqWhXsO5",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305965,
+    "modifiedTime": 1784132305965,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!kdmrQRjDAqWhXsO5"
+}

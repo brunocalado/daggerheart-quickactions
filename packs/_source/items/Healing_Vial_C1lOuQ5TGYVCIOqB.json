@@ -1,0 +1,122 @@
+{
+  "folder": "vzkqqM5n5jTmVLU4",
+  "name": "Healing Vial",
+  "type": "consumable",
+  "img": "icons/consumables/potions/vial-cork-red.webp",
+  "system": {
+    "attribution": {
+      "source": "Downtime UI",
+      "page": null,
+      "artist": ""
+    },
+    "description": "<p>A healing vial (Clear 2 Hit Points)</p><p></p>",
+    "quantity": 1,
+    "actions": {
+      "FJGodr7v1hH00IYh": {
+        "type": "healing",
+        "_id": "FJGodr7v1hH00IYh",
+        "systemPath": "actions",
+        "baseAction": false,
+        "description": "",
+        "chatDisplay": true,
+        "originItem": {
+          "type": "itemCollection"
+        },
+        "actionType": "action",
+        "triggers": [],
+        "cost": [
+          {
+            "scalable": false,
+            "key": "quantity",
+            "value": 1,
+            "itemId": "C1lOuQ5TGYVCIOqB",
+            "step": null,
+            "consumeOnSuccess": false
+          }
+        ],
+        "uses": {
+          "value": null,
+          "max": "",
+          "recovery": null,
+          "consumeOnSuccess": false
+        },
+        "damage": {
+          "parts": [
+            {
+              "value": {
+                "custom": {
+                  "enabled": true,
+                  "formula": "2"
+                },
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null
+              },
+              "applyTo": "hitPoints",
+              "base": false,
+              "resultBased": false,
+              "valueAlt": {
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null,
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              },
+              "type": []
+            }
+          ],
+          "includeBase": false,
+          "direct": false
+        },
+        "target": {
+          "type": "any",
+          "amount": null
+        },
+        "effects": [],
+        "roll": {
+          "type": null,
+          "trait": null,
+          "difficulty": null,
+          "bonus": null,
+          "advState": "neutral",
+          "diceRolling": {
+            "multiplier": "prof",
+            "flatMultiplier": 1,
+            "dice": "d6",
+            "compare": null,
+            "treshold": null
+          },
+          "useDefault": false
+        },
+        "name": "Clear 2 HP",
+        "range": ""
+      }
+    },
+    "consumeOnUse": true,
+    "destroyOnEmpty": true
+  },
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "1XySCPpaFX8RnFhs": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": "Item.1tnzi64VuC8kTQKn",
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.9.3",
+    "createdTime": 1771527749774,
+    "modifiedTime": 1773751586800,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "C1lOuQ5TGYVCIOqB",
+  "_key": "!items!C1lOuQ5TGYVCIOqB"
+}

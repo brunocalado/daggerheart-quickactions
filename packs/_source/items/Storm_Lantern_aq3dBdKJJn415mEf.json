@@ -1,0 +1,38 @@
+{
+  "name": "Storm Lantern",
+  "type": "loot",
+  "img": "icons/sundries/lights/lantern-iron-yellow.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Heavy brass or iron framing; thick tempered glass; oil reservoir.</p><p><strong>Physical Description:</strong> A robust, wind-resistant lantern designed for maritime use or severe weather. The glass is extra thick, and the air intake vents are baffled to prevent gusts of wind or rain from extinguishing the flame. It provides very reliable light outdoors in harsh conditions.</p><p><strong>Duration:</strong> 6 hours per flask of oil</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 8,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "aq3dBdKJJn415mEf",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305960,
+    "modifiedTime": 1784132305960,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!aq3dBdKJJn415mEf"
+}

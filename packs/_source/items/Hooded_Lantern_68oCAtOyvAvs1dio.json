@@ -1,0 +1,38 @@
+{
+  "name": "Hooded Lantern",
+  "type": "loot",
+  "img": "icons/sundries/lights/lantern-iron-lit-yellow.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Wrought iron or brass frame; cylindrical glass panes; sliding metal shutters.</p><p><strong>Physical Description:</strong> A robust, dome-topped lantern encased in a protective metal wire cage. It features a heavy wire carrying handle at the top and a glass cylinder housing the internal flame. Metal panels (the hood) are mounted on tracks, allowing them to slide down via an external lever to block or reveal the glass.</p><p><strong>Duration:</strong> 6 hours per flask of oil</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 5,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "68oCAtOyvAvs1dio",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305959,
+    "modifiedTime": 1784132305959,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!68oCAtOyvAvs1dio"
+}

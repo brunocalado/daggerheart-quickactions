@@ -1,0 +1,38 @@
+{
+  "name": "Smartphone",
+  "type": "loot",
+  "img": "icons/commodities/tech/electronics-chip-data.webp",
+  "folder": "q1fvz0GrPMY3h1X1",
+  "system": {
+    "description": "<p><strong>Materials:</strong> Glass, metal, plastic; internal lithium-ion battery; LED camera flash.</p><p><strong>Physical Description:</strong> A ubiquitous modern communication device. Its built-in camera flash can be activated as a makeshift flashlight. While convenient, it provides a very wide, short-range wash of light and quickly drains the device's essential battery life.</p><p><strong>Duration:</strong> 4 hours (Flashlight mode)</p>",
+    "quantity": 1,
+    "attribution": {},
+    "actions": {}
+  },
+  "flags": {
+    "daggerheart-store": {
+      "price": 500,
+      "tier": 1,
+      "header": "Light Sources"
+    }
+  },
+  "_id": "Kldt6DyQ48BzF5Iz",
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784132305964,
+    "modifiedTime": 1784132305964,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!items!Kldt6DyQ48BzF5Iz"
+}

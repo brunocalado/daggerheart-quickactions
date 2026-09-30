@@ -1,0 +1,28 @@
+{
+  "name": "Barter",
+  "type": "script",
+  "command": "QuickActions.Barter();",
+  "img": "icons/skills/social/trading-justice-scale-gold.webp",
+  "_id": "SuzCTTVwiBW1x22f",
+  "author": "GDXePEMsAu5yRTkz",
+  "scope": "global",
+  "folder": "Hz442cHCkERSfi2B",
+  "ownership": {
+    "default": 3,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.365",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784827127173,
+    "modifiedTime": 1784827127174,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "sort": 0,
+  "_key": "!macros!SuzCTTVwiBW1x22f"
+}

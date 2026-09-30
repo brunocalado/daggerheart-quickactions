@@ -1,0 +1,28 @@
+{
+  "name": "Request Roll",
+  "type": "script",
+  "command": "// You can use QuickActions.RequestRoll(false); to prevent it from use images.\nQuickActions.RequestRoll();",
+  "img": "icons/sundries/gaming/dice-runed-brown.webp",
+  "author": "YUtlcC1DVzkirPaJ",
+  "scope": "global",
+  "folder": null,
+  "ownership": {
+    "default": 0,
+    "YUtlcC1DVzkirPaJ": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.1.2",
+    "createdTime": 1756239834635,
+    "modifiedTime": 1771088773062,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "lCYBPohT8hPPOpeK",
+  "sort": 700000,
+  "_key": "!macros!lCYBPohT8hPPOpeK"
+}

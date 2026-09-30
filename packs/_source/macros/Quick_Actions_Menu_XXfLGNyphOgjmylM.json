@@ -1,0 +1,28 @@
+{
+  "folder": null,
+  "name": "Quick Actions Menu",
+  "type": "script",
+  "author": "GDXePEMsAu5yRTkz",
+  "img": "/icons/sundries/documents/document-symbol-lightning-brown.webp",
+  "scope": "global",
+  "command": "// Opens the same palette as the \"Quick Actions\" button on character sheets,\n// listing the macros the GM curated in Configure Settings → Quick Actions Macros.\n\nQuickActions.QuickActionsMenu();",
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.364",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.3",
+    "createdTime": 1784047710889,
+    "modifiedTime": 1784047775544,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "exportSource": null,
+    "compendiumSource": null,
+    "duplicateSource": null
+  },
+  "_id": "XXfLGNyphOgjmylM",
+  "sort": 0,
+  "_key": "!macros!XXfLGNyphOgjmylM"
+}

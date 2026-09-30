@@ -1,0 +1,122 @@
+{
+  "folder": "vzkqqM5n5jTmVLU4",
+  "name": "Unique Food",
+  "type": "consumable",
+  "_id": "1tnzi64VuC8kTQKn",
+  "img": "icons/consumables/food/soup-broth-bowl-tentacle.webp",
+  "system": {
+    "attribution": {
+      "source": "Downtime UI",
+      "page": null,
+      "artist": ""
+    },
+    "description": "<p>A unique food (Clear 2 Stress)</p><p></p>",
+    "quantity": 1,
+    "actions": {
+      "CNxCjPWLwsY3V8Rl": {
+        "type": "healing",
+        "_id": "CNxCjPWLwsY3V8Rl",
+        "systemPath": "actions",
+        "baseAction": false,
+        "description": "",
+        "chatDisplay": true,
+        "originItem": {
+          "type": "itemCollection"
+        },
+        "actionType": "action",
+        "triggers": [],
+        "cost": [
+          {
+            "scalable": false,
+            "key": "quantity",
+            "value": 1,
+            "itemId": "1tnzi64VuC8kTQKn",
+            "step": null,
+            "consumeOnSuccess": false
+          }
+        ],
+        "uses": {
+          "value": null,
+          "max": "",
+          "recovery": null,
+          "consumeOnSuccess": false
+        },
+        "damage": {
+          "parts": [
+            {
+              "value": {
+                "custom": {
+                  "enabled": true,
+                  "formula": "2"
+                },
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null
+              },
+              "applyTo": "stress",
+              "base": false,
+              "resultBased": false,
+              "valueAlt": {
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null,
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              },
+              "type": []
+            }
+          ],
+          "includeBase": false,
+          "direct": false
+        },
+        "target": {
+          "type": "any",
+          "amount": null
+        },
+        "effects": [],
+        "roll": {
+          "type": null,
+          "trait": null,
+          "difficulty": null,
+          "bonus": null,
+          "advState": "neutral",
+          "diceRolling": {
+            "multiplier": "prof",
+            "flatMultiplier": 1,
+            "dice": "d6",
+            "compare": null,
+            "treshold": null
+          },
+          "useDefault": false
+        },
+        "name": "Clear 2 Stress",
+        "range": ""
+      }
+    },
+    "consumeOnUse": true,
+    "destroyOnEmpty": true
+  },
+  "effects": [],
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "1XySCPpaFX8RnFhs": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.9.3",
+    "createdTime": 1771527749774,
+    "modifiedTime": 1773751598077,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_key": "!items!1tnzi64VuC8kTQKn"
+}

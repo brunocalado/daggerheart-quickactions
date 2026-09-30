@@ -1,0 +1,29 @@
+{
+  "name": "Help an Ally",
+  "type": "script",
+  "command": "QuickActions.HelpAnAlly();",
+  "img": "icons/skills/social/diplomacy-handshake.webp",
+  "author": "zWDd1mciIe4rp82O",
+  "scope": "global",
+  "folder": "Hz442cHCkERSfi2B",
+  "ownership": {
+    "default": 2,
+    "YUtlcC1DVzkirPaJ": 3,
+    "zWDd1mciIe4rp82O": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.4.4",
+    "createdTime": 1767885740487,
+    "modifiedTime": 1767885740487,
+    "lastModifiedBy": "zWDd1mciIe4rp82O"
+  },
+  "_id": "SWYDWH9nXi7idHrR",
+  "sort": 300000,
+  "_key": "!macros!SWYDWH9nXi7idHrR"
+}

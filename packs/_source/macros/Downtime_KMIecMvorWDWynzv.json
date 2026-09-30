@@ -1,0 +1,28 @@
+{
+  "name": "Downtime",
+  "type": "script",
+  "command": "QuickActions.DowntimeUI();\n\n// QuickActions.Downtime(); Still work if you want it",
+  "img": "icons/magic/death/projectile-skull-fire-purple.webp",
+  "author": "YUtlcC1DVzkirPaJ",
+  "scope": "global",
+  "folder": null,
+  "ownership": {
+    "default": 0,
+    "YUtlcC1DVzkirPaJ": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "daggerheart",
+    "systemVersion": "1.0.6",
+    "createdTime": 1755818961971,
+    "modifiedTime": 1771345445722,
+    "lastModifiedBy": "1XySCPpaFX8RnFhs"
+  },
+  "_id": "KMIecMvorWDWynzv",
+  "sort": 1000000,
+  "_key": "!macros!KMIecMvorWDWynzv"
+}

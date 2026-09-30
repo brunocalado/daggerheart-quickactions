@@ -1,0 +1,28 @@
+{
+  "name": "Whisper",
+  "type": "script",
+  "_id": "HEBUf4x3GIvjNKJd",
+  "author": "GDXePEMsAu5yRTkz",
+  "img": "/icons/sundries/documents/letter-modern-seal.webp",
+  "scope": "global",
+  "command": "QuickActions.Whisper();",
+  "folder": null,
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GDXePEMsAu5yRTkz": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.365",
+    "systemId": "daggerheart",
+    "systemVersion": "2.5.4",
+    "createdTime": 1784211194728,
+    "modifiedTime": 1784211241687,
+    "lastModifiedBy": "GDXePEMsAu5yRTkz",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!macros!HEBUf4x3GIvjNKJd"
+}
