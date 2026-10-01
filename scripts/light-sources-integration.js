@@ -13,7 +13,13 @@ const LIGHT_SOURCES_MODULE_ID = "light-sources";
 
 /**
  * Light source definitions for every light-bearing item in this module's Items compendium.
- * Matches the Entry Schema of the Light Sources module's `registerSources` API.
+ * Matches the Entry Schema of the Light Sources module's `registerSources` API (0.5.0+).
+ *
+ * Every pattern carries an `id`: a stable key, unique within its entry, never shown and never
+ * translated. Lit lights, lights on the ground, the GM's edits and `activate(..., { pattern })`
+ * all refer to a pattern by it, so it must never change once released — renaming one strands
+ * lights already lit from the old id. Light Sources rejects any entry with a pattern missing an
+ * id. The `name` is only the Token HUD label, shown when an entry has more than one pattern.
  *
  * `consume` is `"copy"` only for items that are single-use/expendable by nature (Candle, Torch,
  * Matches, Glowstick, Emergency Flare): each is a stack counted by `system.quantity`, and
@@ -48,6 +54,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.1fFTkBx73yzxOlV3`, // Candle
         patterns: [
             {
+                id: "standard",
                 name: "Standard",
                 light: { dim: 10, bright: 5, angle: 360, color: "#ffaa55", alpha: 0.11, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
             }
@@ -60,6 +67,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.1jDbk3QxoS5RRuu4`, // Alistair's Torch
         patterns: [
             {
+                id: "blinding-light",
                 name: "Blinding Light",
                 light: { dim: 240, bright: 120, angle: 360, color: "#eebbff", alpha: 0.17, animation: { type: "ghost", speed: 3, intensity: 4, reverse: false } }
             }
@@ -72,10 +80,12 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.68oCAtOyvAvs1dio`, // Hooded Lantern
         patterns: [
             {
+                id: "open",
                 name: "Open",
                 light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
             },
             {
+                id: "shuttered",
                 name: "Shuttered",
                 light: { dim: 5, bright: 0, angle: 360, color: "#ffcc44", alpha: 0.1, animation: { type: "torch", speed: 2, intensity: 1, reverse: false } }
             }
@@ -88,6 +98,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.9JnM53wNZLEZGyFy`, // Miner's Helmet
         patterns: [
             {
+                id: "forward-beam",
                 name: "Forward Beam",
                 light: { dim: 60, bright: 30, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
@@ -100,6 +111,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.FazQWlSPq24xDHwj`, // Bullseye Lantern
         patterns: [
             {
+                id: "directional-beam",
                 name: "Directional Beam",
                 light: { dim: 120, bright: 60, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
             }
@@ -112,10 +124,12 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.JxH9qnuJWQsmCsQL`, // Tactical Flashlight
         patterns: [
             {
+                id: "high-beam",
                 name: "High Beam",
                 light: { dim: 120, bright: 60, angle: 30, color: "#ffffff", alpha: 0.17, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             },
             {
+                id: "strobe",
                 name: "Strobe",
                 light: { dim: 60, bright: 30, angle: 30, color: "#ffffff", alpha: 0.2, animation: { type: "pulse", speed: 10, intensity: 10, reverse: false } }
             }
@@ -128,6 +142,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.Kldt6DyQ48BzF5Iz`, // Smartphone
         patterns: [
             {
+                id: "camera-flash",
                 name: "Camera Flash",
                 light: { dim: 30, bright: 15, angle: 90, color: "#ddddff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
@@ -140,6 +155,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.NZjWWyH9JaLrC88m`, // Candelabra
         patterns: [
             {
+                id: "lit",
                 name: "Lit",
                 light: { dim: 40, bright: 20, angle: 360, color: "#ffaa55", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
@@ -152,6 +168,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.aq3dBdKJJn415mEf`, // Storm Lantern
         patterns: [
             {
+                id: "standard",
                 name: "Standard",
                 light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
@@ -164,6 +181,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.c7mo1VL19SHbLzhL`, // Matches
         patterns: [
             {
+                id: "spark",
                 name: "Spark",
                 light: { dim: 10, bright: 5, angle: 360, color: "#ffdd44", alpha: 0.11, animation: { type: "pulse", speed: 8, intensity: 2, reverse: false } }
             }
@@ -176,6 +194,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.fxRWWh0F5VCo4FNR`, // Glowstick
         patterns: [
             {
+                id: "neon-green",
                 name: "Neon Green",
                 light: { dim: 20, bright: 10, angle: 360, color: "#00ff00", alpha: 0.14, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
@@ -188,6 +207,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.iIHwv6YjjyPqgIAB`, // Torch
         patterns: [
             {
+                id: "standard",
                 name: "Standard",
                 light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
             }
@@ -200,6 +220,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.kdmrQRjDAqWhXsO5`, // Emergency Flare
         patterns: [
             {
+                id: "sputtering-red",
                 name: "Sputtering Red",
                 light: { dim: 100, bright: 50, angle: 360, color: "#ff2200", alpha: 0.17, animation: { type: "flame", speed: 7, intensity: 8, reverse: false } }
             }
@@ -212,6 +233,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: `Compendium.${MODULE_ID}.items.Item.vx79OFR4aItsklBD`, // Oil Lamp
         patterns: [
             {
+                id: "standard",
                 name: "Standard",
                 light: { dim: 30, bright: 15, angle: 360, color: "#ffbb44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
@@ -224,6 +246,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: "Compendium.daggerheart.loot.Item.kE0lB97shhgr3DuE", // Mandragorian Torch (Hope & Fear)
         patterns: [
             {
+                id: "standard",
                 name: "Standard",
                 light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
             }
@@ -236,6 +259,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: "Compendium.daggerheart.consumables.Item.lyjoUIVjjhd78Sqr", // Warding Candle (Hope & Fear)
         patterns: [
             {
+                id: "halo",
                 name: "Halo",
                 light: { dim: 30, bright: 15, angle: 360, color: "#ffdd88", alpha: 0.12, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
             }
@@ -248,6 +272,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: "Compendium.daggerheart.consumables.Item.Qnvfa3o3EaHskRZ7", // Glowmoss Mushroom (Hope & Fear)
         patterns: [
             {
+                id: "blue-glow",
                 name: "Blue Glow",
                 light: { dim: 20, bright: 10, angle: 360, color: "#3399ff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
             }
@@ -260,6 +285,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         uuid: "Compendium.daggerheart.consumables.Item.cdb3AMaxRazFahUL", // Sunlight Orb (Hope & Fear)
         patterns: [
             {
+                id: "daylight",
                 name: "Daylight",
                 light: { dim: 120, bright: 90, angle: 360, color: "#fff4d6", alpha: 0.2, animation: { type: "sunburst", speed: 1, intensity: 2, reverse: false } }
             }
@@ -291,7 +317,9 @@ async function waitForLightSourcesApi(retries = 20, delayMs = 250) {
 /**
  * Registers this module's light-bearing compendium items with the Light Sources module's
  * public API, if that module is installed and active. Safe no-op otherwise.
- * Called from the `ready` hook in main.js.
+ * Called from the `ready` hook in main.js on every client, GM or not: since Light Sources 0.4.0
+ * registered sources live in memory on each client rather than in the world, so a client that
+ * skips this call has none of these sources for that session.
  * @returns {Promise<void>}
  */
 export async function registerLightSources() {
