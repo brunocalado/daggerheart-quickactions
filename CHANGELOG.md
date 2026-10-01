@@ -1,3 +1,8 @@
+# 0.7.6
+
+- [Changed] Light Sources integration: requires **Light Sources 0.5.0** or later. Light Sources 0.5.0 needs every light pattern to carry a stable id, and skipped any source without one, so with it installed none of this module's eighteen sources registered. Each pattern now has an id (`standard`, `open`, `shuttered`, `high-beam`, …); the names shown in the Token HUD are unchanged.
+- Checked in a disposable Foundry 14.368 / Daggerheart 2.10.7 world with Light Sources 0.5.0, on a GM and a player client: all 18 sources registered on both, with no "Skipping light source" warning. The player's Token HUD listed the Hooded Lantern as **Open** and **Shuttered**, and clicking Open lit the token (dim 60, bright 30). Nothing went to the error log or notifications.
+
 # 0.7.5
 
 - [Changed] Light Sources integration: the eighteen sources now use Light Sources' new `consume` values and require Light Sources 0.2.1 or later. Torches, candles, matches, glowsticks, flares and the three *Hope & Fear* consumables are `"copy"`: lighting one spends one from the stack, as before. Lanterns, the Oil Lamp, the Candelabra, the Miner's Helmet, the Tactical Flashlight, the Smartphone, Alistair's Torch and the Mandragorian Torch are `"none"`: lighting spends nothing and the light burns on the item. The new Light Sources refuses the old `true`/`false` values, so with it installed nothing from this module registered until this change.
