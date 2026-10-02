@@ -543,10 +543,6 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _onRoll(event, target) {
-        // Whisper to GM(s) and the rolling user only — deduplicate in case the roller is also GM.
-        const gmIds = ChatMessage.getWhisperRecipients("GM").map(u => u.id);
-        const whisper = [...new Set([...gmIds, game.user.id])];
-
         // ROLL resolves the whole pending queue; with nothing queued it just rolls what is on
         // screen, which keeps the one-off case a single click.
         const entries = this.localState.queue.length ? [...this.localState.queue] : [this._currentEntry()];
@@ -643,7 +639,9 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const title = entries.length > 1 ? "Loot & Consumables" : `${entries[0].type} Roll`;
         const content = buildChatCard(title, `${destinationLine}${rows.join("")}`);
-        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
+        // Public, never whispered: the items land on a sheet other players can see — above all the
+        // shared party stash — so the whole table needs the card that explains where they came from.
+        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
 
         this.localState.queue = [];
         this.render();
