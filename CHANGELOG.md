@@ -1,3 +1,9 @@
+# 0.7.7
+
+- [Changed] Loot & Consumables and Custom Tables: the roll card is now posted to the whole table instead of whispered to the GM and the player who rolled. When a player sent the loot to the party stash, the other players saw items appear in the party with no card explaining where they came from.
+- Checked in a disposable Foundry 14.368 / Daggerheart 2.10.7 world with a GM and two player clients: one player rolled both dialogs into the party stash, and both cards, each with its "Sent to … (party stash)" line, showed up in the chat of the other player and of the GM. The items reached the party. Nothing went to the error log or notifications.
+- Light Sources 0.8.0 needs no change here: on a GM and a player client all 18 sources registered with no "Skipping light source" warning, a Torch lit from a stack of 3 left 2, and a Hooded Lantern lit on its Shuttered pattern and was put out again.
+
 # 0.7.6
 
 - [Changed] Light Sources integration: requires **Light Sources 0.5.0** or later. Light Sources 0.5.0 needs every light pattern to carry a stable id, and skipped any source without one, so with it installed none of this module's eighteen sources registered. Each pattern now has an id (`standard`, `open`, `shuttered`, `high-beam`, …); the names shown in the Token HUD are unchanged.
