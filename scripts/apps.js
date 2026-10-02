@@ -1069,10 +1069,6 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     async _onRoll(event, target) {
-        // Whisper to GM(s) and the rolling user only — deduplicate in case the roller is also GM.
-        const gmIds = ChatMessage.getWhisperRecipients("GM").map(u => u.id);
-        const whisper = [...new Set([...gmIds, game.user.id])];
-
         // ROLL resolves the whole pending queue; with nothing queued it just rolls what is on
         // screen, which keeps the one-off case a single click.
         const current = this._currentEntry();
@@ -1165,7 +1161,9 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const title = entries.length > 1 ? "Custom Tables" : entries[0].label;
         const content = buildChatCard(title, `${destinationLine}${rows.join("")}`);
-        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER, whisper });
+        // Public for the same reason as the Loot & Consumables card: whatever was drawn may land in
+        // the shared party stash, and every player should see where it came from.
+        await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker(), content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
 
         this.localState.queue = [];
         this.render();
