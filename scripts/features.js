@@ -249,14 +249,316 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
 }
 
 // ==================================================================
-// CHAIN LIGHTNING APP V2
+// CHAIN LIGHTNING
 // ==================================================================
+// Chain Lightning (Arcana 5). The player uses the card as usual (2 Stress,
+// Spellcast Roll); this module resolves the part the system leaves to the
+// table: reaction rolls with a Difficulty equal to the Spellcast Roll, and the
+// chain that jumps from every target who took damage. Two entry points:
+// placing the card's area from its chat message, or the macro's window.
+
+const CHAIN_LIGHTNING = "Chain Lightning";
 
 /**
- * Resolves Chain Lightning (Arcana 5) for a caster token. The player uses the
- * card as usual (2 Stress, Spellcast Roll); this app resolves the part the
- * system leaves to the table: reaction rolls with a Difficulty equal to the
- * Spellcast Roll, and the chain that jumps from every target who took damage.
+ * Id of the Chain Lightning cast whose area button this client clicked last.
+ * The system creates the Region with no link back to the message, so the
+ * click is remembered here and stamped on the Region as it is created.
+ */
+let pendingAreaCast = null;
+
+/**
+ * Hooks that resolve Chain Lightning when the card's area is placed.
+ * Called once from the module's init.
+ */
+export function registerChainLightningArea() {
+    Hooks.on("renderChatMessageHTML", (message, html) => {
+        if (!isChainLightningCast(message)) return;
+        for (const button of html.querySelectorAll(".action-areas")) {
+            button.addEventListener("click", () => pendingAreaCast = message.id);
+        }
+    });
+
+    Hooks.on("preCreateRegion", (region, data, options, userId) => {
+        if (userId !== game.user.id || !pendingAreaCast) return;
+        const message = game.messages.get(pendingAreaCast);
+        if (!message?.system.action?.areas?.some(a => a.name === region.name)) return;
+        region.updateSource({ [`flags.${MODULE_ID}.chainLightningCast`]: pendingAreaCast });
+        pendingAreaCast = null;
+    });
+
+    // Damage, renames and adversary rolls need GM rights, so the active GM
+    // resolves the cast no matter who placed the area.
+    Hooks.on("createRegion", (region) => {
+        if (!game.users.activeGM?.isSelf) return;
+        const messageId = region.getFlag(MODULE_ID, "chainLightningCast");
+        if (messageId) resolveFromArea(region, game.messages.get(messageId));
+    });
+}
+
+/**
+ * Whether a chat message is the Spellcast Roll of a Chain Lightning card.
+ * @param {ChatMessage} message
+ */
+function isChainLightningCast(message) {
+    if (message?.type !== "dualityRoll") return false;
+    const actor = fromUuidSync(message.system.source?.actor ?? "");
+    return actor?.items.get(message.system.source.item)?.name === CHAIN_LIGHTNING;
+}
+
+/**
+ * The Spellcast Roll result of a cast message. Read from the message, so a
+ * later reroll (Hope feature, etc.) is in effect.
+ * @returns {{total: number, isCritical: boolean}|null}
+ */
+function castResult(message) {
+    const roll = message?.system.roll;
+    if (!roll?._evaluated) return null;
+    return { total: roll.total, isCritical: roll.isCritical };
+}
+
+/**
+ * Resolves a cast whose area was just placed: the adversaries inside the area
+ * are the targets of the Spellcast Roll.
+ * @param {RegionDocument} region
+ * @param {ChatMessage} message - The cast's Spellcast Roll message.
+ */
+async function resolveFromArea(region, message) {
+    const cast = castResult(message);
+    if (!cast) return;
+    if (region.parent !== canvas.scene) {
+        ui.notifications.warn("Chain Lightning: view the scene where the area was placed to resolve it.");
+        return;
+    }
+
+    const actor = fromUuidSync(message.system.source.actor);
+    const casterTokens = canvas.tokens.placeables.filter(t => t.actor === actor);
+    // An emanation dropped on a token is anchored to it; prefer that token.
+    const base = region.shapes[0]?.base;
+    const caster = casterTokens.find(t => t.document.x === base?.x && t.document.y === base?.y) ?? casterTokens[0];
+    if (!caster) {
+        ui.notifications.warn(`Chain Lightning: ${actor?.name ?? "the caster"} has no token on this scene.`);
+        return;
+    }
+
+    await resolveChainLightning({
+        caster,
+        spellcast: cast.total,
+        critical: cast.isCritical,
+        initialTargets: canvas.tokens.placeables.filter(t => t.document.testInsideRegion(region))
+    });
+}
+
+/** Hostile adversaries that are still standing. */
+function isLivingAdversary(token) {
+    const actor = token.actor;
+    if (actor?.type !== "adversary" || token.document.disposition !== CONST.TOKEN_DISPOSITIONS.HOSTILE) return false;
+    const hp = actor.system.resources.hitPoints;
+    return hp.value < hp.max;
+}
+
+/**
+ * Resolves Chain Lightning and posts the results card.
+ * Wave 0 is the initial targets (adversaries within Close range of the caster
+ * when none are given); the Spellcast Roll succeeds against those whose
+ * Difficulty it meets (all of them on a critical). Each later wave is every
+ * adversary not yet targeted within Close range of a target that took damage
+ * in the previous wave. Every target the lightning reaches makes a reaction
+ * roll against the Spellcast Roll result.
+ *
+ * @param {object} config
+ * @param {Token} config.caster
+ * @param {number} config.spellcast           - Spellcast Roll result.
+ * @param {boolean} config.critical           - Whether the Spellcast Roll was a critical success.
+ * @param {Token[]} [config.initialTargets]   - Tokens the Spellcast Roll targets.
+ * @param {string} [config.damageFormula]     - A formula or a rolled total.
+ * @param {boolean} [config.applyDamage]      - Mark HP, or only report it.
+ * @param {boolean} [config.rename]           - Number the targets' names (1, 2...).
+ */
+async function resolveChainLightning({ caster, spellcast, critical, initialTargets = null, damageFormula = "2d8+4", applyDamage = true, rename = false }) {
+    const results = [];
+    const targeted = new Set([caster.id]);
+    let renameCounter = 1;
+    // One damage roll applied to every target, per the SRD rule for spells
+    // that hit several targets. Rolled on the first failed reaction roll.
+    let damageRoll = null;
+
+    // isWithinRange is the system's range check: it uses the scene's (or the
+    // world's) Close distance and measures edge to edge like the token ruler.
+    const findTargets = sources => canvas.tokens.placeables.filter(t =>
+        !targeted.has(t.id) && isLivingAdversary(t) && sources.some(s => s.isWithinRange(t, "close"))
+    );
+
+    let wave = initialTargets
+        ? initialTargets.filter(t => t !== caster && isLivingAdversary(t))
+        : findTargets([caster]);
+    for (let waveIndex = 0; wave.length; waveIndex++) {
+        wave.forEach(t => targeted.add(t.id));
+        const damaged = [];
+
+        for (const token of wave) {
+            if (rename) {
+                await token.document.update({
+                    name: `${token.name} ${renameCounter++}`,
+                    displayBars: CONST.TOKEN_DISPLAY_MODES.OWNER,
+                    displayName: CONST.TOKEN_DISPLAY_MODES.ALWAYS
+                });
+            }
+
+            const actor = token.actor;
+            const result = { name: token.name, chained: waveIndex > 0, hit: true, reaction: null, hitPoints: 0 };
+            results.push(result);
+
+            // Only the first wave is targeted by the Spellcast Roll itself;
+            // chained adversaries go straight to the reaction roll.
+            if (waveIndex === 0 && !critical && spellcast < actor.system.difficulty) {
+                result.hit = false;
+                result.difficulty = actor.system.difficulty;
+                continue;
+            }
+
+            result.reaction = await rollReaction(actor, spellcast);
+            if (result.reaction.success) continue;
+
+            if (!damageRoll) {
+                damageRoll = await new Roll(damageFormula).evaluate();
+                if (game.dice3d) await game.dice3d.showForRoll(damageRoll, game.user, true);
+            }
+            result.hitPoints = await damageAdversary(actor, damageRoll.total, applyDamage);
+            if (result.hitPoints > 0) damaged.push(token);
+        }
+
+        wave = findTargets(damaged);
+    }
+
+    await createChainLightningMessage({ caster, results, spellcast, critical, damageFormula, damageRoll, applyDamage });
+}
+
+/**
+ * Rolls an adversary reaction roll through the system, so roll bonuses and
+ * effects that apply to reaction rolls are included. A natural 20 succeeds.
+ * @returns {Promise<{total: number, critical: boolean, success: boolean}>}
+ */
+async function rollReaction(actor, difficulty) {
+    const config = await actor.diceRoll({
+        title: game.i18n.localize("DAGGERHEART.GENERAL.reactionRoll"),
+        effects: await game.system.api.data.actions.actionsTypes.base.getActionRelevantEffects(
+            { action: { actionType: "reaction", roll: {} } },
+            actor
+        ),
+        roll: { type: "trait", difficulty },
+        actionType: "reaction",
+        hasRoll: true,
+        dialog: { configure: false },
+        skips: { createMessage: true }
+    });
+    const { total, isCritical } = config.roll;
+    return { total, critical: isCritical, success: isCritical || total >= difficulty };
+}
+
+/**
+ * Magic damage to an adversary. takeDamage applies resistance, immunity,
+ * damage reduction and the thresholds the same way the system's damage
+ * button does. Without applying, the HP the damage would mark is computed.
+ * @returns {Promise<number>} Hit Points marked (or that would be marked).
+ */
+async function damageAdversary(actor, total, apply) {
+    const damageTypes = ["magical"];
+    if (!apply) return actor.convertDamageToThreshold(actor.calculateDamage(total, damageTypes));
+
+    const updates = await actor.takeDamage({ main: { total, damageTypes } });
+    const hitPoints = updates?.find(u => u.key === "hitPoints");
+    return Math.abs(hitPoints?.value ?? 0);
+}
+
+async function createChainLightningMessage({ caster, results, spellcast, critical, damageFormula, damageRoll, applyDamage }) {
+    const titleColor = "#C9A060"; // Gold
+
+    let listItemsHtml = "";
+
+    results.forEach((r) => {
+        const failed = r.reaction && !r.reaction.success;
+        const statusIcon = failed ? '<i class="fas fa-bolt"></i>' : '<i class="fas fa-shield-alt"></i>';
+        const statusColor = failed ? '#f44336' : r.hit ? '#4CAF50' : '#777';
+
+        // Chained Indicator on new line
+        const chainedIndicator = r.chained
+            ? `<div style="margin-top: 2px; color: #4a90e2; font-size: 0.85em; display: flex; align-items: center;">
+                    <i class="fas fa-bolt" style="margin-right: 4px;"></i> CHAINED
+               </div>`
+            : '';
+
+        let stats;
+        if (!r.hit) {
+            stats = `<span style="color: #aaa; font-size: 0.9em;">Spellcast missed (Difficulty ${r.difficulty})</span>`;
+        } else {
+            const critText = r.reaction.critical ? ' <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="Critical"></i>' : '';
+            const outcome = failed
+                ? `<span style="color: #ff6b6b; font-weight: bold;">${r.hitPoints} HP</span>`
+                : '<span style="color: #aaa;">Resisted</span>';
+            stats = `<span style="color: #ccc; font-size: 0.9em;">Reaction: <span style="color: #4a90e2; font-weight: bold;">${r.reaction.total}</span>${critText}</span>
+                <span style="color: #666;">|</span>
+                <span style="font-size: 0.9em;">${outcome}</span>`;
+        }
+
+        listItemsHtml += `
+        <div style="display: flex; flex-direction: column; background: rgba(0,0,0,0.4); margin-bottom: 4px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid ${statusColor}; font-size: 0.95em;">
+
+            <!-- Line 1: Icon + Name -->
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <span style="color: ${statusColor}; width: 15px; text-align: center;">${statusIcon}</span>
+                <strong style="color: #e0e0e0; font-size: 1.05em;">${r.name}</strong>
+            </div>
+
+            <!-- Line 2: Stats (Right Aligned) -->
+            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2px;">
+                ${stats}
+            </div>
+
+            <!-- Line 3: Chained Indicator (if applicable) -->
+            ${chainedIndicator}
+        </div>
+        `;
+    });
+
+    if (!results.length) {
+        listItemsHtml = '<div style="color: #aaa; text-align: center;">No adversaries in range.</div>';
+    }
+
+    const damageText = damageRoll ? `${damageRoll.total} <span style="color: #777;">(${damageFormula})</span>` : damageFormula;
+
+    const content = `
+    <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
+        <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
+            <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
+                Chain Lightning
+            </h3>
+        </header>
+
+        <div class="card-content" style="background: #141414; padding: 15px;">
+
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 10px; font-size: 0.9em; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                <span><strong>Spellcast:</strong> ${spellcast}${critical ? ' <i class="fas fa-star" style="color: #FFD700;" title="Critical"></i>' : ''}</span>
+                <span><strong>Dmg:</strong> ${damageText} magic</span>
+                <span><strong>Mode:</strong> ${applyDamage ? '<span style="color:#f44336">Damage</span>' : '<span style="color:#4a90e2">Info</span>'}</span>
+            </div>
+
+            <div style="padding-right: 5px;">
+                ${listItemsHtml}
+            </div>
+        </div>
+    </div>`;
+
+    await ChatMessage.create({
+        user: game.user.id,
+        speaker: ChatMessage.getSpeaker({ token: caster.document }),
+        content: content,
+        style: CONST.CHAT_MESSAGE_STYLES.OTHER
+    });
+}
+
+/**
+ * The macro's window: the GM picks the caster's token and confirms the
+ * Spellcast Roll. Targets are the adversaries within Close range of the caster.
  */
 class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
@@ -272,7 +574,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "chain-lightning-app",
         classes: ["dh-qa-app", "chain-app"],
         window: {
-            title: "Chain Lightning",
+            title: CHAIN_LIGHTNING,
             icon: "fas fa-bolt",
             resizable: false,
             controls: []
@@ -297,7 +599,11 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /** @inheritDoc */
     async _prepareContext(options) {
         const context = await super._prepareContext(options);
-        const cast = this.#findLastCast();
+        const actor = this.caster.actor;
+        const message = game.messages.contents.findLast(m =>
+            m.system.source?.actor === actor?.uuid && isChainLightningCast(m)
+        );
+        const cast = castResult(message);
         return {
             ...context,
             casterName: this.caster.name,
@@ -305,25 +611,6 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             spellcast: cast?.total ?? "",
             critical: cast?.isCritical ?? false
         };
-    }
-
-    /**
-     * The caster's most recent Chain Lightning Spellcast Roll in chat, so the GM
-     * doesn't have to copy the number over. Reading the roll from the message
-     * keeps a later reroll (Hope feature, etc.) in effect.
-     * @returns {{total: number, isCritical: boolean}|null}
-     */
-    #findLastCast() {
-        const actor = this.caster.actor;
-        if (!actor) return null;
-        const message = game.messages.contents.findLast(m =>
-            m.type === "dualityRoll"
-            && m.system.source?.actor === actor.uuid
-            && actor.items.get(m.system.source.item)?.name === "Chain Lightning"
-        );
-        const roll = message?.system.roll;
-        if (!roll?._evaluated) return null;
-        return { total: roll.total, isCritical: roll.isCritical };
     }
 
     /**
@@ -342,207 +629,13 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             return;
         }
 
-        await this.#execute({
+        await resolveChainLightning({
+            caster: this.caster,
             spellcast,
             critical,
             damageFormula: damage,
-            shouldApplyDamage: applyDamage,
-            shouldRename: renameTargets
-        });
-    }
-
-    /**
-     * Core Logic for Chain Lightning.
-     * Wave 0 is every adversary within Close range of the caster; the Spellcast
-     * Roll succeeds against those whose Difficulty it meets (all of them on a
-     * critical). Each later wave is every adversary not yet targeted within Close
-     * range of a target that took damage in the previous wave. Every target the
-     * lightning reaches makes a reaction roll against the Spellcast Roll result.
-     */
-    async #execute({ spellcast, critical, damageFormula, shouldApplyDamage, shouldRename }) {
-        const caster = this.caster;
-        const results = [];
-        const targeted = new Set([caster.id]);
-        let renameCounter = 1;
-        // One damage roll applied to every target, per the SRD rule for spells
-        // that hit several targets. Rolled on the first failed reaction roll.
-        let damageRoll = null;
-
-        const isLivingAdversary = t => {
-            const actor = t.actor;
-            if (actor?.type !== "adversary" || t.document.disposition !== CONST.TOKEN_DISPOSITIONS.HOSTILE) return false;
-            const hp = actor.system.resources.hitPoints;
-            return hp.value < hp.max;
-        };
-        // isWithinRange is the system's range check: it uses the scene's (or the
-        // world's) Close distance and measures edge to edge like the token ruler.
-        const findTargets = sources => canvas.tokens.placeables.filter(t =>
-            !targeted.has(t.id) && isLivingAdversary(t) && sources.some(s => s.isWithinRange(t, "close"))
-        );
-
-        let wave = findTargets([caster]);
-        for (let waveIndex = 0; wave.length; waveIndex++) {
-            wave.forEach(t => targeted.add(t.id));
-            const damaged = [];
-
-            for (const token of wave) {
-                if (shouldRename) {
-                    await token.document.update({
-                        name: `${token.name} ${renameCounter++}`,
-                        displayBars: CONST.TOKEN_DISPLAY_MODES.OWNER,
-                        displayName: CONST.TOKEN_DISPLAY_MODES.ALWAYS
-                    });
-                }
-
-                const actor = token.actor;
-                const result = { name: token.name, chained: waveIndex > 0, hit: true, reaction: null, hitPoints: 0 };
-                results.push(result);
-
-                // Only the first wave is targeted by the Spellcast Roll itself;
-                // chained adversaries go straight to the reaction roll.
-                if (waveIndex === 0 && !critical && spellcast < actor.system.difficulty) {
-                    result.hit = false;
-                    result.difficulty = actor.system.difficulty;
-                    continue;
-                }
-
-                result.reaction = await this.#rollReaction(actor, spellcast);
-                if (result.reaction.success) continue;
-
-                if (!damageRoll) {
-                    damageRoll = await new Roll(damageFormula).evaluate();
-                    if (game.dice3d) await game.dice3d.showForRoll(damageRoll, game.user, true);
-                }
-                result.hitPoints = await this.#damage(actor, damageRoll.total, shouldApplyDamage);
-                if (result.hitPoints > 0) damaged.push(token);
-            }
-
-            wave = findTargets(damaged);
-        }
-
-        await this.#createChatMessage(results, spellcast, critical, damageFormula, damageRoll, shouldApplyDamage);
-    }
-
-    /**
-     * Rolls an adversary reaction roll through the system, so roll bonuses and
-     * effects that apply to reaction rolls are included. A natural 20 succeeds.
-     * @returns {Promise<{total: number, critical: boolean, success: boolean}>}
-     */
-    async #rollReaction(actor, difficulty) {
-        const config = await actor.diceRoll({
-            title: game.i18n.localize("DAGGERHEART.GENERAL.reactionRoll"),
-            effects: await game.system.api.data.actions.actionsTypes.base.getActionRelevantEffects(
-                { action: { actionType: "reaction", roll: {} } },
-                actor
-            ),
-            roll: { type: "trait", difficulty },
-            actionType: "reaction",
-            hasRoll: true,
-            dialog: { configure: false },
-            skips: { createMessage: true }
-        });
-        const { total, isCritical } = config.roll;
-        return { total, critical: isCritical, success: isCritical || total >= difficulty };
-    }
-
-    /**
-     * Magic damage to an adversary. takeDamage applies resistance, immunity,
-     * damage reduction and the thresholds the same way the system's damage
-     * button does. Without applying, the HP the damage would mark is computed.
-     * @returns {Promise<number>} Hit Points marked (or that would be marked).
-     */
-    async #damage(actor, total, apply) {
-        const damageTypes = ["magical"];
-        if (!apply) return actor.convertDamageToThreshold(actor.calculateDamage(total, damageTypes));
-
-        const updates = await actor.takeDamage({ main: { total, damageTypes } });
-        const hitPoints = updates?.find(u => u.key === "hitPoints");
-        return Math.abs(hitPoints?.value ?? 0);
-    }
-
-    async #createChatMessage(results, spellcast, critical, damageFormula, damageRoll, applied) {
-        const titleColor = "#C9A060"; // Gold
-
-        let listItemsHtml = "";
-
-        results.forEach((r) => {
-            const failed = r.reaction && !r.reaction.success;
-            const statusIcon = failed ? '<i class="fas fa-bolt"></i>' : '<i class="fas fa-shield-alt"></i>';
-            const statusColor = failed ? '#f44336' : r.hit ? '#4CAF50' : '#777';
-
-            // Chained Indicator on new line
-            const chainedIndicator = r.chained
-                ? `<div style="margin-top: 2px; color: #4a90e2; font-size: 0.85em; display: flex; align-items: center;">
-                        <i class="fas fa-bolt" style="margin-right: 4px;"></i> CHAINED
-                   </div>`
-                : '';
-
-            let stats;
-            if (!r.hit) {
-                stats = `<span style="color: #aaa; font-size: 0.9em;">Spellcast missed (Difficulty ${r.difficulty})</span>`;
-            } else {
-                const critText = r.reaction.critical ? ' <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="Critical"></i>' : '';
-                const outcome = failed
-                    ? `<span style="color: #ff6b6b; font-weight: bold;">${r.hitPoints} HP</span>`
-                    : '<span style="color: #aaa;">Resisted</span>';
-                stats = `<span style="color: #ccc; font-size: 0.9em;">Reaction: <span style="color: #4a90e2; font-weight: bold;">${r.reaction.total}</span>${critText}</span>
-                    <span style="color: #666;">|</span>
-                    <span style="font-size: 0.9em;">${outcome}</span>`;
-            }
-
-            listItemsHtml += `
-            <div style="display: flex; flex-direction: column; background: rgba(0,0,0,0.4); margin-bottom: 4px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid ${statusColor}; font-size: 0.95em;">
-
-                <!-- Line 1: Icon + Name -->
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                    <span style="color: ${statusColor}; width: 15px; text-align: center;">${statusIcon}</span>
-                    <strong style="color: #e0e0e0; font-size: 1.05em;">${r.name}</strong>
-                </div>
-
-                <!-- Line 2: Stats (Right Aligned) -->
-                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2px;">
-                    ${stats}
-                </div>
-
-                <!-- Line 3: Chained Indicator (if applicable) -->
-                ${chainedIndicator}
-            </div>
-            `;
-        });
-
-        if (!results.length) {
-            listItemsHtml = '<div style="color: #aaa; text-align: center;">No adversaries within Close range.</div>';
-        }
-
-        const damageText = damageRoll ? `${damageRoll.total} <span style="color: #777;">(${damageFormula})</span>` : damageFormula;
-
-        const content = `
-        <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
-            <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
-                <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                    Chain Lightning
-                </h3>
-            </header>
-
-            <div class="card-content" style="background: #141414; padding: 15px;">
-
-                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 10px; font-size: 0.9em; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px;">
-                    <span><strong>Spellcast:</strong> ${spellcast}${critical ? ' <i class="fas fa-star" style="color: #FFD700;" title="Critical"></i>' : ''}</span>
-                    <span><strong>Dmg:</strong> ${damageText} magic</span>
-                    <span><strong>Mode:</strong> ${applied ? '<span style="color:#f44336">Damage</span>' : '<span style="color:#4a90e2">Info</span>'}</span>
-                </div>
-
-                <div style="padding-right: 5px;">
-                    ${listItemsHtml}
-                </div>
-            </div>
-        </div>`;
-
-        await ChatMessage.create({
-            user: game.user.id,
-            speaker: ChatMessage.getSpeaker({ token: this.caster.document }),
-            content: content,
-            style: CONST.CHAT_MESSAGE_STYLES.OTHER
+            applyDamage,
+            rename: renameTargets
         });
     }
 }

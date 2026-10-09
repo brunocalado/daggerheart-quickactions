@@ -25,7 +25,7 @@ import { activateBarter, registerBarter } from "./barter.js";
 // Import Scan
 import { scan } from "./scan.js";
 // Import Features
-import { features } from "./features.js";
+import { features, registerChainLightningArea } from "./features.js";
 // Import Token Tooltip
 import { initTokenTooltip } from "./token-tooltip.js";
 // Import Hope Bar (Hope diamonds drawn above character tokens on the canvas)
@@ -263,6 +263,7 @@ Hooks.once("init", () => {
     initBiographyTab();
     initQuickActionsButton();
     initDaggerheartMenuEnhancer();
+    registerChainLightningArea();
     // After the features that own the settings it edits — their registration must come first.
     registerUISettings();
     registerBarter();
