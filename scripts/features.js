@@ -206,6 +206,7 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
 // the macro's window after the player casts.
 
 const CHAIN_LIGHTNING = "Chain Lightning";
+const DISTANCES_MODULE_ID = "daggerheart-distances";
 
 /**
  * Hooks the controls on the Chain Lightning results card. Called once from init.
@@ -300,6 +301,20 @@ function isAdversary(token) {
     return token.actor?.type === "adversary" && token.document.disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY;
 }
 
+/**
+ * Whether `target` is within Close range of `source`. With Daggerheart Distances
+ * active its measurement decides, so the lightning reaches exactly the tokens
+ * its rings highlight as Close. Otherwise the system's check, which uses the
+ * scene's (or the world's) Close distance and measures edge to edge on the grid.
+ * @param {Token} source
+ * @param {Token} target
+ */
+function isWithinClose(source, target) {
+    const distances = game.modules.get(DISTANCES_MODULE_ID);
+    if (distances?.active && distances.api?.isWithinRange) return distances.api.isWithinRange(source, target, "close");
+    return source.isWithinRange(target, "close");
+}
+
 /** An adversary with every Hit Point marked is out of the fight. */
 function isDefeated(actor) {
     const hp = actor.system.resources.hitPoints;
@@ -331,10 +346,8 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
     // that hit several targets. Rolled on the first failed reaction roll.
     let damageRoll = null;
 
-    // isWithinRange is the system's range check: it uses the scene's (or the
-    // world's) Close distance and measures edge to edge like the token ruler.
     const findTargets = sources => canvas.tokens.placeables.filter(t =>
-        !targeted.has(t.id) && isAdversary(t) && sources.some(s => s.isWithinRange(t, "close"))
+        !targeted.has(t.id) && isAdversary(t) && sources.some(s => isWithinClose(s, t))
     );
 
     let wave = findTargets([caster]);
