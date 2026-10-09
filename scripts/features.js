@@ -207,6 +207,17 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
 
 const CHAIN_LIGHTNING = "Chain Lightning";
 const DISTANCES_MODULE_ID = "daggerheart-distances";
+const SEQUENCER_MODULE_ID = "sequencer";
+
+// JB2A database keys. The primary bolt is drawn from the caster, the secondary
+// one for every jump of the chain; Sequencer picks the file by distance.
+const BOLT_PRIMARY = "jb2a.chain_lightning.primary.blue";
+const BOLT_SECONDARY = "jb2a.chain_lightning.secondary.blue";
+const FLAMES = "jb2a.flames.01.orange";
+// CC0 "Basic Spell Impacts" by lentikula (https://lentikula.itch.io/freecc0-basic-spell-impacts-sfx).
+const SOUND_PATH = `modules/${MODULE_ID}/assets/sounds/chain-lightning`;
+const LIGHTNING_SOUNDS = [1, 2, 3, 4, 5].map(n => `${SOUND_PATH}/lightning-impact-${n}.ogg`);
+const FIRE_SOUNDS = [1, 2, 3, 4, 5].map(n => `${SOUND_PATH}/fire-impact-${n}.ogg`);
 
 /**
  * Hooks the controls on the Chain Lightning results card. Called once from init.
@@ -346,14 +357,23 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
     // that hit several targets. Rolled on the first failed reaction roll.
     let damageRoll = null;
 
-    const findTargets = sources => canvas.tokens.placeables.filter(t =>
-        !targeted.has(t.id) && isAdversary(t) && sources.some(s => isWithinClose(s, t))
-    );
+    // Each target remembers the token the lightning jumped from, for the animation.
+    const jumpedFrom = new Map();
+    const findTargets = sources => canvas.tokens.placeables.filter(t => {
+        if (targeted.has(t.id) || !isAdversary(t)) return false;
+        const source = sources.find(s => isWithinClose(s, t));
+        if (source) jumpedFrom.set(t.id, source);
+        return !!source;
+    });
+    // One entry per wave: the bolts drawn in it, and whether each target burns.
+    const strikes = [];
 
     let wave = findTargets([caster]);
     for (let waveIndex = 0; wave.length; waveIndex++) {
         wave.forEach(t => targeted.add(t.id));
         const damaged = [];
+        const bolts = [];
+        strikes.push(bolts);
 
         for (const token of wave) {
             const actor = token.actor;
@@ -396,6 +416,8 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
             }
 
             result.reaction = await rollReaction(actor, spellcast);
+            const bolt = { from: jumpedFrom.get(token.id), to: token, burns: false };
+            bolts.push(bolt);
             if (result.reaction.success) continue;
 
             if (!damageRoll) {
@@ -404,10 +426,14 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
             }
             Object.assign(result, await damageAdversary(actor, damageRoll.total, applyDamage));
             if (result.hitPoints > 0) damaged.push(token);
+            bolt.burns = result.hitPoints > 0;
         }
 
         wave = findTargets(damaged);
     }
+
+    // Not awaited: the card goes to chat while the chain is still playing.
+    playChainLightning(strikes);
 
     // Everything the card shows is kept in a flag, so the card can be rebuilt
     // after an undo.
@@ -419,6 +445,38 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
         style: CONST.CHAT_MESSAGE_STYLES.OTHER,
         flags: { [MODULE_ID]: { chainLightning: data } }
     });
+}
+
+/**
+ * Draws the chain with Sequencer and JB2A, when both are active: a bolt to
+ * every target the lightning reached, wave after wave, and flames on each one
+ * that took damage, with sounds. Sequencer plays it on every client.
+ * @param {{from: Token, to: Token, burns: boolean}[][]} strikes - Bolts per wave.
+ */
+function playChainLightning(strikes) {
+    if (!game.modules.get(SEQUENCER_MODULE_ID)?.active || !Sequencer.Database.entryExists(BOLT_PRIMARY)) return;
+    const waves = strikes.filter(bolts => bolts.length);
+    if (!waves.length) return;
+
+    const pick = list => list[Math.floor(Math.random() * list.length)];
+    // softFail: a missing JB2A file skips that effect instead of throwing.
+    const sequence = new Sequence({ moduleName: MODULE_ID, softFail: true });
+    waves.forEach((bolts, index) => {
+        if (index > 0) sequence.wait(700);
+        // One sound per wave, not per bolt, so a big wave doesn't stack them.
+        sequence.sound().file(pick(LIGHTNING_SOUNDS)).volume(0.6);
+        for (const { from, to } of bolts) {
+            sequence.effect().file(index === 0 ? BOLT_PRIMARY : BOLT_SECONDARY).atLocation(from).stretchTo(to);
+        }
+        const burning = bolts.filter(b => b.burns);
+        if (!burning.length) return;
+        sequence.sound().file(pick(FIRE_SOUNDS)).volume(0.5).delay(400);
+        for (const { to } of burning) {
+            sequence.effect().file(FLAMES).attachTo(to).scaleToObject(1.5)
+                .delay(400).duration(4000).fadeIn(300).fadeOut(1000);
+        }
+    });
+    sequence.play();
 }
 
 /**
@@ -521,7 +579,7 @@ function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTota
             <!-- Line 2: Chained (left) + Stats (right) -->
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2px;">
                 ${chainedIndicator}
-                <span style="display: flex; align-items: center; gap: 8px;">${stats}</span>
+                <span style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">${stats}</span>
             </div>
         </div>
         `;
