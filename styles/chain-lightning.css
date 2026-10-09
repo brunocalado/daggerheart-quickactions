@@ -1,0 +1,143 @@
+/*!
+ * Daggerheart: Quick Actions
+ * 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
+/* --- Chain Lightning App Specifics --- */
+.chain-lightning-app .chain-lightning-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.chain-lightning-app .notes {
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+.chain-lightning-app .notes strong {
+    color: #fff;
+}
+
+.chain-lightning-app .field-row {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.chain-lightning-app .field-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.chain-lightning-app .field-group label {
+    flex: 0 0 auto;
+    /* Core gives labels a bottom margin; `align-items: center` centres the margin box, which
+       lifts the text half that margin above the field beside it. */
+    margin: 0;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.75em;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+}
+
+.chain-lightning-app .field-input {
+    flex: 1;
+    min-width: 0;
+    height: 34px;
+    padding: 0 8px;
+    background: #191919;
+    border: 1px solid #C9A060;
+    border-radius: 4px;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+}
+
+.chain-lightning-app .field-input::placeholder {
+    color: #C9A060;
+    opacity: 0.45;
+    font-weight: normal;
+}
+
+.chain-lightning-app .field-input:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(201, 160, 96, 0.4);
+}
+
+/* Each option is a bordered chip with its switch at the end, so it is clear which switch belongs
+   to which label. Two per row; the third spans the row so the grid stays symmetric. */
+.chain-lightning-app .toggle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.chain-lightning-app .toggle-chip:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+}
+
+.chain-lightning-app .toggle-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid #555;
+    border-radius: 6px;
+    color: #e0e0e0 !important;
+    font-size: 0.9em;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.chain-lightning-app .toggle-chip:hover {
+    border-color: #C9A060;
+}
+
+.chain-lightning-app .toggle-chip:has(input:checked) {
+    border-color: #C9A060;
+    background: rgba(201, 160, 96, 0.12);
+}
+
+.chain-lightning-app .footer-row {
+    display: flex;
+    justify-content: center;
+}
+
+.chain-lightning-app .main-roll-btn {
+    width: 100%;
+    background: #191919;
+    color: #C9A060;
+    border: 1px solid #C9A060;
+    padding: 12px;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.chain-lightning-app .main-roll-btn:hover {
+    background: #333;
+    box-shadow: 0 0 15px rgba(201, 160, 96, 0.4);
+    transform: scale(1.02);
+}

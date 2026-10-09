@@ -98,6 +98,9 @@
       "src": "styles/falling-damage.css"
     },
     {
+      "src": "styles/chain-lightning.css"
+    },
+    {
       "src": "styles/falling-damage-settings.css"
     },
     {

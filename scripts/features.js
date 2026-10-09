@@ -16,58 +16,6 @@ import { MODULE_ID } from "./constants.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 // ==================================================================
-// EMBEDDED TEMPLATE (Inline HTML)
-// ==================================================================
-const CHAIN_LIGHTNING_TEMPLATE_PATH = `modules/${MODULE_ID}/templates/chain-lightning-inline.hbs`;
-const CHAIN_LIGHTNING_TEMPLATE_CONTENT = `
-<div class="dh-qa-app" style="display: flex; flex-direction: column; gap: 10px;">
-    <p class="notes" style="margin-bottom: 10px;">Caster: <strong>{{casterName}}</strong>. {{#if foundCast}}Spellcast Roll read from the last Chain Lightning cast in chat.{{else}}Enter the result of the caster's Spellcast Roll.{{/if}}</p>
-
-    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <label style="font-weight: bold; color: #C9A060;">Spellcast Roll</label>
-        <input type="number" name="spellcast" value="{{spellcast}}" min="1" max="99" required class="dh-input" style="width: 60px; text-align: center;">
-    </div>
-
-    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
-        <label style="font-weight: bold; color: #C9A060;">Critical Success?</label>
-        <input type="checkbox" name="critical" {{#if critical}}checked{{/if}} style="accent-color: #C9A060; transform: scale(1.2);">
-    </div>
-
-    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <label style="font-weight: bold; color: #C9A060;">Damage</label>
-        <input type="text" name="damage" value="2d8+4" placeholder="2d8+4 or a rolled total" class="dh-input" style="width: 150px; text-align: center;">
-    </div>
-
-    <!-- Rename Option -->
-    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
-        <label style="font-weight: bold; color: #C9A060;">Rename Targets (1, 2...)?</label>
-        <input type="checkbox" name="renameTargets" style="accent-color: #C9A060; transform: scale(1.2);">
-    </div>
-
-    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
-        <label style="font-weight: bold; color: #C9A060;">Apply Damage?</label>
-        <input type="checkbox" name="applyDamage" checked style="accent-color: #C9A060; transform: scale(1.2);">
-    </div>
-
-    <div class="form-footer">
-        <button type="submit" class="dh-btn" style="width: 100%;">
-            <i class="fas fa-bolt"></i> Cast Chain Lightning
-        </button>
-    </div>
-</div>
-`;
-
-// ==================================================================
-// TEMPLATE COMPILATION (Cache Injection)
-// ==================================================================
-if (typeof Handlebars !== "undefined") {
-    const compiledTemplate = Handlebars.compile(CHAIN_LIGHTNING_TEMPLATE_CONTENT);
-    Handlebars.templates = Handlebars.templates || {};
-    Handlebars.templates[CHAIN_LIGHTNING_TEMPLATE_PATH] = compiledTemplate;
-    Handlebars.registerPartial(CHAIN_LIGHTNING_TEMPLATE_PATH, compiledTemplate);
-}
-
-// ==================================================================
 // EXPORTED FUNCTION
 // ==================================================================
 
@@ -593,7 +541,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "chain-lightning-app",
-        classes: ["dh-qa-app", "chain-app"],
+        classes: ["dh-qa-app", "chain-lightning-app"],
         window: {
             title: CHAIN_LIGHTNING,
             icon: "fas fa-bolt",
@@ -601,7 +549,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             controls: []
         },
         position: {
-            width: 350,
+            width: 400,
             height: "auto"
         },
         form: {
@@ -613,7 +561,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     static PARTS = {
         form: {
-            template: CHAIN_LIGHTNING_TEMPLATE_PATH
+            template: `modules/${MODULE_ID}/templates/chain-lightning.hbs`
         }
     };
 
