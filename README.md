@@ -1,122 +1,132 @@
 # Daggerheart: Quick Actions
 
-**Essential tools and automations for Daggerheart in Foundry VTT.**
-
-This module streamlines the flow of gameplay by putting the most common Daggerheart mechanics — Downtime, Falling Damage, Roll Requests, Loot, Scar Checks, and more — one click away, integrated directly into the Daggerheart system interface.
+Daggerheart: Quick Actions gathers the table chores of a Daggerheart session into one module: downtime for the whole party, falling damage, roll requests, loot, scar checks, Help an Ally, and more. Most of them are one click away, in the Daggerheart menu in the sidebar, on the party sheet, or behind a button in the header of every character sheet.
 
 <p align="center"><img width="1000" src="docs/preview.webp" alt="Preview"></p>
 
-<p align="center"><img width="800" src="docs/downtime.webp"></p>
+<p align="center"><img width="800" src="docs/downtime.webp" alt="The Downtime UI with each player's row of downtime moves"></p>
 
-<p align="center"><img width="900" src="docs/feature.webp"></p>
+<p align="center"><img width="900" src="docs/feature.webp" alt="Some of the module's windows and chat cards"></p>
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-Donate-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/mestredigital) [![More Modules](https://img.shields.io/badge/Foundry%20VTT-More%20Modules-red?style=for-the-badge&logo=gamepad)](https://mestredigital.online/pages/projetos-en)
 
-## 🌟 Features
+## What's in the module
 
-### 🛌 Downtime
+### Downtime
 
-* **Downtime UI:** A full-screen manager for downtime moves. Players pick their moves (Tend to Wounds, Prepare, Work a Trade, and more, including any homebrew moves the GM adds), the same move can be chosen more than once when the rules allow it, and the GM resolves everything — resource costs, Fear gained, and rest results — with one click. Automatically handles features and items that hook into downtime: Efficient, Forager, Recovery, Armorer, Celestial Trance, Premium Bedroll, Eloquent, Soothing Speech, the Warlock's Favor, the Shapeshifter's Change Shape and Only Skin Deep, Duneborne's Oasis reroll, Timekeeper's Pendant, Pipeweed, and Self-Healing armour.
-  * **Absent players:** the GM can pick moves, targets and feature options on any player's row, not just watch them. Switch an offline player's row on with its **Include** toggle (offline players start excluded) and choose their moves as they would. Players still edit only their own row; if the GM and that player change the same row at once, the last click wins.
-  * **Config:** the gear button in the toolbar opens the Downtime Config window. Its **Core** tab repoints each supported feature at homebrew or renamed items. **Craft** pairs a recipe item with what it crafts, so an actor holding the recipe gets the item on their sheet. **Custom** adds freeform moves, and **Item Moves** adds moves that only appear for actors who own a given item. **Users** excludes table members who should never take part in a rest (spectators, a second screen).
-  * **Short rest counter:** the pips beside the Short / Long switch track consecutive short rests. The GM can click them to correct the count by hand.
-* **Quick Earn Fear:** A lightweight "Short Rest / Long Rest" dialog for GMs who just want to roll Fear without opening the full Downtime UI.
+The Downtime UI is a full-screen manager for downtime moves. Players pick their moves (Tend to Wounds, Prepare, Work a Trade, and more, including any homebrew moves the GM adds), the same move can be chosen more than once when the rules allow it, and the GM resolves everything with one click: resource costs, Fear gained and rest results. It also handles the features and items that hook into downtime: Efficient, Forager, Recovery, Armorer, Celestial Trance, Premium Bedroll, Eloquent, Soothing Speech, the Warlock's Favor, the Shapeshifter's Change Shape and Only Skin Deep, Duneborne's Oasis reroll, Timekeeper's Pendant, Pipeweed, and Self-Healing armour.
 
-### 🛠️ GM Utilities
+- The GM can pick moves, targets and feature options on any player's row. That covers a player who is absent: switch their row on with its **Include** toggle (offline players start excluded) and choose their moves for them. Players still edit only their own row. If the GM and that player change the same row at the same moment, the last click wins.
+- The gear button in the toolbar opens the Downtime Config window. Its **Core** tab points each supported feature at homebrew or renamed items. **Craft** pairs a recipe item with what it crafts, so an actor holding the recipe gets the item on their sheet. **Custom** adds freeform moves, and **Item Moves** adds moves that only appear for actors who own a given item. **Users** excludes table members who should never take part in a rest, such as spectators or a second screen.
+- The pips beside the Short / Long switch count consecutive short rests. The GM can click them to correct the count by hand.
 
-* **🪂 Falling & Collision Damage:** Instant damage roller for environmental hazards. Supports "Very Close", "Close", "Far/Very Far", and "Collision" tiers, with dice formulas the GM can fully customize.
-* **🎲 Request Roll:** Quickly ask one or more players to make a roll. Configure Difficulty, Trait, Advantage/Disadvantage, and a context label. As long as the roll's case has an image assigned (see **Cinematic Roll Images** below — all nine ship with one), it's sent as a "cinematic" full-screen prompt instead of a plain chat message.
-* **💬 Whisper:** Send a private message to any number of connected users, via `QuickActions.Whisper()`. Pick the recipients from the list (GMs are flagged with a crown), type the message, and hit send — it arrives as a whispered chat card visible only to them. The text is plain: anything you type is delivered literally, so pasted HTML shows up as text instead of being rendered. Ctrl+Enter sends without leaving the keyboard.
+For a GM who only wants to roll Fear without opening the full Downtime UI, there is also a lightweight Short Rest / Long Rest dialog that earns Fear.
+
+### GM tools
+
+- Falling and collision damage: an instant damage roller for environmental hazards, with Very Close, Close, Far/Very Far and Collision tiers. The GM can change the dice formula of each tier.
+- Request Roll asks one or more players to make a roll. Set the Difficulty, Trait, Advantage or Disadvantage, and a label for context. When the roll's case has an image assigned (see Cinematic Roll Images in the settings; all nine cases ship with one), it is sent as a full-screen cinematic prompt instead of a plain chat message.
+- Whisper sends a private message to any number of connected users, with `QuickActions.Whisper()`. Pick the recipients from the list (GMs are marked with a crown), type the message and send it. It arrives as a whispered chat card that only they can see. The text is plain: anything you type is delivered literally, so pasted HTML shows up as text instead of being rendered. Ctrl+Enter sends without leaving the keyboard.
 
   <p align="center"><img width="800" src="docs/whisper.webp" alt="Whisper"></p>
 
-* **🤝 Barter:** Trade items and coins, via `QuickActions.Barter()`. You need a linked `character` actor. Your inventory shows as an icon grid split into **Weapons / Armor / Consumables / Loot** tabs — click an icon to put it on the table (selected items get a green border; stacks get a small quantity stepper), and offer coins alongside them in whichever currencies the world has enabled. The "Trade With" list then lets you pick either:
-  * **Another player** (they also need a linked `character` actor). Hit **Start Trade** and the same window opens on their screen with your offer already laid out. They can add items and coins of their own or accept as-is; once they confirm, you approve and the swap happens. Any edit after a confirmation cancels it, so nobody can lock in an offer and then quietly change it. A GM must be connected: the actual transfer is written by the GM client in a single batch, so it either goes through completely or not at all.
-  * **A party stash** — any party sheet that lists your character as a member *and* that you hold **Owner** permission on. There is no invite and no approval step here: the right-hand column becomes the party's own inventory, so you give from the left and take from the right in the same window, then hit **Complete Transfer**. Your own client writes it, so no GM needs to be online. If a party you expect is missing from the list, check its ownership — without Owner permission on the party actor the option is hidden, since the transfer could not be written.
+- Barter trades items and coins, with `QuickActions.Barter()`. You need a linked `character` actor. Your inventory shows as a grid of icons split into **Weapons**, **Armor**, **Consumables** and **Loot** tabs. Click an icon to put it on the table (selected items get a green border, and stacks get a small quantity stepper), and offer coins alongside them in whichever currencies the world has enabled. The **Trade With** list then lets you pick one of two kinds of partner:
+  - Another player, who also needs a linked `character` actor. Click **Start Trade** and the same window opens on their screen with your offer already laid out. They can add items and coins of their own or accept as it is. Once they confirm, you approve and the swap happens. Any edit after a confirmation cancels it, so nobody can lock in an offer and then quietly change it. A GM must be connected, because the GM's client writes the transfer in a single batch, so it either goes through completely or not at all.
+  - A party stash: any party sheet that lists your character as a member and that you hold Owner permission on. There is no invite and no approval step. The right-hand column becomes the party's own inventory, so you give from the left and take from the right in the same window, then click **Complete Transfer**. Your own client writes it, so no GM needs to be online. If a party you expect is missing from the list, check its ownership: without Owner permission on the party actor the option is hidden, since the transfer could not be written.
 
   Either way the result is posted to chat as a receipt.
 
   <p align="center"><img width="800" src="docs/barter.webp" alt="Barter"></p>
 
-* **🆙 Level Up:** Walk a player character through leveling up directly from the menu.
-* **🎁 Loot & Consumables:** Roll loot, consumables, or coins (by tier) and hand out the results — automatically added to the receiving sheet when possible. Loot and consumables are drawn from the Daggerheart system's own roll tables, chosen in **Loot & Consumables Configuration**. Tap **+** to stack more d12s and reach rarer entries further down the table (capped at 5d12 — the tables hold 60 rarity-ordered entries). The **Mod** field beside the stepper covers what the stepper cannot say on its own, since it only moves twelve at a time: type `+5` to shift the band, `+1d6` for a spread between 1d12 and 2d12, or `-2` to pull the band down. The hint underneath always reports what the *combined* formula reaches — `+5` reads "Reaches 6–17", and a formula that overshoots the table reads "Reaches 60–60", which tells you the dice have stopped deciding. **Add to Roll** stacks several draws — "3d12 loot, then 2d12+5 loot, then Tier 2 coins" — and a single **ROLL** resolves them all into one chat card. When your character belongs to a party sheet you own, a toggle sends the haul to the **party stash** instead of your own sheet, and the card records which.
-* **🎲 Custom Tables:** Roll the GM's *own* roll tables — homebrew loot, a third-party adventure's treasure list, a translated table — and hand out what they give. Separate from Loot & Consumables on purpose: that roller reads the Daggerheart tables as one rarity-ordered scale, while this one lets each table roll with **its own formula**, exactly as its author built it (nested tables are followed too). Pick a table, tap **+** for more draws, and **Add to Roll** stacks draws from several tables into one **ROLL** and one chat card — with the same **To Myself / To Party** choice. The tables are curated by the GM in **Custom Tables Configuration**; results that point at an Item land on the sheet, anything else is just reported in the card. Opened with the **Custom Tables** macro from this module's Macros compendium, or with `QuickActions.CustomTables()`.
-* **✨ Spend Hope:** A quick picker for spending 1–6 Hope from the selected token's actor.
-* **📐 Templates:** Place attack templates (cone, line, circle, rectangle, and more) on the scene using Daggerheart's `@Template[...]` chat code syntax.
+- Level Up walks a player character through leveling up, straight from the menu.
+- Loot & Consumables rolls loot, consumables, or coins by tier and hands out the results, adding them to the receiving sheet when possible. Loot and consumables come from the Daggerheart system's own roll tables, chosen in **Loot & Consumables Configuration**. Click **+** to stack more d12s and reach rarer entries further down the table, up to 5d12, since the tables hold 60 entries ordered by rarity. The **Mod** field beside the stepper covers what the stepper cannot do, because it only moves twelve at a time: type `+5` to shift the band, `+1d6` for a spread between 1d12 and 2d12, or `-2` to pull the band down. The hint underneath always reports what the combined formula reaches. `+5` reads "Reaches 6–17", and a formula that overshoots the table reads "Reaches 60–60", which tells you the dice no longer decide anything. **Add to Roll** stacks several draws ("3d12 loot, then 2d12+5 loot, then Tier 2 coins"), and a single **ROLL** resolves them all into one chat card. When your character belongs to a party sheet you own, a toggle sends the haul to the party stash instead of your own sheet, and the card records which.
+- Custom Tables rolls the GM's own roll tables (homebrew loot, a third-party adventure's treasure list, a translated table) and hands out what they give. It is separate from Loot & Consumables on purpose. That roller reads the Daggerheart tables as one scale ordered by rarity, while this one rolls each table with its own formula, exactly as its author built it, and follows nested tables too. Pick a table, click **+** for more draws, and **Add to Roll** stacks draws from several tables into one **ROLL** and one chat card, with the same **To Myself** / **To Party** choice. The GM picks the tables in **Custom Tables Configuration**. Results that point at an Item land on the sheet; anything else is only reported in the card. Open it with the **Custom Tables** macro from this module's Macros compendium, or with `QuickActions.CustomTables()`.
+- Spend Hope is a quick picker for spending 1 to 6 Hope from the selected token's actor.
+- Templates places attack templates (cone, line, circle, rectangle, and more) on the scene, using Daggerheart's `@Template[...]` chat code syntax.
 
-### 🎭 Token Macros
+### Token macros
 
-* **🔍 Scan:** Reveal a target's physical and mental state through immersive, non-numeric descriptions instead of exact HP/Stress values (GM must enable this in settings). Great for "I look at the goblin, how does it look?" moments.
-* **🤝 Help an Ally:** Spends 1 Hope from the selected token (if available) and rolls the Help Die (1d6) to the chat.
-* **❤️ Scar Check:** Rolls 1d12 against the actor's Level to determine whether they stay Safe or take a Scar.
-* **🔦 Spotlight Token:** Instantly hands the active combat turn to the selected token (requires an active combat).
-* **🖱️ Token Hover Tooltip:** Hovering over a token shows a quick stat summary (HP, Stress, and more). Can be toggled on/off and resized per user in the settings. Adversaries get their own version, listing damage thresholds and every Action, Reaction and Passive they have.
-* **💛 Token Hope Bar:** A row of Hope diamonds sits just above every character token — filled for the Hope currently held, empty for the rest. It follows each token's own **Display Bars** setting, so it appears and disappears alongside the native Hit Points and Stress bars. Scars are shown instead of hidden: rather than shortening the row, the slots a Scar locked off are faded out, and healing the Scar brings them back. Can be switched off in the settings.
+- Scan reveals a target's physical and mental state through descriptions instead of exact HP and Stress values. The GM must enable it in the settings. It answers the "I look at the goblin, how does it look?" moments.
+- Help an Ally spends 1 Hope from the selected token, if it has one, and rolls the Help Die (1d6) to chat.
+- Scar Check rolls 1d12 against the actor's Level to decide whether they stay safe or take a Scar.
+- Spotlight Token hands the active combat turn to the selected token. It needs an active combat.
+- Hovering over a token shows a quick summary of its stats: HP, Stress and more. Adversaries get their own version, listing damage thresholds and every Action, Reaction and Passive they have. The GM turns the tooltip on or off for the world, and each user picks its size.
+- A row of Hope diamonds sits just above every character token, filled for the Hope currently held and empty for the rest. It follows each token's own **Display Bars** setting, so it appears and disappears together with the native Hit Points and Stress bars. Scars are shown rather than hidden: instead of shortening the row, the slots a Scar locked are faded out, and healing the Scar brings them back. It can be turned off in the settings.
 
 <p align="center"><img width="600" src="docs/character-token-tooltips-hope-bar.webp" alt="Character tooltip and Hope bar"></p>
 
 <p align="center"><img width="545" src="docs/adversary-token-tooltip.webp" alt="Adversary tooltip"></p>
 
-### ⚡ Class Feature Macros
+### Class feature macros
 
-Available through `QuickActions.Features()`, meant to be wired up to specific subclass items/macros:
+These run through `QuickActions.Features()` and are meant to be wired to specific subclass items or macros.
 
-* **Unleash Chaos:** Recharges the "Unleash Chaos" item's charge to its maximum (based on the actor's spellcasting trait). Asks what the player wants to pay — 1 Stress (default), 1 HP, or nothing (for the free recharge at the start of a session) — and posts a chat summary of the result.
-* **Chain Lightning:** Resolves the Arcana card after the player casts it from the sheet. Select the caster's token and run `QuickActions.Features("Chain Lightning")`: the window reads the caster's last Chain Lightning Spellcast Roll from chat (or you type it). Every hostile adversary within Close range that the Spellcast Roll beats makes a reaction roll against the Spellcast result. Those who fail take one shared 2d8+4 magic damage roll, with resistance, immunity and thresholds applied by the system. The lightning then jumps to adversaries not yet targeted within Close range of anyone who took damage, until nobody is left in range. A results card goes to chat: clicking a target's token image pans the map to it, and the GM can undo the damage of each target. With Daggerheart Distances active, Close range is measured the way its rings show it (including elevation, when its 3D mode is on); otherwise the system's own range check is used. With Sequencer and JB2A (Patreon or free) active, the lightning is animated jumping from the caster to each target and along the chain, and every target that takes damage catches fire, with sound effects.
+Unleash Chaos recharges the "Unleash Chaos" item to its maximum charge, which depends on the actor's spellcasting trait. It asks what the player pays (1 Stress by default, 1 HP, or nothing for the free recharge at the start of a session) and posts a summary to chat.
 
-### 🕹️ Interface Integration
+Chain Lightning resolves the Arcana card after the player casts it from the sheet. Select the caster's token and run `QuickActions.Features("Chain Lightning")`. The window reads the caster's last Chain Lightning Spellcast Roll from chat, or you type it.
 
-<p align="center"><img src="docs/daggerheart-menu.webp"></p>
+Every hostile adversary within Close range that the Spellcast Roll beats makes a reaction roll against the Spellcast result. Those who fail take one shared 2d8+4 magic damage roll, with resistance, immunity and thresholds applied by the system. The lightning then jumps to adversaries not yet targeted within Close range of anyone who took damage, until nobody is left in range. A results card goes to chat. Clicking a target's token image pans the map to it, and the GM can undo the damage each target took.
 
-* **Sidebar Menu:** Adds a "Quick Actions" section — a compact 2×2 button grid — to the Daggerheart System Menu ("GM Tools") in the sidebar, with one-click access to Downtime, Fall Damage, Request Roll, and Level Up.
-* **GM Tools Menu Upgrade:** With several modules installed, the shared "GM Tools" sidebar menu can grow into a long, hard-to-scan list of sections. This module adds a search/filter bar, collapsible sections (state remembered per user), and deterministic ordering (the system's own "Refresh Features" always first, everything else alphabetical) to the *entire* menu — including sections contributed by other modules, not just this one's.
-* **Party Sheet:** Replaces the built-in Short Rest and Long Rest buttons with a single **Downtime** button (GM only) that opens the full Downtime UI directly from the party sheet.
-* **Character Sheet:** Adds a **Quick Actions** button to the header of every character sheet, next to the controls (three dots) button. It opens a palette with the macros the GM picked in the settings — the same window `QuickActions.ShowMacros()` produces, one click away for every player. The GM can turn the button off entirely.
-* **Macro Palette:** Build your own palette of buttons for any macro using `QuickActions.ShowMacros()`.
+With Daggerheart Distances active, Close range is measured the way its rings show it, including elevation when its 3D mode is on. Otherwise the system's own range check is used. With Sequencer and JB2A (Patreon or free) active, the lightning is animated jumping from the caster to each target and along the chain, and every target that takes damage catches fire, with sound effects.
 
-### 🔦 Optional Integrations
+### Where it shows up in the interface
 
-* **Light Sources:** If the [Light Sources](https://github.com/brunocalado/light-sources) module is installed and active, every light-bearing item in this module's Items compendium — Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, and Emergency Flare — is registered with it automatically, along with four *Hope & Fear* items from the Daggerheart system's own compendiums: Mandragorian Torch, Warding Candle, Glowmoss Mushroom, and Sunlight Orb. Equip one from the Token HUD and it lights up, no manual configuration needed.
+<p align="center"><img src="docs/daggerheart-menu.webp" alt="The Quick Actions section in the Daggerheart menu"></p>
 
-## ⚙️ Settings
+- The Daggerheart System Menu in the sidebar ("GM Tools") gets a Quick Actions section, a compact grid of 2×2 buttons for Downtime, Fall Damage, Request Roll and Level Up.
+- With several modules installed, that shared menu can grow into a long list of sections that is hard to scan. This module adds a search bar, sections that collapse (remembered per user), and a fixed order (the system's own "Refresh Features" always first, everything else in alphabetical order) to the whole menu, including the sections other modules add.
+- On the party sheet, the built-in Short Rest and Long Rest buttons are replaced by a single **Downtime** button (GM only) that opens the full Downtime UI.
+- Every character sheet gets a **Quick Actions** button in its header, next to the controls (three dots) button. It opens a palette with the macros the GM picked in the settings, the same window `QuickActions.ShowMacros()` produces, one click away for every player. The GM can turn the button off entirely.
+- You can build your own palette of buttons for any macro with `QuickActions.ShowMacros()`.
 
-Most features work out of the box, but a few can be tuned from **Configure Settings → Module Settings → Daggerheart: Quick Actions**:
+### Optional integrations
 
-* **Quick Actions Macros (GM):** choose which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the macros the module ships with (Fate Roll – Hope, Fate Roll – Fear, Help an Ally, Roll Loot/Consumable, Whisper, and Barter), and **Clear All** empties the list. The button at the bottom turns the whole feature off — open character sheets lose the button immediately, for every user.
-* **Token Hover Tooltip:** enable/disable and choose its size (Small to Massive).
-* **Token Hope Bar (GM):** draw the Hope diamonds above character tokens (on by default). Turn it off if another module already renders Hope on your tokens — Bar Brawl and similar. Applies immediately, on every client.
-* **Interface Settings (GM):** one window collecting the world-wide interface changes this module makes. It holds:
-  * **Daggerheart Menu Enhancements:** a single switch that turns off *all* of this module's changes to the system's sidebar menu — the purple skull tab icon, the search bar, the alphabetical ordering, the collapsible sections, and the two-column button grid. The module's own **Quick Actions** section stays in the menu either way; only its layout falls back to the system default. Takes effect immediately, on every client.
-  * **Biography Tab Visibility:** decide how the Biography tab behaves on character sheets — *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
-* **Hide Biography Tab (per user):** hides the Biography tab on character sheets for you only (off by default). Honored only while the GM leaves the world setting on *Each user decides*. Stays in the settings list rather than in the GM-only Interface Settings window, so every player can reach it.
-* **Scan Configuration:** enable the Scan macro for players and customize the labels/descriptions it shows.
-* **Falling Damage Formulas:** customize the dice formula for each fall height tier, with a one-click reset to the official defaults.
-* **Loot & Consumables Configuration (GM):** one window for everything `QuickActions.LootConsumable()` rolls. **Table Source** picks which Daggerheart roll tables loot and consumables come from — *Core Set only*, *Hope & Fear only*, or *Core Set + Hope & Fear* (default). With both enabled the two books share one rarity scale rather than being chained end to end, so a `1d12` sees **24** common items instead of 12; a visible coin flip then decides which book the entry comes from (tails Core Set, heads Hope & Fear). **Coin Tier Ranges** customizes the min/max coins rolled for each tier.
-* **Custom Tables Configuration (GM):** curate the roll tables `QuickActions.CustomTables()` draws from. Drag tables in from the **Rollable Tables** directory or from any compendium, and remove the ones you don't want; a table that was deleted or whose compendium is gone is flagged rather than dropped silently. Three things are worth knowing before you add one:
-  * **Players need to see the table.** A roll table created in the sidebar starts with *no* player access, so it works for you and fails for them — set its ownership to **Observer**. Do the same for the compendium holding the items it hands out, which is a single setting for the whole pack.
-  * **Items only.** A result that points at an Item is added to the sheet. Text entries, or links to actors and journals, appear in the chat card but nothing is written.
-  * **Every draw is independent.** A table set to draw *without replacement* still repeats, because the roller never writes back to your table.
-* **Cinematic Roll Images:** assign an image to each Request Roll case (the six traits, Hope, Fear, and the generic Duality Roll fallback). Every case ships with a core Foundry icon, so the full-screen cinematic prompt works out of the box — point a case at your own artwork to replace it, or clear it to fall back to a plain chat message. **Reset to Default** restores all nine stock icons (worlds created before 0.6.7 start out blank and need this once), and **Clear All** blanks every case, turning the feature off.
+If the [Light Sources](https://github.com/brunocalado/light-sources) module is installed and active, every item that gives light in this module's Items compendium is registered with it automatically: Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, and Emergency Flare. So are four *Hope & Fear* items from the Daggerheart system's own compendiums: Mandragorian Torch, Warding Candle, Glowmoss Mushroom, and Sunlight Orb. Equip one from the Token HUD and it lights up, with no manual configuration.
 
-## ⚙️ Usage
+## Settings
 
-### Via Sidebar
-Go to the **Daggerheart Menu** in the sidebar (a.k.a. "GM Tools"). You will see a **Quick Actions** section with buttons for:
-* Downtime
-* Fall Damage
-* Request Roll
-* Level Up
+Most of the module works out of the box. A few things can be tuned in **Configure Settings** → **Module Settings** → **Daggerheart: Quick Actions**:
 
-The whole menu also gets a search bar plus collapsible, alphabetically ordered sections — handy once several modules are contributing to it. Click a section's title to collapse/expand it (remembered per user), or use the search box to jump straight to what you need.
+- **Quick Actions Macros** (GM) chooses which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the macros the module ships with (Fate Roll - Hope, Fate Roll - Fear, Help an Ally, Roll Loot/Consumable, Whisper, and Barter), and **Clear All** empties the list. The button at the bottom turns the whole feature off: open character sheets lose the button immediately, for every user.
+- **Token Hover Tooltip** turns the tooltip on or off for the world (GM), and **Token Tooltip Size** sets its size for you, from Small to Massive.
+- **Token Hope Bar** (GM) draws the Hope diamonds above character tokens, on by default. Turn it off if another module already shows Hope on your tokens, such as Bar Brawl. It applies immediately, on every client.
+- **Interface Settings** (GM) is one window with the world-wide interface changes this module makes:
+  - **Daggerheart Menu Enhancements** is a single switch that turns off all of this module's changes to the system's sidebar menu: the purple skull tab icon, the search bar, the alphabetical order, the sections that collapse, and the two-column button grid. The module's own Quick Actions section stays in the menu either way; only its layout falls back to the system default. It takes effect immediately, on every client.
+  - **Biography Tab Visibility** decides how the Biography tab behaves on character sheets: *Each user decides* (default), *Always visible for everyone*, or *Always hidden for everyone*.
+- **Hide Biography Tab** (per user) hides the Biography tab on character sheets for you only. It is off by default and only counts while the GM leaves the world setting on *Each user decides*. It stays in the settings list, not in the GM-only Interface Settings window, so every player can reach it.
+- **Scan Labels Configuration** enables the Scan macro for players and changes the labels and descriptions it shows.
+- **Falling Damage Configuration** changes the dice formula for each fall height tier, with a reset to the official defaults.
+- **Loot & Consumables Configuration** (GM) is one window for everything `QuickActions.LootConsumable()` rolls. **Table Source** picks which Daggerheart roll tables loot and consumables come from: *Core Set only*, *Hope & Fear only*, or *Core Set + Hope & Fear* (default). With both enabled the two books share one rarity scale instead of being chained end to end, so a `1d12` sees 24 common items instead of 12, and a visible coin flip then decides which book the entry comes from (tails Core Set, heads Hope & Fear). **Coin Tier Ranges** sets the minimum and maximum coins rolled for each tier.
+- **Custom Tables Configuration** (GM) chooses the roll tables `QuickActions.CustomTables()` draws from. Drag tables in from the **Rollable Tables** directory or from any compendium, and remove the ones you don't want. A table that was deleted, or whose compendium is gone, is flagged instead of dropped silently. Three things are worth knowing before you add one:
+  - Players need to see the table. A roll table created in the sidebar starts with no player access, so it works for you and fails for them. Set its ownership to **Observer**. Do the same for the compendium holding the items it hands out, which is a single setting for the whole pack.
+  - Only Items are handed out. A result that points at an Item is added to the sheet. Text entries, or links to actors and journals, appear in the chat card but nothing is written.
+  - Every draw is independent. A table set to draw without replacement still repeats, because the roller never writes back to your table.
+- **Cinematic Roll Images** assigns an image to each Request Roll case: the six traits, Hope, Fear, and the generic Duality Roll fallback. Every case ships with a core Foundry icon, so the full-screen cinematic prompt works out of the box. Point a case at your own artwork to replace it, or clear it to fall back to a plain chat message. **Reset to Default** restores all nine stock icons (worlds created before 0.6.7 start out blank and need this once), and **Clear All** blanks every case, which turns the feature off.
 
-### Via Party Sheet
-GMs will find a **Downtime** button on the party sheet's action bar, in place of the default Short Rest / Long Rest buttons. It opens the full Downtime UI for the whole party.
+## How to use it
 
-### Via Character Sheet
-Every character sheet has a **Quick Actions** button in its header. Clicking it opens a palette with the macros configured in **Configure Settings → Daggerheart: Quick Actions → Quick Actions Macros**, ready to run. The list starts with the module's own macros; the GM can drag in any world or compendium macro, or switch the button off.
+### From the sidebar
 
-### Via API / Macros
-You can trigger any function programmatically or via Foundry Macros using the global `QuickActions` object:
+Open the Daggerheart menu in the sidebar (also called "GM Tools"). The Quick Actions section has buttons for:
+
+- Downtime
+- Fall Damage
+- Request Roll
+- Level Up
+
+The whole menu also gets a search bar and sections in alphabetical order that collapse, which helps once several modules add to it. Click a section's title to collapse or expand it (remembered per user), or type in the search box to jump straight to what you need.
+
+### From the party sheet
+
+GMs find a **Downtime** button on the party sheet's action bar, in place of the default Short Rest and Long Rest buttons. It opens the full Downtime UI for the whole party.
+
+### From a character sheet
+
+Every character sheet has a **Quick Actions** button in its header. It opens a palette with the macros set in **Configure Settings** → **Daggerheart: Quick Actions** → **Quick Actions Macros**, ready to run. The list starts with the module's own macros. The GM can drag in any world or compendium macro, or turn the button off.
+
+### From macros
+
+Every function can be called from a Foundry macro or from code, through the global `QuickActions` object:
 
 ```javascript
 // Opens the full Downtime UI
@@ -233,13 +243,15 @@ Mental State: Completely overwhelmed, paralyzed by panic and unable to think cle
 QuickActions.Scan();
 ```
 
-## 📦 Installation
+## Installation
 
-Install via the Foundry VTT Module browser or use this manifest link:
+Install it from the Foundry VTT module browser, or use this manifest link:
 
 ```javascript
 https://github.com/brunocalado/daggerheart-quickactions/releases/latest/download/module.json
 ```
+
+It needs Foundry VTT v14 and the Daggerheart system 2.9.2 or later. Dice So Nice and Light Sources are recommended but not required.
 
 ## ⚖️ Credits & License
 
