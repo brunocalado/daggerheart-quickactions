@@ -467,29 +467,50 @@ async function playChainLightning(strikes) {
     const pick = list => list[Math.floor(Math.random() * list.length)];
     // softFail: a missing JB2A file skips that effect instead of throwing.
     const sequence = new Sequence({ moduleName: MODULE_ID, softFail: true });
+    const boltPoints = bolts => bolts.flatMap(({ from, to }) => [from.center, to.center]);
     waves.forEach((bolts, index) => {
         if (index > 0) sequence.wait(700);
-        // The middle of every token in the wave, so all of its bolts are in view.
-        const points = bolts.flatMap(({ from, to }) => [from.center, to.center]);
-        const center = {
-            x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
-            y: points.reduce((sum, p) => sum + p.y, 0) / points.length
-        };
-        sequence.canvasPan().atLocation(center).duration(600).waitUntilFinished();
-        // One sound per wave, not per bolt, so a big wave doesn't stack them.
-        sequence.sound().file(pick(LIGHTNING_SOUNDS)).volume(0.6);
-        for (const { from, to } of bolts) {
-            sequence.effect().file(index === 0 ? BOLT_PRIMARY : BOLT_SECONDARY).atLocation(from).stretchTo(to);
-        }
-        const burning = bolts.filter(b => b.burns);
-        if (!burning.length) return;
-        sequence.sound().file(pick(FIRE_SOUNDS)).volume(0.5).delay(400);
-        for (const { to } of burning) {
-            sequence.effect().file(FLAMES).attachTo(to).scaleToObject(1.5)
-                .delay(400).duration(4000).fadeIn(300).fadeOut(1000);
-        }
+        const file = index === 0 ? BOLT_PRIMARY : BOLT_SECONDARY;
+        // A wave that fits on screen strikes at once; a wider one is followed
+        // bolt by bolt, since a single pan to its middle would show none of it.
+        const strikesInWave = fitsOnScreen(boltPoints(bolts)) ? [bolts] : bolts.map(bolt => [bolt]);
+        strikesInWave.forEach((group, i) => {
+            if (i > 0) sequence.wait(700);
+            const points = boltPoints(group);
+            const center = {
+                x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+                y: points.reduce((sum, p) => sum + p.y, 0) / points.length
+            };
+            sequence.canvasPan().atLocation(center).duration(600).waitUntilFinished();
+            // One sound per strike, not per bolt, so a big wave doesn't stack them.
+            sequence.sound().file(pick(LIGHTNING_SOUNDS)).volume(0.6);
+            for (const { from, to } of group) {
+                sequence.effect().file(file).atLocation(from).stretchTo(to);
+            }
+            const burning = group.filter(b => b.burns);
+            if (!burning.length) return;
+            sequence.sound().file(pick(FIRE_SOUNDS)).volume(0.5).delay(400);
+            for (const { to } of burning) {
+                sequence.effect().file(FLAMES).attachTo(to).scaleToObject(1.5)
+                    .delay(400).duration(4000).fadeIn(300).fadeOut(1000);
+            }
+        });
     });
     sequence.play();
+}
+
+/**
+ * Whether the points fit in 80% of this client's view at its current zoom.
+ * Judged on the GM's screen, which drives the pan for everyone.
+ * @param {{x: number, y: number}[]} points - Canvas coordinates.
+ */
+function fitsOnScreen(points) {
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    const scale = canvas.stage.scale.x;
+    const [width, height] = canvas.screenDimensions;
+    return (Math.max(...xs) - Math.min(...xs)) * scale <= width * 0.8
+        && (Math.max(...ys) - Math.min(...ys)) * scale <= height * 0.8;
 }
 
 /**
@@ -690,7 +711,9 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
         form: {
             handler: ChainLightningApp.#onSubmit,
             submitOnChange: false,
-            closeOnSubmit: true
+            // Closed by the handler once the input is valid, not after the
+            // chain resolves, which can take a while with dice and animation.
+            closeOnSubmit: false
         }
     };
 
@@ -733,6 +756,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             return;
         }
 
+        this.close();
         await resolveChainLightning({
             caster: this.caster,
             spellcast,
