@@ -5,7 +5,7 @@
   "author": "zWDd1mciIe4rp82O",
   "img": "icons/magic/lightning/bolts-strike-salvo-blue.webp",
   "scope": "global",
-  "command": "// GM use only. The player casts Chain Lightning from the sheet (2 Stress + Spellcast Roll). Placing the card's area from its chat message resolves it automatically; otherwise select the caster's token and run this macro to resolve the reaction rolls, damage and chain.\n\n\nQuickActions.Features('Chain Lightning');",
+  "command": "// GM use only. The player casts Chain Lightning from the sheet (2 Stress + Spellcast Roll). Select the caster's token and run this macro to resolve the reaction rolls, damage and chain.\n\n\nQuickActions.Features('Chain Lightning');",
   "ownership": {
     "default": 0,
     "zWDd1mciIe4rp82O": 3

@@ -254,45 +254,17 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
 // Chain Lightning (Arcana 5). The player uses the card as usual (2 Stress,
 // Spellcast Roll); this module resolves the part the system leaves to the
 // table: reaction rolls with a Difficulty equal to the Spellcast Roll, and the
-// chain that jumps from every target who took damage. Two entry points:
-// placing the card's area from its chat message, or the macro's window.
+// chain that jumps from every target who took damage. The GM runs it from
+// the macro's window after the player casts.
 
 const CHAIN_LIGHTNING = "Chain Lightning";
 
 /**
- * Id of the Chain Lightning cast whose area button this client clicked last.
- * The system creates the Region with no link back to the message, so the
- * click is remembered here and stamped on the Region as it is created.
- */
-let pendingAreaCast = null;
-
-/**
- * Hooks for Chain Lightning: resolving the cast when the card's area is
- * placed, and the controls on the results card. Called once from init.
+ * Hooks the controls on the Chain Lightning results card. Called once from init.
  */
 export function registerChainLightning() {
     Hooks.on("renderChatMessageHTML", (message, html) => {
-        if (message.getFlag(MODULE_ID, "chainLightning")) return activateResultsCard(message, html);
-        if (!isChainLightningCast(message)) return;
-        for (const button of html.querySelectorAll(".action-areas")) {
-            button.addEventListener("click", () => pendingAreaCast = message.id);
-        }
-    });
-
-    Hooks.on("preCreateRegion", (region, data, options, userId) => {
-        if (userId !== game.user.id || !pendingAreaCast) return;
-        const message = game.messages.get(pendingAreaCast);
-        if (!message?.system.action?.areas?.some(a => a.name === region.name)) return;
-        region.updateSource({ [`flags.${MODULE_ID}.chainLightningCast`]: pendingAreaCast });
-        pendingAreaCast = null;
-    });
-
-    // Damage, renames and adversary rolls need GM rights, so the active GM
-    // resolves the cast no matter who placed the area.
-    Hooks.on("createRegion", (region) => {
-        if (!game.users.activeGM?.isSelf) return;
-        const messageId = region.getFlag(MODULE_ID, "chainLightningCast");
-        if (messageId) resolveFromArea(region, game.messages.get(messageId));
+        if (message.getFlag(MODULE_ID, "chainLightning")) activateResultsCard(message, html);
     });
 }
 
@@ -371,38 +343,6 @@ function castResult(message) {
     return { total: roll.total, isCritical: roll.isCritical };
 }
 
-/**
- * Resolves a cast whose area was just placed: the adversaries inside the area
- * are the targets of the Spellcast Roll.
- * @param {RegionDocument} region
- * @param {ChatMessage} message - The cast's Spellcast Roll message.
- */
-async function resolveFromArea(region, message) {
-    const cast = castResult(message);
-    if (!cast) return;
-    if (region.parent !== canvas.scene) {
-        ui.notifications.warn("Chain Lightning: view the scene where the area was placed to resolve it.");
-        return;
-    }
-
-    const actor = fromUuidSync(message.system.source.actor);
-    const casterTokens = canvas.tokens.placeables.filter(t => t.actor === actor);
-    // An emanation dropped on a token is anchored to it; prefer that token.
-    const base = region.shapes[0]?.base;
-    const caster = casterTokens.find(t => t.document.x === base?.x && t.document.y === base?.y) ?? casterTokens[0];
-    if (!caster) {
-        ui.notifications.warn(`Chain Lightning: ${actor?.name ?? "the caster"} has no token on this scene.`);
-        return;
-    }
-
-    await resolveChainLightning({
-        caster,
-        spellcast: cast.total,
-        critical: cast.isCritical,
-        initialTargets: canvas.tokens.placeables.filter(t => t.document.testInsideRegion(region))
-    });
-}
-
 /** Hostile adversaries that are still standing. */
 function isLivingAdversary(token) {
     const actor = token.actor;
@@ -413,8 +353,8 @@ function isLivingAdversary(token) {
 
 /**
  * Resolves Chain Lightning and posts the results card.
- * Wave 0 is the initial targets (adversaries within Close range of the caster
- * when none are given); the Spellcast Roll succeeds against those whose
+ * Wave 0 is the adversaries within Close range of the caster; the Spellcast
+ * Roll succeeds against those whose
  * Difficulty it meets (all of them on a critical). Each later wave is every
  * adversary not yet targeted within Close range of a target that took damage
  * in the previous wave. Every target the lightning reaches makes a reaction
@@ -424,12 +364,11 @@ function isLivingAdversary(token) {
  * @param {Token} config.caster
  * @param {number} config.spellcast           - Spellcast Roll result.
  * @param {boolean} config.critical           - Whether the Spellcast Roll was a critical success.
- * @param {Token[]} [config.initialTargets]   - Tokens the Spellcast Roll targets.
  * @param {string} [config.damageFormula]     - A formula or a rolled total.
  * @param {boolean} [config.applyDamage]      - Mark HP, or only report it.
  * @param {boolean} [config.rename]           - Number the targets' names (1, 2...).
  */
-async function resolveChainLightning({ caster, spellcast, critical, initialTargets = null, damageFormula = "2d8+4", applyDamage = true, rename = false }) {
+async function resolveChainLightning({ caster, spellcast, critical, damageFormula = "2d8+4", applyDamage = true, rename = false }) {
     const results = [];
     const targeted = new Set([caster.id]);
     let renameCounter = 1;
@@ -443,9 +382,7 @@ async function resolveChainLightning({ caster, spellcast, critical, initialTarge
         !targeted.has(t.id) && isLivingAdversary(t) && sources.some(s => s.isWithinRange(t, "close"))
     );
 
-    let wave = initialTargets
-        ? initialTargets.filter(t => t !== caster && isLivingAdversary(t))
-        : findTargets([caster]);
+    let wave = findTargets([caster]);
     for (let waveIndex = 0; wave.length; waveIndex++) {
         wave.forEach(t => targeted.add(t.id));
         const damaged = [];
