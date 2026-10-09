@@ -291,12 +291,19 @@ function castResult(message) {
     return { total: roll.total, isCritical: roll.isCritical };
 }
 
-/** Hostile adversaries that are still standing. */
-function isLivingAdversary(token) {
-    const actor = token.actor;
-    if (actor?.type !== "adversary" || token.document.disposition !== CONST.TOKEN_DISPOSITIONS.HOSTILE) return false;
+/**
+ * Adversary tokens the lightning can reach. Anything not Friendly counts, the
+ * same split the system's combat tracker makes, so a Neutral adversary token
+ * isn't silently left out.
+ */
+function isAdversary(token) {
+    return token.actor?.type === "adversary" && token.document.disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY;
+}
+
+/** An adversary with every Hit Point marked is out of the fight. */
+function isDefeated(actor) {
     const hp = actor.system.resources.hitPoints;
-    return hp.value < hp.max;
+    return hp.value >= hp.max;
 }
 
 /**
@@ -327,7 +334,7 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
     // isWithinRange is the system's range check: it uses the scene's (or the
     // world's) Close distance and measures edge to edge like the token ruler.
     const findTargets = sources => canvas.tokens.placeables.filter(t =>
-        !targeted.has(t.id) && isLivingAdversary(t) && sources.some(s => s.isWithinRange(t, "close"))
+        !targeted.has(t.id) && isAdversary(t) && sources.some(s => s.isWithinRange(t, "close"))
     );
 
     let wave = findTargets([caster]);
@@ -336,7 +343,9 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
         const damaged = [];
 
         for (const token of wave) {
-            if (rename) {
+            const actor = token.actor;
+            const defeated = isDefeated(actor);
+            if (rename && !defeated) {
                 await token.document.update({
                     name: `${token.name} ${renameCounter++}`,
                     displayBars: CONST.TOKEN_DISPLAY_MODES.OWNER,
@@ -344,7 +353,6 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
                 });
             }
 
-            const actor = token.actor;
             const result = {
                 tokenUuid: token.document.uuid,
                 name: token.name,
@@ -357,6 +365,14 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
                 undone: false
             };
             results.push(result);
+
+            // Listed rather than skipped silently, so the card explains why an
+            // adversary in range wasn't hit. The chain doesn't pass through it.
+            if (defeated) {
+                result.hit = false;
+                result.defeated = true;
+                continue;
+            }
 
             // Only the first wave is targeted by the Spellcast Roll itself;
             // chained adversaries go straight to the reaction roll.
@@ -465,7 +481,9 @@ function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTota
         }
 
         let stats;
-        if (!r.hit) {
+        if (r.defeated) {
+            stats = '<span style="color: #aaa; font-size: 0.9em;">Defeated</span>';
+        } else if (!r.hit) {
             stats = `<span style="color: #aaa; font-size: 0.9em;">Spellcast missed (Difficulty ${r.difficulty})</span>`;
         } else {
             const critText = r.reaction.critical ? ' <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="Critical"></i>' : '';
