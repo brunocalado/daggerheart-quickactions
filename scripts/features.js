@@ -267,11 +267,12 @@ const CHAIN_LIGHTNING = "Chain Lightning";
 let pendingAreaCast = null;
 
 /**
- * Hooks that resolve Chain Lightning when the card's area is placed.
- * Called once from the module's init.
+ * Hooks for Chain Lightning: resolving the cast when the card's area is
+ * placed, and the controls on the results card. Called once from init.
  */
-export function registerChainLightningArea() {
+export function registerChainLightning() {
     Hooks.on("renderChatMessageHTML", (message, html) => {
+        if (message.getFlag(MODULE_ID, "chainLightning")) return activateResultsCard(message, html);
         if (!isChainLightningCast(message)) return;
         for (const button of html.querySelectorAll(".action-areas")) {
             button.addEventListener("click", () => pendingAreaCast = message.id);
@@ -292,6 +293,60 @@ export function registerChainLightningArea() {
         if (!game.users.activeGM?.isSelf) return;
         const messageId = region.getFlag(MODULE_ID, "chainLightningCast");
         if (messageId) resolveFromArea(region, game.messages.get(messageId));
+    });
+}
+
+/**
+ * Results card controls: each target's token image pans the canvas to it,
+ * and the GM gets an undo button for the damage a target took.
+ * @param {ChatMessage} message
+ * @param {HTMLElement} html
+ */
+function activateResultsCard(message, html) {
+    for (const img of html.querySelectorAll(".cl-pan")) {
+        img.addEventListener("click", () => {
+            const token = fromUuidSync(img.dataset.tokenUuid);
+            if (!token?.object || token.parent !== canvas.scene) {
+                ui.notifications.warn("That token isn't on the scene you are viewing.");
+                return;
+            }
+            canvas.animatePan(token.object.center);
+        });
+    }
+    for (const button of html.querySelectorAll(".cl-undo")) {
+        if (!game.user.isGM) {
+            button.remove();
+            continue;
+        }
+        button.addEventListener("click", event => {
+            event.preventDefault();
+            button.disabled = true;
+            undoChainLightningDamage(message, Number(button.dataset.index));
+        });
+    }
+}
+
+/**
+ * Reverts the damage one target took, the way the system's own undo button
+ * does: the resource updates takeDamage returned, negated.
+ * @param {ChatMessage} message - The results card.
+ * @param {number} index        - The target's position in the card.
+ */
+async function undoChainLightningDamage(message, index) {
+    const data = foundry.utils.deepClone(message.getFlag(MODULE_ID, "chainLightning"));
+    const result = data.results[index];
+    if (!result || result.undone) return;
+    const actor = fromUuidSync(result.tokenUuid)?.actor;
+    if (!actor) {
+        ui.notifications.warn(`${result.name} is no longer on the scene; nothing to undo.`);
+        return;
+    }
+
+    await actor.modifyResource(result.updates.map(u => ({ ...u, value: -u.value })));
+    result.undone = true;
+    await message.update({
+        content: chainLightningCardHTML(data),
+        [`flags.${MODULE_ID}.chainLightning`]: data
     });
 }
 
@@ -405,7 +460,17 @@ async function resolveChainLightning({ caster, spellcast, critical, initialTarge
             }
 
             const actor = token.actor;
-            const result = { name: token.name, chained: waveIndex > 0, hit: true, reaction: null, hitPoints: 0 };
+            const result = {
+                tokenUuid: token.document.uuid,
+                name: token.name,
+                img: token.document.texture.src,
+                chained: waveIndex > 0,
+                hit: true,
+                reaction: null,
+                hitPoints: 0,
+                updates: [],
+                undone: false
+            };
             results.push(result);
 
             // Only the first wave is targeted by the Spellcast Roll itself;
@@ -423,14 +488,23 @@ async function resolveChainLightning({ caster, spellcast, critical, initialTarge
                 damageRoll = await new Roll(damageFormula).evaluate();
                 if (game.dice3d) await game.dice3d.showForRoll(damageRoll, game.user, true);
             }
-            result.hitPoints = await damageAdversary(actor, damageRoll.total, applyDamage);
+            Object.assign(result, await damageAdversary(actor, damageRoll.total, applyDamage));
             if (result.hitPoints > 0) damaged.push(token);
         }
 
         wave = findTargets(damaged);
     }
 
-    await createChainLightningMessage({ caster, results, spellcast, critical, damageFormula, damageRoll, applyDamage });
+    // Everything the card shows is kept in a flag, so the card can be rebuilt
+    // after an undo.
+    const data = { spellcast, critical, damageFormula, damageTotal: damageRoll?.total ?? null, applyDamage, results };
+    await ChatMessage.create({
+        user: game.user.id,
+        speaker: ChatMessage.getSpeaker({ token: caster.document }),
+        content: chainLightningCardHTML(data),
+        style: CONST.CHAT_MESSAGE_STYLES.OTHER,
+        flags: { [MODULE_ID]: { chainLightning: data } }
+    });
 }
 
 /**
@@ -459,33 +533,51 @@ async function rollReaction(actor, difficulty) {
  * Magic damage to an adversary. takeDamage applies resistance, immunity,
  * damage reduction and the thresholds the same way the system's damage
  * button does. Without applying, the HP the damage would mark is computed.
- * @returns {Promise<number>} Hit Points marked (or that would be marked).
+ * @returns {Promise<{hitPoints: number, updates: object[]}>} Hit Points marked
+ *   (or that would be marked), and the resource updates made, for undo.
  */
 async function damageAdversary(actor, total, apply) {
     const damageTypes = ["magical"];
-    if (!apply) return actor.convertDamageToThreshold(actor.calculateDamage(total, damageTypes));
+    if (!apply) return { hitPoints: actor.convertDamageToThreshold(actor.calculateDamage(total, damageTypes)), updates: [] };
 
-    const updates = await actor.takeDamage({ main: { total, damageTypes } });
-    const hitPoints = updates?.find(u => u.key === "hitPoints");
-    return Math.abs(hitPoints?.value ?? 0);
+    const { value: hpBefore, max: hpMax } = actor.system.resources.hitPoints;
+    // The updates carry a Set of damage types, which a flag can't store and
+    // modifyResource doesn't need to revert them.
+    const updates = (await actor.takeDamage({ main: { total, damageTypes } }) ?? [])
+        .map(({ damageTypes, ...update }) => update);
+    const hitPoints = updates.find(u => u.key === "hitPoints");
+    const marked = Math.abs(hitPoints?.value ?? 0);
+    // HP stops at the maximum, so undo reverts what was actually marked, not
+    // what the damage asked for — otherwise it would heal a dying adversary.
+    // Computed rather than read back: modifyResource doesn't await its update.
+    if (hitPoints) hitPoints.value = Math.min(marked, hpMax - hpBefore);
+    return { hitPoints: marked, updates };
 }
 
-async function createChainLightningMessage({ caster, results, spellcast, critical, damageFormula, damageRoll, applyDamage }) {
+/**
+ * The results card's markup, built from the data stored on the message.
+ * @returns {string}
+ */
+function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTotal, applyDamage, results }) {
     const titleColor = "#C9A060"; // Gold
 
     let listItemsHtml = "";
 
-    results.forEach((r) => {
+    results.forEach((r, index) => {
         const failed = r.reaction && !r.reaction.success;
-        const statusIcon = failed ? '<i class="fas fa-bolt"></i>' : '<i class="fas fa-shield-alt"></i>';
-        const statusColor = failed ? '#f44336' : r.hit ? '#4CAF50' : '#777';
+        const statusColor = r.undone ? '#777' : failed ? '#f44336' : r.hit ? '#4CAF50' : '#777';
 
-        // Chained Indicator on new line
         const chainedIndicator = r.chained
-            ? `<div style="margin-top: 2px; color: #4a90e2; font-size: 0.85em; display: flex; align-items: center;">
-                    <i class="fas fa-bolt" style="margin-right: 4px;"></i> CHAINED
-               </div>`
-            : '';
+            ? `<span style="color: #4a90e2; font-size: 0.85em; white-space: nowrap;"><i class="fas fa-bolt" style="margin-right: 4px;"></i>CHAINED</span>`
+            : '<span></span>';
+
+        // Undo sits on the name line; non-GMs have it removed on render.
+        let undoControl = '';
+        if (r.undone) {
+            undoControl = '<span style="color: #777; font-size: 0.8em; margin-left: auto;">Undone</span>';
+        } else if (r.updates.length) {
+            undoControl = `<button type="button" class="cl-undo" data-index="${index}" title="Undo damage" style="margin-left: auto; flex: 0 0 auto; width: 24px; height: 24px; padding: 0; line-height: 22px; font-size: 0.8em;"><i class="fas fa-undo"></i></button>`;
+        }
 
         let stats;
         if (!r.hit) {
@@ -493,7 +585,7 @@ async function createChainLightningMessage({ caster, results, spellcast, critica
         } else {
             const critText = r.reaction.critical ? ' <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="Critical"></i>' : '';
             const outcome = failed
-                ? `<span style="color: #ff6b6b; font-weight: bold;">${r.hitPoints} HP</span>`
+                ? `<span style="color: #ff6b6b; font-weight: bold;${r.undone ? ' text-decoration: line-through;' : ''}">${r.hitPoints} HP</span>`
                 : '<span style="color: #aaa;">Resisted</span>';
             stats = `<span style="color: #ccc; font-size: 0.9em;">Reaction: <span style="color: #4a90e2; font-weight: bold;">${r.reaction.total}</span>${critText}</span>
                 <span style="color: #666;">|</span>
@@ -503,19 +595,18 @@ async function createChainLightningMessage({ caster, results, spellcast, critica
         listItemsHtml += `
         <div style="display: flex; flex-direction: column; background: rgba(0,0,0,0.4); margin-bottom: 4px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid ${statusColor}; font-size: 0.95em;">
 
-            <!-- Line 1: Icon + Name -->
+            <!-- Line 1: Token + Name + Undo -->
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                <span style="color: ${statusColor}; width: 15px; text-align: center;">${statusIcon}</span>
+                <img class="cl-pan" src="${r.img}" data-token-uuid="${r.tokenUuid}" title="Pan to ${r.name}" style="width: 28px; height: 28px; flex: 0 0 28px; border: none; object-fit: contain; cursor: pointer;">
                 <strong style="color: #e0e0e0; font-size: 1.05em;">${r.name}</strong>
+                ${undoControl}
             </div>
 
-            <!-- Line 2: Stats (Right Aligned) -->
-            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2px;">
-                ${stats}
+            <!-- Line 2: Chained (left) + Stats (right) -->
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2px;">
+                ${chainedIndicator}
+                <span style="display: flex; align-items: center; gap: 8px;">${stats}</span>
             </div>
-
-            <!-- Line 3: Chained Indicator (if applicable) -->
-            ${chainedIndicator}
         </div>
         `;
     });
@@ -524,9 +615,9 @@ async function createChainLightningMessage({ caster, results, spellcast, critica
         listItemsHtml = '<div style="color: #aaa; text-align: center;">No adversaries in range.</div>';
     }
 
-    const damageText = damageRoll ? `${damageRoll.total} <span style="color: #777;">(${damageFormula})</span>` : damageFormula;
+    const damageText = damageTotal !== null ? `${damageTotal} <span style="color: #777;">(${damageFormula})</span>` : damageFormula;
 
-    const content = `
+    return `
     <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
         <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
             <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
@@ -547,13 +638,6 @@ async function createChainLightningMessage({ caster, results, spellcast, critica
             </div>
         </div>
     </div>`;
-
-    await ChatMessage.create({
-        user: game.user.id,
-        speaker: ChatMessage.getSpeaker({ token: caster.document }),
-        content: content,
-        style: CONST.CHAT_MESSAGE_STYLES.OTHER
-    });
 }
 
 /**
