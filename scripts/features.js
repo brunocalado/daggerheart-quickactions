@@ -450,19 +450,29 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
 /**
  * Draws the chain with Sequencer and JB2A, when both are active: a bolt to
  * every target the lightning reached, wave after wave, and flames on each one
- * that took damage, with sounds. Sequencer plays it on every client.
+ * that took damage, with sounds. Before each wave every player's camera pans
+ * to it. Sequencer plays it all on every client.
  * @param {{from: Token, to: Token, burns: boolean}[][]} strikes - Bolts per wave.
  */
-function playChainLightning(strikes) {
+async function playChainLightning(strikes) {
     if (!game.modules.get(SEQUENCER_MODULE_ID)?.active || !Sequencer.Database.entryExists(BOLT_PRIMARY)) return;
     const waves = strikes.filter(bolts => bolts.length);
     if (!waves.length) return;
+
+    await waitForDiceToClear();
 
     const pick = list => list[Math.floor(Math.random() * list.length)];
     // softFail: a missing JB2A file skips that effect instead of throwing.
     const sequence = new Sequence({ moduleName: MODULE_ID, softFail: true });
     waves.forEach((bolts, index) => {
         if (index > 0) sequence.wait(700);
+        // The middle of every token in the wave, so all of its bolts are in view.
+        const points = bolts.flatMap(({ from, to }) => [from.center, to.center]);
+        const center = {
+            x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+            y: points.reduce((sum, p) => sum + p.y, 0) / points.length
+        };
+        sequence.canvasPan().atLocation(center).duration(600).waitUntilFinished();
         // One sound per wave, not per bolt, so a big wave doesn't stack them.
         sequence.sound().file(pick(LIGHTNING_SOUNDS)).volume(0.6);
         for (const { from, to } of bolts) {
@@ -477,6 +487,20 @@ function playChainLightning(strikes) {
         }
     });
     sequence.play();
+}
+
+/**
+ * Dice So Nice keeps the last roll's dice on screen for a while after they
+ * land, on an overlay that covers the canvas whichever way it pans. Waits that
+ * out, using this user's own Dice So Nice timing, so the bolts aren't hidden.
+ */
+async function waitForDiceToClear() {
+    if (!game.dice3d) return;
+    const settings = game.user.getFlag("dice-so-nice", "settings") ?? {};
+    if (settings.hideAfterRoll === false) return;
+    // The fade-out after the hide delay takes about half a second.
+    const delay = (settings.timeBeforeHide ?? 2000) + 500;
+    await new Promise(resolve => setTimeout(resolve, delay));
 }
 
 /**
