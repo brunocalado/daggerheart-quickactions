@@ -62,7 +62,7 @@ This module streamlines the flow of gameplay by putting the most common Daggerhe
 Available through `QuickActions.Features()`, meant to be wired up to specific subclass items/macros:
 
 * **Unleash Chaos:** Recharges the "Unleash Chaos" item's charge to its maximum (based on the actor's spellcasting trait). Asks what the player wants to pay — 1 Stress (default), 1 HP, or nothing (for the free recharge at the start of a session) — and posts a chat summary of the result.
-* **Chain Lightning:** Opens a configuration window (Difficulty, damage formula, options) and then rolls saves and chained damage against nearby hostile adversaries, posting a full results card to chat.
+* **Chain Lightning:** Resolves the Arcana card after the player casts it from the sheet. Select the caster's token and run it: the window reads the caster's last Chain Lightning Spellcast Roll from chat (or you type it). Every hostile adversary within Close range that the Spellcast Roll beats makes a reaction roll against the Spellcast result, and those who fail take one shared 2d8+4 magic damage roll (resistance, immunity and thresholds applied by the system). The lightning then jumps to adversaries not yet targeted within Close range of anyone who took damage, until nobody is left in range. A results card goes to chat.
 
 ### 🕹️ Interface Integration
 

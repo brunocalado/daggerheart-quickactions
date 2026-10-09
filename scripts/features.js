@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Quick Actions
+ * 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Features Module
  * Contains specific complex macros and features accessed via QuickActions.Features()
@@ -13,28 +21,27 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const CHAIN_LIGHTNING_TEMPLATE_PATH = `modules/${MODULE_ID}/templates/chain-lightning-inline.hbs`;
 const CHAIN_LIGHTNING_TEMPLATE_CONTENT = `
 <div class="dh-qa-app" style="display: flex; flex-direction: column; gap: 10px;">
-    <p class="notes" style="margin-bottom: 10px;">Configure the Chain Lightning effect.</p>
-    
+    <p class="notes" style="margin-bottom: 10px;">Caster: <strong>{{casterName}}</strong>. {{#if foundCast}}Spellcast Roll read from the last Chain Lightning cast in chat.{{else}}Enter the result of the caster's Spellcast Roll.{{/if}}</p>
+
     <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <label style="font-weight: bold; color: #C9A060;">Difficulty</label>
-        <input type="number" name="dc" value="15" min="1" max="30" class="dh-input" style="width: 60px; text-align: center;">
+        <label style="font-weight: bold; color: #C9A060;">Spellcast Roll</label>
+        <input type="number" name="spellcast" value="{{spellcast}}" min="1" max="99" required class="dh-input" style="width: 60px; text-align: center;">
+    </div>
+
+    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+        <label style="font-weight: bold; color: #C9A060;">Critical Success?</label>
+        <input type="checkbox" name="critical" {{#if critical}}checked{{/if}} style="accent-color: #C9A060; transform: scale(1.2);">
     </div>
 
     <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <label style="font-weight: bold; color: #C9A060;">Damage Formula</label>
-        <input type="text" name="damage" value="2d8+4" placeholder="e.g. 2d8+4" class="dh-input" style="width: 150px; text-align: center;">
+        <label style="font-weight: bold; color: #C9A060;">Damage</label>
+        <input type="text" name="damage" value="2d8+4" placeholder="2d8+4 or a rolled total" class="dh-input" style="width: 150px; text-align: center;">
     </div>
 
     <!-- Rename Option -->
     <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
         <label style="font-weight: bold; color: #C9A060;">Rename Targets (1, 2...)?</label>
         <input type="checkbox" name="renameTargets" style="accent-color: #C9A060; transform: scale(1.2);">
-    </div>
-
-    <!-- 3D Dice Option -->
-    <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
-        <label style="font-weight: bold; color: #C9A060;">Show 3D Dice?</label>
-        <input type="checkbox" name="use3dDice" checked style="accent-color: #C9A060; transform: scale(1.2);">
     </div>
 
     <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
@@ -72,12 +79,11 @@ export async function features(featureName, ...args) {
 
     switch (featureName) {
         case 'Chain Lightning':
-            // Check if a token is selected before opening the app
             if (!canvas.tokens.controlled.length) {
-                ui.notifications.warn("Select a token first!");
+                ui.notifications.warn("Select the caster's token first!");
                 return;
             }
-            new ChainLightningApp().render(true);
+            new ChainLightningApp(canvas.tokens.controlled[0]).render(true);
             break;
         case 'Unleash Chaos':
             if (!canvas.tokens.controlled.length) {
@@ -246,7 +252,21 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
 // CHAIN LIGHTNING APP V2
 // ==================================================================
 
+/**
+ * Resolves Chain Lightning (Arcana 5) for a caster token. The player uses the
+ * card as usual (2 Stress, Spellcast Roll); this app resolves the part the
+ * system leaves to the table: reaction rolls with a Difficulty equal to the
+ * Spellcast Roll, and the chain that jumps from every target who took damage.
+ */
 class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
+    /**
+     * @param {Token} caster - The token casting Chain Lightning.
+     */
+    constructor(caster, options = {}) {
+        super(options);
+        this.caster = caster;
+    }
+
     static DEFAULT_OPTIONS = {
         tag: "form",
         id: "chain-lightning-app",
@@ -262,7 +282,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             height: "auto"
         },
         form: {
-            handler: ChainLightningApp.prototype._onSubmit,
+            handler: ChainLightningApp.#onSubmit,
             submitOnChange: false,
             closeOnSubmit: true
         }
@@ -274,229 +294,205 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
         }
     };
 
+    /** @inheritDoc */
+    async _prepareContext(options) {
+        const context = await super._prepareContext(options);
+        const cast = this.#findLastCast();
+        return {
+            ...context,
+            casterName: this.caster.name,
+            foundCast: !!cast,
+            spellcast: cast?.total ?? "",
+            critical: cast?.isCritical ?? false
+        };
+    }
+
+    /**
+     * The caster's most recent Chain Lightning Spellcast Roll in chat, so the GM
+     * doesn't have to copy the number over. Reading the roll from the message
+     * keeps a later reroll (Hope feature, etc.) in effect.
+     * @returns {{total: number, isCritical: boolean}|null}
+     */
+    #findLastCast() {
+        const actor = this.caster.actor;
+        if (!actor) return null;
+        const message = game.messages.contents.findLast(m =>
+            m.type === "dualityRoll"
+            && m.system.source?.actor === actor.uuid
+            && actor.items.get(m.system.source.item)?.name === "Chain Lightning"
+        );
+        const roll = message?.system.roll;
+        if (!roll?._evaluated) return null;
+        return { total: roll.total, isCritical: roll.isCritical };
+    }
+
     /**
      * Handle Form Submission
+     * @this {ChainLightningApp}
      */
-    async _onSubmit(event, form, formData) {
-        const originToken = canvas.tokens.controlled[0];
-        if (!originToken) return;
+    static async #onSubmit(event, form, formData) {
+        const { spellcast, critical, damage, applyDamage, renameTargets } = formData.object;
 
-        // 1. Get Form Data
-        const dc = parseInt(formData.object.dc);
-        const damageFormula = formData.object.damage;
-        const shouldApplyDamage = formData.object.applyDamage; // Boolean
-        const shouldRename = formData.object.renameTargets;   // Boolean
-        const use3dDice = formData.object.use3dDice;          // Boolean
-
-        // 2. Validate
-        if (isNaN(dc) || dc < 1) {
-            ui.notifications.error("Invalid difficulty!");
+        if (!Number.isInteger(spellcast) || spellcast < 1) {
+            ui.notifications.error("Enter the result of the Spellcast Roll.");
             return;
         }
-        if (!damageFormula) {
+        if (!damage || !Roll.validate(damage)) {
             ui.notifications.error("Invalid damage formula!");
             return;
         }
 
-        // 3. Execution Logic
-        await this._executeChainLightning(originToken, dc, damageFormula, shouldApplyDamage, shouldRename, use3dDice);
+        await this.#execute({
+            spellcast,
+            critical,
+            damageFormula: damage,
+            shouldApplyDamage: applyDamage,
+            shouldRename: renameTargets
+        });
     }
 
     /**
-     * Core Logic for Chain Lightning
+     * Core Logic for Chain Lightning.
+     * Wave 0 is every adversary within Close range of the caster; the Spellcast
+     * Roll succeeds against those whose Difficulty it meets (all of them on a
+     * critical). Each later wave is every adversary not yet targeted within Close
+     * range of a target that took damage in the previous wave. Every target the
+     * lightning reaches makes a reaction roll against the Spellcast Roll result.
      */
-    async _executeChainLightning(originToken, dc, damageFormula, shouldApplyDamage, shouldRename, use3dDice) {
+    async #execute({ spellcast, critical, damageFormula, shouldApplyDamage, shouldRename }) {
+        const caster = this.caster;
         const results = [];
-        const processedIDs = new Set(); // To track who has already been hit
+        const targeted = new Set([caster.id]);
         let renameCounter = 1;
+        // One damage roll applied to every target, per the SRD rule for spells
+        // that hit several targets. Rolled on the first failed reaction roll.
+        let damageRoll = null;
 
-        // --- HELPER: Apply Damage ---
-        const applyDamageToActor = async (token, damage) => {
-            if (!token.actor || damage === null || damage === 0) return 0;
-
-            const major = token.actor.system.damageThresholds?.major || 0;
-            const severe = token.actor.system.damageThresholds?.severe || 0;
-            const doubleSevere = severe * 2;
-
-            let hitPointsToAdd = 0;
-
-            if (damage < major) {
-                hitPointsToAdd = 1;
-            } else if (damage >= major && damage < severe) {
-                hitPointsToAdd = 2;
-            } else if (damage >= severe && damage < doubleSevere) {
-                hitPointsToAdd = 3;
-            } else if (damage >= doubleSevere) {
-                hitPointsToAdd = 4;
-            }
-
-            if (shouldApplyDamage && hitPointsToAdd > 0) {
-                const currentHP = token.actor.system.resources?.hitPoints?.value || 0;
-                const newHP = currentHP + hitPointsToAdd;
-                await token.actor.update({ "system.resources.hitPoints.value": newHP });
-            }
-
-            return hitPointsToAdd;
+        const isLivingAdversary = t => {
+            const actor = t.actor;
+            if (actor?.type !== "adversary" || t.document.disposition !== CONST.TOKEN_DISPOSITIONS.HOSTILE) return false;
+            const hp = actor.system.resources.hitPoints;
+            return hp.value < hp.max;
         };
+        // isWithinRange is the system's range check: it uses the scene's (or the
+        // world's) Close distance and measures edge to edge like the token ruler.
+        const findTargets = sources => canvas.tokens.placeables.filter(t =>
+            !targeted.has(t.id) && isLivingAdversary(t) && sources.some(s => s.isWithinRange(t, "close"))
+        );
 
-        // --- HELPER: Process Token Roll ---
-        const processToken = async (token, isChained = false) => {
-            // Renaming Logic
-            if (shouldRename) {
-                await token.document.update({ 
-                    name: `${token.name} ${renameCounter++}`,
-                    displayBars: 40, // Owner
-                    displayName: 50  // Always
-                });
-            }
+        let wave = findTargets([caster]);
+        for (let waveIndex = 0; wave.length; waveIndex++) {
+            wave.forEach(t => targeted.add(t.id));
+            const damaged = [];
 
-            // Roll Save
-            const roll = new Roll("1d20");
-            await roll.evaluate(); 
-            if (use3dDice && game.dice3d) await game.dice3d.showForRoll(roll, game.user, true);
-
-            const total = roll.total;
-            const success = total === 20 || total >= dc;
-
-            let damageResult = null;
-            let tookDamage = false;
-            let hitPointsAdded = 0;
-
-            // Damage Calculation: Only take damage if failed
-            if (!success) {
-                const damageRoll = new Roll(damageFormula);
-                await damageRoll.evaluate();
-                if (use3dDice && game.dice3d) await game.dice3d.showForRoll(damageRoll, game.user, true);
-
-                damageResult = damageRoll.total;
-                tookDamage = true;
-                hitPointsAdded = await applyDamageToActor(token, damageResult);
-            } 
-
-            return {
-                token: token,
-                name: token.name,
-                roll: total,
-                success: success,
-                damage: damageResult,
-                critical: total === 20,
-                tookDamage: tookDamage, // Crucial for chaining
-                isChained: isChained,
-                hitPointsAdded: hitPointsAdded
-            };
-        };
-
-        // --- HELPER: Find Valid Targets in Range ---
-        // Finds all valid targets within 30ft of ANY token in the 'sources' list
-        const findNewTargets = (sources) => {
-            const validTargets = [];
-            
-            // Iterate over all potential tokens on canvas
-            for (const t of canvas.tokens.placeables) {
-                // Skip if already processed
-                if (processedIDs.has(t.id)) continue;
-
-                // Validate Type: Adversary AND Hostile
-                const isAdversary = t.actor?.type === "adversary";
-                const isHostile = t.document.disposition === -1;
-                if (!isAdversary || !isHostile) continue;
-
-                // Check distance against ALL current sources
-                // If it is within range of AT LEAST ONE source, it gets hit
-                let inRange = false;
-                for (const source of sources) {
-                    const measurement = canvas.grid.measurePath([source.center, t.center]);
-                    if (measurement.distance <= 30) {
-                        inRange = true;
-                        break; // Found a source near enough
-                    }
+            for (const token of wave) {
+                if (shouldRename) {
+                    await token.document.update({
+                        name: `${token.name} ${renameCounter++}`,
+                        displayBars: CONST.TOKEN_DISPLAY_MODES.OWNER,
+                        displayName: CONST.TOKEN_DISPLAY_MODES.ALWAYS
+                    });
                 }
 
-                if (inRange) {
-                    validTargets.push(t);
-                    processedIDs.add(t.id); // Mark as processed immediately so duplicates aren't added
-                }
-            }
-            return validTargets;
-        };
-
-
-        // --- STEP 1: Process Origin ---
-        processedIDs.add(originToken.id);
-        const originResult = await processToken(originToken, false);
-        results.push(originResult);
-
-        // --- STEP 2: Initial Burst & Chain ---
-        let currentWaveSources = [originToken];
-        
-        // Loop for Waves
-        let safetyCounter = 0;
-        
-        while (currentWaveSources.length > 0 && safetyCounter < 20) {
-            // Find all targets near the current sources
-            const nextTargets = findNewTargets(currentWaveSources);
-            
-            if (nextTargets.length === 0) break; // No more targets in range
-
-            // Prepare list for NEXT wave sources
-            const potentialNextSources = [];
-
-            // Determine if this is the first wave (Neighbors of Origin) or subsequent (Chained)
-            // safetyCounter == 0 means first wave (neighbors of origin). They are NOT chained.
-            // safetyCounter > 0 means subsequent waves. They ARE chained.
-            const isChainedWave = safetyCounter > 0;
-
-            for (const target of nextTargets) {
-                const result = await processToken(target, isChainedWave); 
+                const actor = token.actor;
+                const result = { name: token.name, chained: waveIndex > 0, hit: true, reaction: null, hitPoints: 0 };
                 results.push(result);
 
-                // If this target took damage, they become a source for the next wave
-                if (result.tookDamage) {
-                    potentialNextSources.push(target);
+                // Only the first wave is targeted by the Spellcast Roll itself;
+                // chained adversaries go straight to the reaction roll.
+                if (waveIndex === 0 && !critical && spellcast < actor.system.difficulty) {
+                    result.hit = false;
+                    result.difficulty = actor.system.difficulty;
+                    continue;
                 }
+
+                result.reaction = await this.#rollReaction(actor, spellcast);
+                if (result.reaction.success) continue;
+
+                if (!damageRoll) {
+                    damageRoll = await new Roll(damageFormula).evaluate();
+                    if (game.dice3d) await game.dice3d.showForRoll(damageRoll, game.user, true);
+                }
+                result.hitPoints = await this.#damage(actor, damageRoll.total, shouldApplyDamage);
+                if (result.hitPoints > 0) damaged.push(token);
             }
 
-            // Update sources for next iteration
-            currentWaveSources = potentialNextSources;
-            safetyCounter++;
+            wave = findTargets(damaged);
         }
 
-        // --- STEP 3: Chat Message ---
-        await this._createChatMessage(results, dc, damageFormula, shouldApplyDamage, originToken);
+        await this.#createChatMessage(results, spellcast, critical, damageFormula, damageRoll, shouldApplyDamage);
     }
 
-    async _createChatMessage(results, dc, damageFormula, applied, originToken) {
+    /**
+     * Rolls an adversary reaction roll through the system, so roll bonuses and
+     * effects that apply to reaction rolls are included. A natural 20 succeeds.
+     * @returns {Promise<{total: number, critical: boolean, success: boolean}>}
+     */
+    async #rollReaction(actor, difficulty) {
+        const config = await actor.diceRoll({
+            title: game.i18n.localize("DAGGERHEART.GENERAL.reactionRoll"),
+            effects: await game.system.api.data.actions.actionsTypes.base.getActionRelevantEffects(
+                { action: { actionType: "reaction", roll: {} } },
+                actor
+            ),
+            roll: { type: "trait", difficulty },
+            actionType: "reaction",
+            hasRoll: true,
+            dialog: { configure: false },
+            skips: { createMessage: true }
+        });
+        const { total, isCritical } = config.roll;
+        return { total, critical: isCritical, success: isCritical || total >= difficulty };
+    }
+
+    /**
+     * Magic damage to an adversary. takeDamage applies resistance, immunity,
+     * damage reduction and the thresholds the same way the system's damage
+     * button does. Without applying, the HP the damage would mark is computed.
+     * @returns {Promise<number>} Hit Points marked (or that would be marked).
+     */
+    async #damage(actor, total, apply) {
+        const damageTypes = ["magical"];
+        if (!apply) return actor.convertDamageToThreshold(actor.calculateDamage(total, damageTypes));
+
+        const updates = await actor.takeDamage({ main: { total, damageTypes } });
+        const hitPoints = updates?.find(u => u.key === "hitPoints");
+        return Math.abs(hitPoints?.value ?? 0);
+    }
+
+    async #createChatMessage(results, spellcast, critical, damageFormula, damageRoll, applied) {
         const titleColor = "#C9A060"; // Gold
 
         let listItemsHtml = "";
 
         results.forEach((r) => {
-            const statusIcon = r.success ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>';
-            const statusColor = r.success ? '#4CAF50' : '#f44336'; 
-            
-            const critText = r.critical ? ' <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="Critical"></i>' : '';
-            
+            const failed = r.reaction && !r.reaction.success;
+            const statusIcon = failed ? '<i class="fas fa-bolt"></i>' : '<i class="fas fa-shield-alt"></i>';
+            const statusColor = failed ? '#f44336' : r.hit ? '#4CAF50' : '#777';
+
             // Chained Indicator on new line
-            const chainedIndicator = r.isChained 
+            const chainedIndicator = r.chained
                 ? `<div style="margin-top: 2px; color: #4a90e2; font-size: 0.85em; display: flex; align-items: center;">
                         <i class="fas fa-bolt" style="margin-right: 4px;"></i> CHAINED
-                   </div>` 
+                   </div>`
                 : '';
-            
-            const damageText = r.damage !== null 
-                ? `<span style="color: #ff6b6b; font-weight: bold;">${r.damage} dmg</span>` 
-                : '<span style="color: #aaa;">No dmg</span>';
-                
-            let hpText = "";
-            if (applied && r.hitPointsAdded > 0) {
-                hpText = ` <span style="background: #333; color: #ff9800; padding: 0 4px; border-radius: 3px; font-size: 0.85em;">+${r.hitPointsAdded}HP</span>`;
-            } else if (!applied && r.hitPointsAdded > 0) {
-                hpText = ` <span style="color: #777; font-size: 0.85em;">+${r.hitPointsAdded}HP</span>`;
+
+            let stats;
+            if (!r.hit) {
+                stats = `<span style="color: #aaa; font-size: 0.9em;">Spellcast missed (Difficulty ${r.difficulty})</span>`;
+            } else {
+                const critText = r.reaction.critical ? ' <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="Critical"></i>' : '';
+                const outcome = failed
+                    ? `<span style="color: #ff6b6b; font-weight: bold;">${r.hitPoints} HP</span>`
+                    : '<span style="color: #aaa;">Resisted</span>';
+                stats = `<span style="color: #ccc; font-size: 0.9em;">Reaction: <span style="color: #4a90e2; font-weight: bold;">${r.reaction.total}</span>${critText}</span>
+                    <span style="color: #666;">|</span>
+                    <span style="font-size: 0.9em;">${outcome}</span>`;
             }
 
             listItemsHtml += `
             <div style="display: flex; flex-direction: column; background: rgba(0,0,0,0.4); margin-bottom: 4px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid ${statusColor}; font-size: 0.95em;">
-                
+
                 <!-- Line 1: Icon + Name -->
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
                     <span style="color: ${statusColor}; width: 15px; text-align: center;">${statusIcon}</span>
@@ -505,11 +501,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 <!-- Line 2: Stats (Right Aligned) -->
                 <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2px;">
-                    <span style="color: #ccc; font-size: 0.9em;">Roll: <span style="color: #4a90e2; font-weight: bold;">${r.roll}</span>${critText}</span>
-                    <span style="color: #666;">|</span>
-                    <span style="font-size: 0.9em;">${damageText}</span>
-                    ${hpText ? `<span style="color: #666;">|</span>` : ''}
-                    ${hpText}
+                    ${stats}
                 </div>
 
                 <!-- Line 3: Chained Indicator (if applicable) -->
@@ -518,6 +510,12 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             `;
         });
 
+        if (!results.length) {
+            listItemsHtml = '<div style="color: #aaa; text-align: center;">No adversaries within Close range.</div>';
+        }
+
+        const damageText = damageRoll ? `${damageRoll.total} <span style="color: #777;">(${damageFormula})</span>` : damageFormula;
+
         const content = `
         <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
             <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
@@ -525,12 +523,12 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
                     Chain Lightning
                 </h3>
             </header>
-            
+
             <div class="card-content" style="background: #141414; padding: 15px;">
 
-                <div style="display: flex; justify-content: space-around; margin-bottom: 10px; font-size: 0.9em; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px;">
-                    <span><strong>Dif:</strong> ${dc}</span>
-                    <span><strong>Dmg:</strong> ${damageFormula}</span>
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 10px; font-size: 0.9em; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px;">
+                    <span><strong>Spellcast:</strong> ${spellcast}${critical ? ' <i class="fas fa-star" style="color: #FFD700;" title="Critical"></i>' : ''}</span>
+                    <span><strong>Dmg:</strong> ${damageText} magic</span>
                     <span><strong>Mode:</strong> ${applied ? '<span style="color:#f44336">Damage</span>' : '<span style="color:#4a90e2">Info</span>'}</span>
                 </div>
 
@@ -542,7 +540,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         await ChatMessage.create({
             user: game.user.id,
-            speaker: ChatMessage.getSpeaker({ token: originToken }),
+            speaker: ChatMessage.getSpeaker({ token: this.caster.document }),
             content: content,
             style: CONST.CHAT_MESSAGE_STYLES.OTHER
         });
