@@ -356,6 +356,8 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
     // One damage roll applied to every target, per the SRD rule for spells
     // that hit several targets. Rolled on the first failed reaction roll.
     let damageRoll = null;
+    // Every roll made, shown together as one Dice So Nice throw at the end.
+    const rolls = [];
 
     // Each target remembers the token the lightning jumped from, for the animation.
     const jumpedFrom = new Map();
@@ -415,14 +417,14 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
                 continue;
             }
 
-            result.reaction = await rollReaction(actor, spellcast);
+            result.reaction = await rollReaction(actor, spellcast, rolls);
             const bolt = { from: jumpedFrom.get(token.id), to: token, burns: false };
             bolts.push(bolt);
             if (result.reaction.success) continue;
 
             if (!damageRoll) {
                 damageRoll = await new Roll(damageFormula).evaluate();
-                if (game.dice3d) await game.dice3d.showForRoll(damageRoll, game.user, true);
+                rolls.push(damageRoll);
             }
             Object.assign(result, await damageAdversary(actor, damageRoll.total, applyDamage));
             if (result.hitPoints > 0) damaged.push(token);
@@ -432,6 +434,7 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
         wave = findTargets(damaged);
     }
 
+    await showDice(rolls);
     // Not awaited: the card goes to chat while the chain is still playing.
     playChainLightning(strikes);
 
@@ -504,12 +507,18 @@ async function waitForDiceToClear() {
 }
 
 /**
- * Rolls an adversary reaction roll through the system, so roll bonuses and
- * effects that apply to reaction rolls are included. A natural 20 succeeds.
+ * Rolls an adversary reaction roll the way the system builds one, so roll
+ * bonuses and effects that apply to reaction rolls are included. A natural 20
+ * succeeds. Built and evaluated here rather than through actor.diceRoll, which
+ * shows every roll in Dice So Nice on its own; the roll is added to `rolls`
+ * to be shown with the others in one throw.
+ * @param {Actor} actor
+ * @param {number} difficulty
+ * @param {Roll[]} rolls
  * @returns {Promise<{total: number, critical: boolean, success: boolean}>}
  */
-async function rollReaction(actor, difficulty) {
-    const config = await actor.diceRoll({
+async function rollReaction(actor, difficulty, rolls) {
+    const roll = await actor.rollClass.buildConfigure({
         title: game.i18n.localize("DAGGERHEART.GENERAL.reactionRoll"),
         effects: await game.system.api.data.actions.actionsTypes.base.getActionRelevantEffects(
             { action: { actionType: "reaction", roll: {} } },
@@ -519,10 +528,23 @@ async function rollReaction(actor, difficulty) {
         actionType: "reaction",
         hasRoll: true,
         dialog: { configure: false },
-        skips: { createMessage: true }
+        source: { actor: actor.uuid },
+        data: actor.getRollData()
     });
-    const { total, isCritical } = config.roll;
-    return { total, critical: isCritical, success: isCritical || total >= difficulty };
+    await roll.evaluate();
+    rolls.push(roll);
+    return { total: roll.total, critical: roll.isCritical, success: roll.isCritical || roll.total >= difficulty };
+}
+
+/**
+ * Throws every roll of the cast as a single Dice So Nice animation, shown to
+ * every player, instead of one throw per adversary.
+ * @param {Roll[]} rolls - Evaluated rolls.
+ */
+async function showDice(rolls) {
+    if (!game.dice3d || !rolls.length) return;
+    const throwAll = Roll.fromTerms([foundry.dice.terms.PoolTerm.fromRolls(rolls)]);
+    await game.dice3d.showForRoll(throwAll, game.user, true);
 }
 
 /**
