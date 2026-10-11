@@ -63,9 +63,9 @@ These run through `QuickActions.Features()` and are meant to be wired to specifi
 
 Unleash Chaos recharges the "Unleash Chaos" item to its maximum charge, which depends on the actor's spellcasting trait. It asks what the player pays (1 Stress by default, 1 HP, or nothing for the free recharge at the start of a session) and posts a summary to chat.
 
-Chain Lightning resolves the Arcana card after the player casts it from the sheet. Select the caster's token and run `QuickActions.Features("Chain Lightning")`. The window reads the caster's last Chain Lightning Spellcast Roll from chat, or you type it.
+Chain Lightning resolves the Arcana card after the player casts it from the sheet. The player or the GM can run it, but a GM must be online for the damage to be applied. Select the caster's token and run `QuickActions.Features("Chain Lightning")`. The window reads the caster's last Chain Lightning Spellcast Roll from chat, or you type it.
 
-Every hostile adversary within Close range that the Spellcast Roll beats makes a reaction roll against the Spellcast result. Those who fail take one shared 2d8+4 magic damage roll, with resistance, immunity and thresholds applied by the system. The lightning then jumps to adversaries not yet targeted within Close range of anyone who took damage, until nobody is left in range. A results card goes to chat. Clicking a target's token image pans the map to it, and the GM can undo the damage each target took.
+Every visible hostile adversary within Close range that the Spellcast Roll beats makes a reaction roll against the Spellcast result. Those who fail take one shared 2d8+4 magic damage roll, with resistance, immunity and thresholds applied by the system. The lightning then jumps to adversaries not yet targeted within Close range of anyone who took damage, until nobody is left in range. A results card goes to chat. Clicking a target's token image pans the map to it, and the GM can undo the damage each target took.
 
 With Daggerheart Distances active, Close range is measured the way its rings show it, including elevation when its 3D mode is on. Otherwise the system's own range check is used. With Sequencer and JB2A (Patreon or free) active, the lightning is animated jumping from the caster to each target and along the chain, and every target that takes damage catches fire, with sound effects.
 

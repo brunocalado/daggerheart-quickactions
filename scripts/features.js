@@ -202,8 +202,10 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
 // Chain Lightning (Arcana 5). The player uses the card as usual (2 Stress,
 // Spellcast Roll); this module resolves the part the system leaves to the
 // table: reaction rolls with a Difficulty equal to the Spellcast Roll, and the
-// chain that jumps from every target who took damage. The GM runs it from
-// the macro's window after the player casts.
+// chain that jumps from every target who took damage. The player (or the GM)
+// runs it from the macro's window after casting. A player can't write to
+// adversaries, but the system's modifyResource relays the HP update to the
+// active GM, so damage goes through the same path as its own damage button.
 
 const CHAIN_LIGHTNING = "Chain Lightning";
 const DISTANCES_MODULE_ID = "daggerheart-distances";
@@ -347,12 +349,10 @@ function isDefeated(actor) {
  * @param {boolean} config.critical           - Whether the Spellcast Roll was a critical success.
  * @param {string} [config.damageFormula]     - A formula or a rolled total.
  * @param {boolean} [config.applyDamage]      - Mark HP, or only report it.
- * @param {boolean} [config.rename]           - Number the targets' names (1, 2...).
  */
-async function resolveChainLightning({ caster, spellcast, critical, damageFormula = "2d8+4", applyDamage = true, rename = false }) {
+async function resolveChainLightning({ caster, spellcast, critical, damageFormula = "2d8+4", applyDamage = true }) {
     const results = [];
     const targeted = new Set([caster.id]);
-    let renameCounter = 1;
     // One damage roll applied to every target, per the SRD rule for spells
     // that hit several targets. Rolled on the first failed reaction roll.
     let damageRoll = null;
@@ -361,8 +361,10 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
 
     // Each target remembers the token the lightning jumped from, for the animation.
     const jumpedFrom = new Map();
+    // Hidden tokens are on every client's canvas, a player's too, so they are
+    // skipped rather than struck and named on the card.
     const findTargets = sources => canvas.tokens.placeables.filter(t => {
-        if (targeted.has(t.id) || !isAdversary(t)) return false;
+        if (targeted.has(t.id) || t.document.hidden || !isAdversary(t)) return false;
         const source = sources.find(s => isWithinClose(s, t));
         if (source) jumpedFrom.set(t.id, source);
         return !!source;
@@ -380,13 +382,6 @@ async function resolveChainLightning({ caster, spellcast, critical, damageFormul
         for (const token of wave) {
             const actor = token.actor;
             const defeated = isDefeated(actor);
-            if (rename && !defeated) {
-                await token.document.update({
-                    name: `${token.name} ${renameCounter++}`,
-                    displayBars: CONST.TOKEN_DISPLAY_MODES.OWNER,
-                    displayName: CONST.TOKEN_DISPLAY_MODES.ALWAYS
-                });
-            }
 
             const result = {
                 tokenUuid: token.document.uuid,
@@ -682,8 +677,8 @@ function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTota
 }
 
 /**
- * The macro's window: the GM picks the caster's token and confirms the
- * Spellcast Roll. Targets are the adversaries within Close range of the caster.
+ * The macro's window: whoever runs it picks the caster's token and confirms
+ * the Spellcast Roll. Targets are the adversaries within Close range of the caster.
  */
 class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /**
@@ -745,7 +740,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @this {ChainLightningApp}
      */
     static async #onSubmit(event, form, formData) {
-        const { spellcast, critical, damage, applyDamage, renameTargets } = formData.object;
+        const { spellcast, critical, damage, applyDamage } = formData.object;
 
         if (!Number.isInteger(spellcast) || spellcast < 1) {
             ui.notifications.error("Enter the result of the Spellcast Roll.");
@@ -755,6 +750,12 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             ui.notifications.error("Invalid damage formula!");
             return;
         }
+        // Without an active GM a player's HP updates are relayed to nobody, and
+        // the card would report damage that was never marked.
+        if (applyDamage && !game.users.activeGM) {
+            ui.notifications.error("Chain Lightning needs a GM online to apply damage.");
+            return;
+        }
 
         this.close();
         await resolveChainLightning({
@@ -762,8 +763,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
             spellcast,
             critical,
             damageFormula: damage,
-            applyDamage,
-            rename: renameTargets
+            applyDamage
         });
     }
 }

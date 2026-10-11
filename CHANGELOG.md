@@ -1,3 +1,9 @@
+# Unreleased
+
+- [Changed] Players can run Chain Lightning themselves. Damage reaches the adversaries through the active GM, the same way the system's own damage button does, so a GM has to be online when Apply Damage is on. Only the GM sees the undo buttons.
+- [Changed] Chain Lightning skips hidden tokens, so it no longer strikes adversaries the players can't see or names them on the card.
+- [Removed] Chain Lightning's Rename Targets option. Clicking a target's token image on the card finds it on the map instead.
+
 # 0.7.8
 
 - [Changed] Chain Lightning (`QuickActions.Features("Chain Lightning")`) now follows the Arcana card. Select the caster's token: the window reads the caster's last Chain Lightning Spellcast Roll from chat (or you type it). Every adversary within Close range whose Difficulty the Spellcast Roll meets, or all of them on a critical, makes a reaction roll against the Spellcast result. Those who fail take one shared 2d8+4 magic damage roll, applied through the system, so resistance, immunity and thresholds count. The lightning then jumps to adversaries not yet targeted within Close range of anyone who marked HP, until nobody is left. Before, the selected token was treated as the first target and rolled its own save, the chain also jumped from targets that took no damage, the reaction Difficulty was typed by hand, and damage ignored magic resistance and immunity.
