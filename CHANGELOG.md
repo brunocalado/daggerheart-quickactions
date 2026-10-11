@@ -1,8 +1,9 @@
-# Unreleased
+# 0.7.9
 
 - [Changed] Players can run Chain Lightning themselves. Damage reaches the adversaries through the active GM, the same way the system's own damage button does, so a GM has to be online when Apply Damage is on. Only the GM sees the undo buttons.
 - [Changed] Chain Lightning skips hidden tokens, so it no longer strikes adversaries the players can't see or names them on the card.
 - [Removed] Chain Lightning's Rename Targets option. Clicking a target's token image on the card finds it on the map instead.
+- Checked in a disposable Foundry 14.369 world with a GM and a player client: the player cast it, a magic-resistant adversary took half damage, the chain jumped past the caster's Close range, a hidden adversary was left alone, the GM made the HP writes and alone saw the undo buttons, and with no GM online the player got an error and no card was posted. Nothing went to the player's error log. The animation and Dice So Nice were not rechecked.
 
 # 0.7.8
 
