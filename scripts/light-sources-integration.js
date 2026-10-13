@@ -38,8 +38,9 @@ const LIGHT_SOURCES_MODULE_ID = "light-sources";
  * practical floor. All of these can be adjusted by the GM afterward in the Light Sources
  * module's Configure Light Sources window.
  *
- * The last four entries point at the Daggerheart system's own Hope & Fear items rather than
- * this module's compendium. Mandragorian Torch is described as visible only to its bearer,
+ * The last five entries point at the Daggerheart system's own items rather than this module's
+ * compendium, which ships only light items the system lacks: Alistair's Torch from the Core Set
+ * loot, then four Hope & Fear items. Mandragorian Torch is described as visible only to its bearer,
  * which a token light cannot express, so it ships as an ordinary torch with `consume: "none"`
  * (it is durable loot). Glowmoss Mushroom lasts "until your next long rest", which has no
  * minute equivalent, so it is unlimited and put out by hand. Sunlight Orb covers an area; a
@@ -63,19 +64,6 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         consume: "copy",
         durationMode: "world",
         durationMinutes: 60
-    },
-    {
-        uuid: `Compendium.${MODULE_ID}.items.Item.1jDbk3QxoS5RRuu4`, // Alistair's Torch
-        patterns: [
-            {
-                id: "blinding-light",
-                name: "Blinding Light",
-                light: { dim: 240, bright: 120, angle: 360, color: "#eebbff", alpha: 0.17, animation: { type: "ghost", speed: 3, intensity: 4, reverse: false } }
-            }
-        ],
-        consume: "none",
-        durationMode: "world",
-        durationMinutes: 0
     },
     {
         uuid: `Compendium.${MODULE_ID}.items.Item.68oCAtOyvAvs1dio`, // Hooded Lantern
@@ -242,6 +230,19 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         consume: "none",
         durationMode: "world",
         durationMinutes: 360
+    },
+    {
+        uuid: "Compendium.daggerheart.loot.Item.MeEg57T6MKpw3sme", // Alistair's Torch (Core Set)
+        patterns: [
+            {
+                id: "blinding-light",
+                name: "Blinding Light",
+                light: { dim: 240, bright: 120, angle: 360, color: "#eebbff", alpha: 0.17, animation: { type: "ghost", speed: 3, intensity: 4, reverse: false } }
+            }
+        ],
+        consume: "none",
+        durationMode: "world",
+        durationMinutes: 0
     },
     {
         uuid: "Compendium.daggerheart.loot.Item.kE0lB97shhgr3DuE", // Mandragorian Torch (Hope & Fear)

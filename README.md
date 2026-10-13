@@ -81,7 +81,7 @@ With Daggerheart Distances active, Close range is measured the way its rings sho
 
 ### Optional integrations
 
-If the [Light Sources](https://github.com/brunocalado/light-sources) module is installed and active, every item that gives light in this module's Items compendium is registered with it automatically: Candle, Torch, Alistair's Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, and Emergency Flare. So are four *Hope & Fear* items from the Daggerheart system's own compendiums: Mandragorian Torch, Warding Candle, Glowmoss Mushroom, and Sunlight Orb. Equip one from the Token HUD and it lights up, with no manual configuration.
+If the [Light Sources](https://github.com/brunocalado/light-sources) module is installed and active, every item that gives light in this module's Items compendium is registered with it automatically: Candle, Torch, Hooded Lantern, Bullseye Lantern, Storm Lantern, Oil Lamp, Candelabra, Miner's Helmet, Tactical Flashlight, Smartphone, Matches, Glowstick, and Emergency Flare. So are five items from the Daggerheart system's own compendiums: Alistair's Torch from the Core Set, and Mandragorian Torch, Warding Candle, Glowmoss Mushroom, and Sunlight Orb from *Hope & Fear*. Equip one from the Token HUD and it lights up, with no manual configuration.
 
 ## Settings
 
