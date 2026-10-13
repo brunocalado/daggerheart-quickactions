@@ -46,7 +46,8 @@ const LIGHT_SOURCES_MODULE_ID = "light-sources";
  * player who wants it to stay put can drop it from the Token HUD.
  *
  * Color intensity (`alpha`) stays within 0.1–0.2 on every pattern: higher values wash the
- * scene out in the light's color.
+ * scene out in the light's color. A pattern with no animation (`type: ""`) still passes
+ * `speed` and `intensity` of 1, the minimum Light Sources' schema accepts.
  * @type {Readonly<object[]>}
  */
 const LIGHT_SOURCE_ENTRIES = Object.freeze([
@@ -126,7 +127,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
             {
                 id: "high-beam",
                 name: "High Beam",
-                light: { dim: 120, bright: 60, angle: 30, color: "#ffffff", alpha: 0.17, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+                light: { dim: 120, bright: 60, angle: 30, color: "#ffffff", alpha: 0.17, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             },
             {
                 id: "strobe",
@@ -144,7 +145,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
             {
                 id: "camera-flash",
                 name: "Camera Flash",
-                light: { dim: 30, bright: 15, angle: 90, color: "#ddddff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+                light: { dim: 30, bright: 15, angle: 90, color: "#ddddff", alpha: 0.13, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             }
         ],
         consume: "none",
@@ -196,7 +197,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
             {
                 id: "neon-green",
                 name: "Neon Green",
-                light: { dim: 20, bright: 10, angle: 360, color: "#00ff00", alpha: 0.14, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+                light: { dim: 20, bright: 10, angle: 360, color: "#00ff00", alpha: 0.14, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             }
         ],
         consume: "copy",
@@ -274,7 +275,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
             {
                 id: "blue-glow",
                 name: "Blue Glow",
-                light: { dim: 20, bright: 10, angle: 360, color: "#3399ff", alpha: 0.13, animation: { type: "", speed: 0, intensity: 0, reverse: false } }
+                light: { dim: 20, bright: 10, angle: 360, color: "#3399ff", alpha: 0.13, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             }
         ],
         consume: "copy",
