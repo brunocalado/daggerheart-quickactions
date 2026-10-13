@@ -1,8 +1,9 @@
-# Unreleased
+# 0.7.10
 
 - [Changed] The Biography tab is now one GM switch, **Hide Biography Tab**, in the Interface Settings window. On, the tab is hidden on character sheets for everyone; off (the default), it is shown. It replaces **Biography Tab Visibility** and its three choices. A world that had the tab forced hidden starts with it visible again.
 - [Removed] The per-user **Hide Biography Tab** setting in the settings list.
 - [Changed] **Token Hover Tooltip** and **Token Hope Bar** (GM) moved out of the settings list into a new Tokens section of the Interface Settings window. Their behaviour and stored values are unchanged. **Token Tooltip Size** stays in the settings list, where every player can reach it.
+- Checked in a disposable Foundry 14.369 world: the Biography switch hides and restores the tab on an open character sheet and moves a sheet sitting on Biography to Features, the Tokens switches write their settings, and only Token Tooltip Size is left in the settings list. Nothing went to the error log. How the window looks was not checked.
 
 # 0.7.9
 
