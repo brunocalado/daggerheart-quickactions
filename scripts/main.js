@@ -11,7 +11,7 @@
  * Main module that injects buttons into the menu and exposes the global API.
  */
 
-import { MODULE_ID, DOWNTIME_DISABLED_USERS, HOPE_BAR_ENABLED } from "./constants.js";
+import { MODULE_ID, DOWNTIME_DISABLED_USERS, HOPE_BAR_ENABLED, TOKEN_TOOLTIP_ENABLED } from "./constants.js";
 
 // Import all functions from consolidated files
 import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, activateCustomTables, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
@@ -214,11 +214,12 @@ Hooks.once("init", () => {
     });
 
     // 8. Token Hover Tooltip
-    game.settings.register(MODULE_ID, "tokenTooltip", {
+    // Edited from the Interface Settings window (ui-settings.js).
+    game.settings.register(MODULE_ID, TOKEN_TOOLTIP_ENABLED, {
         name: "Token Hover Tooltip",
         hint: "Show a stat summary tooltip when hovering over character tokens on the canvas.",
         scope: "world",
-        config: true,
+        config: false,
         type: Boolean,
         default: true
     });
@@ -240,12 +241,12 @@ Hooks.once("init", () => {
         }
     });
 
-    // 8c. Hope Bar
+    // 8c. Hope Bar — edited from the Interface Settings window (ui-settings.js).
     game.settings.register(MODULE_ID, HOPE_BAR_ENABLED, {
         name: "Token Hope Bar",
         hint: "Draw a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens.",
         scope: "world",
-        config: true,
+        config: false,
         type: Boolean,
         default: true,
         onChange: () => refreshHopeBars()

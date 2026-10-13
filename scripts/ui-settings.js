@@ -15,7 +15,9 @@
  * Registered from the init hook in main.js.
  */
 
-import { MODULE_ID, HIDE_BIOGRAPHY_TAB, MENU_ENHANCEMENTS_ENABLED } from "./constants.js";
+import {
+    MODULE_ID, HIDE_BIOGRAPHY_TAB, MENU_ENHANCEMENTS_ENABLED, TOKEN_TOOLTIP_ENABLED, HOPE_BAR_ENABLED
+} from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -46,6 +48,8 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _prepareContext(_options) {
         return {
             menuEnhancements: game.settings.get(MODULE_ID, MENU_ENHANCEMENTS_ENABLED),
+            tokenTooltip: game.settings.get(MODULE_ID, TOKEN_TOOLTIP_ENABLED),
+            hopeBar: game.settings.get(MODULE_ID, HOPE_BAR_ENABLED),
             hideBiography: game.settings.get(MODULE_ID, HIDE_BIOGRAPHY_TAB)
         };
     }
@@ -63,6 +67,14 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
             game.settings.set(MODULE_ID, MENU_ENHANCEMENTS_ENABLED, event.target.checked);
         });
 
+        this.element.querySelector('[name="tokenTooltip"]')?.addEventListener("change", event => {
+            game.settings.set(MODULE_ID, TOKEN_TOOLTIP_ENABLED, event.target.checked);
+        });
+
+        this.element.querySelector('[name="hopeBar"]')?.addEventListener("change", event => {
+            game.settings.set(MODULE_ID, HOPE_BAR_ENABLED, event.target.checked);
+        });
+
         this.element.querySelector('[name="hideBiography"]')?.addEventListener("change", event => {
             game.settings.set(MODULE_ID, HIDE_BIOGRAPHY_TAB, event.target.checked);
         });
@@ -78,7 +90,7 @@ export function registerUISettings() {
     game.settings.registerMenu(MODULE_ID, "uiSettingsMenu", {
         name: "Interface Settings",
         label: "Configure Interface",
-        hint: "World-wide interface changes made by this module, in one place: the Daggerheart sidebar menu enhancements and the character sheet Biography tab.",
+        hint: "World-wide interface changes made by this module, in one place: the Daggerheart sidebar menu enhancements, the token tooltip and Hope bar, and the character sheet Biography tab.",
         icon: "fas fa-sliders",
         type: UISettingsApp,
         restricted: true

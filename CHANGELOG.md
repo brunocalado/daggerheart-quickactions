@@ -2,6 +2,7 @@
 
 - [Changed] The Biography tab is now one GM switch, **Hide Biography Tab**, in the Interface Settings window. On, the tab is hidden on character sheets for everyone; off (the default), it is shown. It replaces **Biography Tab Visibility** and its three choices. A world that had the tab forced hidden starts with it visible again.
 - [Removed] The per-user **Hide Biography Tab** setting in the settings list.
+- [Changed] **Token Hover Tooltip** and **Token Hope Bar** (GM) moved out of the settings list into a new Tokens section of the Interface Settings window. Their behaviour and stored values are unchanged. **Token Tooltip Size** stays in the settings list, where every player can reach it.
 
 # 0.7.9
 

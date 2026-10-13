@@ -132,6 +132,13 @@ export const MENU_COLLAPSED_SECTIONS = "menuCollapsedSections";
 export const MENU_ENHANCEMENTS_ENABLED = "menuEnhancementsEnabled";
 
 /**
+ * World setting key holding the on/off switch for the stat tooltip shown when hovering character
+ * tokens.
+ * @type {string}
+ */
+export const TOKEN_TOOLTIP_ENABLED = "tokenTooltip";
+
+/**
  * World setting key holding the on/off switch for the Hope bar drawn above character tokens.
  * Off leaves the canvas untouched, for worlds that render Hope through a token bar module instead.
  * @type {string}

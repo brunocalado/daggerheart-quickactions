@@ -88,10 +88,11 @@ If the [Light Sources](https://github.com/brunocalado/light-sources) module is i
 Most of the module works out of the box. A few things can be tuned in **Configure Settings** → **Module Settings** → **Daggerheart: Quick Actions**:
 
 - **Quick Actions Macros** (GM) chooses which macros the **Quick Actions** button on character sheets lists. Drag macros in from the Macro directory or from any compendium, remove the ones you don't want, and use **Preview** to see the resulting palette. **Reset to Default** restores the macros the module ships with (Fate Roll - Hope, Fate Roll - Fear, Help an Ally, Roll Loot/Consumable, Whisper, and Barter), and **Clear All** empties the list. The button at the bottom turns the whole feature off: open character sheets lose the button immediately, for every user.
-- **Token Hover Tooltip** turns the tooltip on or off for the world (GM), and **Token Tooltip Size** sets its size for you, from Small to Massive.
-- **Token Hope Bar** (GM) draws the Hope diamonds above character tokens, on by default. Turn it off if another module already shows Hope on your tokens, such as Bar Brawl. It applies immediately, on every client.
+- **Token Tooltip Size** sets the size of the token hover tooltip for you, from Small to Massive.
 - **Interface Settings** (GM) is one window with the world-wide interface changes this module makes:
   - **Daggerheart Menu Enhancements** is a single switch that turns off all of this module's changes to the system's sidebar menu: the purple skull tab icon, the search bar, the alphabetical order, the sections that collapse, and the two-column button grid. The module's own Quick Actions section stays in the menu either way; only its layout falls back to the system default. It takes effect immediately, on every client.
+  - **Token Hover Tooltip** turns the stat tooltip on character tokens on or off, on by default.
+  - **Token Hope Bar** draws the Hope diamonds above character tokens, on by default. Turn it off if another module already shows Hope on your tokens, such as Bar Brawl. It applies immediately, on every client.
   - **Hide Biography Tab** hides the Biography tab on character sheets for everyone. It is off by default.
 - **Scan Labels Configuration** enables the Scan macro for players and changes the labels and descriptions it shows.
 - **Falling Damage Configuration** changes the dice formula for each fall height tier, with a reset to the official defaults.

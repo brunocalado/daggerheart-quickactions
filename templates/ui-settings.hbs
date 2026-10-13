@@ -23,6 +23,32 @@
     </fieldset>
 
     <fieldset class="dqa-ui-section">
+        <legend><i class="fas fa-chess-pawn"></i> Tokens</legend>
+
+        <div class="dqa-ui-row">
+            <label for="dqa-token-tooltip">Token Hover Tooltip</label>
+            <input type="checkbox" id="dqa-token-tooltip" class="dh-toggle" name="tokenTooltip"
+                   {{#if tokenTooltip}}checked{{/if}}>
+        </div>
+
+        <p class="dqa-ui-hint">
+            Shows a stat summary tooltip when hovering over character tokens on the canvas. Each
+            player picks its size with <strong>Token Tooltip Size</strong> in the module settings list.
+        </p>
+
+        <div class="dqa-ui-row">
+            <label for="dqa-hope-bar">Token Hope Bar</label>
+            <input type="checkbox" id="dqa-hope-bar" class="dh-toggle" name="hopeBar"
+                   {{#if hopeBar}}checked{{/if}}>
+        </div>
+
+        <p class="dqa-ui-hint">
+            Draws a row of Hope diamonds above character tokens, following each token's own Display
+            Bars setting. Turn this off when another module already renders Hope on tokens.
+        </p>
+    </fieldset>
+
+    <fieldset class="dqa-ui-section">
         <legend><i class="fas fa-address-card"></i> Character Sheet</legend>
 
         <div class="dqa-ui-row">

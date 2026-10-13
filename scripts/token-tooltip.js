@@ -3,7 +3,7 @@
  * Shows a stat summary when hovering over character tokens on the canvas.
  */
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, TOKEN_TOOLTIP_ENABLED } from "./constants.js";
 
 const TEMPLATE_PATH = `modules/${MODULE_ID}/templates/token-tooltip.hbs`;
 
@@ -29,7 +29,7 @@ export function initTokenTooltip() {
 // Hook handler
 // -------------------------------------------------------------------
 async function _onHoverToken(token, hovered) {
-    if (!game.settings.get(MODULE_ID, "tokenTooltip")) {
+    if (!game.settings.get(MODULE_ID, TOKEN_TOOLTIP_ENABLED)) {
         _hideTooltip();
         return;
     }
