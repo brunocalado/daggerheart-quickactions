@@ -8,12 +8,11 @@
 
 /**
  * Biography Tab Visibility
- * Lets each user hide the Biography tab on character sheets, while the GM keeps a world-level
- * policy that can either respect that choice or force the tab visible/hidden for everyone.
+ * Lets the GM hide the Biography tab on character sheets for everyone in the world.
  * Registered from the init hook in main.js.
  */
 
-import { MODULE_ID, BIOGRAPHY_SETTINGS, BIOGRAPHY_POLICY } from "./constants.js";
+import { MODULE_ID, HIDE_BIOGRAPHY_TAB } from "./constants.js";
 
 /** Tab group declared by the system's CharacterSheet.TABS. */
 const TAB_GROUP = "primary";
@@ -25,35 +24,17 @@ const BIOGRAPHY_TAB = "biography";
 const FALLBACK_TAB = "features";
 
 /**
- * Registers the world policy and the per-user opt-out.
- * The world policy is `config: false` — it is edited from the Interface Settings window
- * (ui-settings.js), where this module's GM-facing UI switches are collected. The per-user
- * opt-out deliberately stays in the settings list: it belongs to each client, and that window
- * is GM-only.
+ * Registers the world setting. It is `config: false` — it is edited from the Interface Settings
+ * window (ui-settings.js), where this module's GM-facing UI switches are collected.
  * Called from the init hook in main.js.
  * @returns {void}
  */
 export function registerBiographyTabSettings() {
-    game.settings.register(MODULE_ID, BIOGRAPHY_SETTINGS.POLICY, {
-        name: "Biography Tab Visibility",
-        hint: "Controls the Biography tab on character sheets for the whole world. \"Each user decides\" honors every user's own \"Hide Biography Tab\" setting.",
+    game.settings.register(MODULE_ID, HIDE_BIOGRAPHY_TAB, {
+        name: "Hide Biography Tab",
+        hint: "Hides the Biography tab on character sheets for everyone.",
         scope: "world",
         config: false,
-        type: String,
-        default: BIOGRAPHY_POLICY.USER,
-        choices: {
-            [BIOGRAPHY_POLICY.USER]: "Each user decides",
-            [BIOGRAPHY_POLICY.VISIBLE]: "Always visible for everyone",
-            [BIOGRAPHY_POLICY.HIDDEN]: "Always hidden for everyone"
-        },
-        onChange: refreshCharacterSheets
-    });
-
-    game.settings.register(MODULE_ID, BIOGRAPHY_SETTINGS.HIDE, {
-        name: "Hide Biography Tab",
-        hint: "Hides the Biography tab on character sheets for you only. Ignored while the GM forces the tab visible or hidden for everyone.",
-        scope: "client",
-        config: true,
         type: Boolean,
         default: false,
         onChange: refreshCharacterSheets
@@ -67,17 +48,6 @@ export function registerBiographyTabSettings() {
  */
 export function initBiographyTab() {
     Hooks.on("renderCharacterSheet", onRenderCharacterSheet);
-}
-
-/**
- * Resolves whether the Biography tab must be hidden for the current user right now.
- * @returns {boolean} True when the tab should not be reachable on character sheets.
- */
-function isBiographyHidden() {
-    const policy = game.settings.get(MODULE_ID, BIOGRAPHY_SETTINGS.POLICY);
-    if (policy === BIOGRAPHY_POLICY.HIDDEN) return true;
-    if (policy === BIOGRAPHY_POLICY.VISIBLE) return false;
-    return game.settings.get(MODULE_ID, BIOGRAPHY_SETTINGS.HIDE);
 }
 
 /**
@@ -100,7 +70,7 @@ function refreshCharacterSheets() {
  * @returns {void}
  */
 function onRenderCharacterSheet(app, element) {
-    if (!isBiographyHidden()) return;
+    if (!game.settings.get(MODULE_ID, HIDE_BIOGRAPHY_TAB)) return;
 
     // Absent on the limited-permission sheet, which renders no tab navigation at all.
     const nav = element.querySelector(`nav.tabs[data-group="${TAB_GROUP}"]`);

@@ -56,10 +56,6 @@
             font-size: var(--font-size-14);
             cursor: pointer;
         }
-
-        & .dh-select {
-            flex: 0 1 260px;
-        }
     }
 
     /* Sits directly under the row it explains, indented so the pairing reads at a glance. */

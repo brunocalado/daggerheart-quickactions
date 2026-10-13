@@ -110,28 +110,10 @@ export const LOOT_SOURCE_LABELS = Object.freeze({
 export const CUSTOM_TABLES = "customTables";
 
 /**
- * Setting keys for the Biography tab visibility feature.
- * @type {Readonly<{POLICY: string, HIDE: string}>}
+ * World setting key: when true, the Biography tab is hidden on character sheets for everyone.
+ * @type {string}
  */
-export const BIOGRAPHY_SETTINGS = Object.freeze({
-    /** World scope — GM policy that can override every user's personal choice. */
-    POLICY: "biographyTabPolicy",
-    /** Client scope — the user's personal choice, honored only under the USER policy. */
-    HIDE: "hideBiographyTab"
-});
-
-/**
- * Accepted values of the BIOGRAPHY_SETTINGS.POLICY world setting.
- * @type {Readonly<{USER: string, VISIBLE: string, HIDDEN: string}>}
- */
-export const BIOGRAPHY_POLICY = Object.freeze({
-    /** Each user decides through their own client setting (default). */
-    USER: "user",
-    /** Tab is shown to everyone, ignoring personal settings. */
-    VISIBLE: "visible",
-    /** Tab is hidden from everyone, ignoring personal settings. */
-    HIDDEN: "hidden"
-});
+export const HIDE_BIOGRAPHY_TAB = "hideBiographyTab";
 
 /**
  * Client-scope setting key holding the collapsed/expanded state of every fieldset in the

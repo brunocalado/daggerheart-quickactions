@@ -1,3 +1,8 @@
+# Unreleased
+
+- [Changed] The Biography tab is now one GM switch, **Hide Biography Tab**, in the Interface Settings window. On, the tab is hidden on character sheets for everyone; off (the default), it is shown. It replaces **Biography Tab Visibility** and its three choices. A world that had the tab forced hidden starts with it visible again.
+- [Removed] The per-user **Hide Biography Tab** setting in the settings list.
+
 # 0.7.9
 
 - [Changed] Players can run Chain Lightning themselves. Damage reaches the adversaries through the active GM, the same way the system's own damage button does, so a GM has to be online when Apply Damage is on. Only the GM sees the undo buttons.

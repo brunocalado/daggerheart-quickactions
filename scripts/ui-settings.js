@@ -15,22 +15,15 @@
  * Registered from the init hook in main.js.
  */
 
-import { MODULE_ID, BIOGRAPHY_SETTINGS, BIOGRAPHY_POLICY, MENU_ENHANCEMENTS_ENABLED } from "./constants.js";
+import { MODULE_ID, HIDE_BIOGRAPHY_TAB, MENU_ENHANCEMENTS_ENABLED } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-
-/** Labels of the world-level Biography tab policy, in the order they are offered. */
-const POLICY_LABELS = {
-    [BIOGRAPHY_POLICY.USER]: "Each user decides",
-    [BIOGRAPHY_POLICY.VISIBLE]: "Always visible for everyone",
-    [BIOGRAPHY_POLICY.HIDDEN]: "Always hidden for everyone"
-};
 
 /**
  * Settings menu Application holding this module's interface switches.
  *
  * GM-only: every switch here is world-scope. Per-client UI settings stay in the settings list,
- * where players can reach them — the "Hide Biography Tab" opt-out is the standing example.
+ * where players can reach them.
  */
 class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
@@ -51,15 +44,9 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @returns {Promise<object>} Template context.
      */
     async _prepareContext(_options) {
-        const policy = game.settings.get(MODULE_ID, BIOGRAPHY_SETTINGS.POLICY);
-
         return {
             menuEnhancements: game.settings.get(MODULE_ID, MENU_ENHANCEMENTS_ENABLED),
-            policyChoices: Object.entries(POLICY_LABELS).map(([value, label]) => ({
-                value,
-                label,
-                selected: value === policy
-            }))
+            hideBiography: game.settings.get(MODULE_ID, HIDE_BIOGRAPHY_TAB)
         };
     }
 
@@ -76,8 +63,8 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
             game.settings.set(MODULE_ID, MENU_ENHANCEMENTS_ENABLED, event.target.checked);
         });
 
-        this.element.querySelector('[name="biographyPolicy"]')?.addEventListener("change", event => {
-            game.settings.set(MODULE_ID, BIOGRAPHY_SETTINGS.POLICY, event.target.value);
+        this.element.querySelector('[name="hideBiography"]')?.addEventListener("change", event => {
+            game.settings.set(MODULE_ID, HIDE_BIOGRAPHY_TAB, event.target.checked);
         });
     }
 }

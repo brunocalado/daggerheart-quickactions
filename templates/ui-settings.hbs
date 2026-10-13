@@ -26,18 +26,13 @@
         <legend><i class="fas fa-address-card"></i> Character Sheet</legend>
 
         <div class="dqa-ui-row">
-            <label for="dqa-biography-policy">Biography Tab Visibility</label>
-            <select id="dqa-biography-policy" class="dh-select" name="biographyPolicy">
-                {{#each policyChoices}}
-                <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
-                {{/each}}
-            </select>
+            <label for="dqa-hide-biography">Hide Biography Tab</label>
+            <input type="checkbox" id="dqa-hide-biography" class="dh-toggle" name="hideBiography"
+                   {{#if hideBiography}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            World-wide rule for the Biography tab on character sheets. <strong>Each user decides</strong>
-            honors every user's own <strong>Hide Biography Tab</strong> setting, which each player
-            controls from the module settings list.
+            Hides the Biography tab on character sheets for everyone. Off, the tab is shown as usual.
         </p>
     </fieldset>
 
