@@ -19,9 +19,6 @@
 
 import { MODULE_ID, MENU_COLLAPSED_SECTIONS, MENU_ENHANCEMENTS_ENABLED } from "./constants.js";
 
-/** Legend text of the system's own built-in section, always pinned first. */
-const PINNED_LEGEND = "Refresh Features";
-
 /** Sidebar tab name the system registers its menu under (`CONFIG.ui.daggerheartMenu`). */
 const MENU_TAB = "daggerheartMenu";
 
@@ -214,9 +211,12 @@ function enhanceMenu(element) {
  * @returns {void}
  */
 function sortFieldsets(container, fieldsets) {
+    // The system renders its own section's legend from this key, so comparing with the localized
+    // string keeps the pin working in every language the system ships.
+    const pinnedLegend = game.i18n.localize("DAGGERHEART.APPLICATIONS.DaggerheartMenu.refreshFeatures");
     const sorted = [...fieldsets].sort((a, b) => {
-        const aPinned = legendText(a) === PINNED_LEGEND;
-        const bPinned = legendText(b) === PINNED_LEGEND;
+        const aPinned = legendText(a) === pinnedLegend;
+        const bPinned = legendText(b) === pinnedLegend;
         if (aPinned !== bPinned) return aPinned ? -1 : 1;
         return legendText(a).localeCompare(legendText(b));
     });

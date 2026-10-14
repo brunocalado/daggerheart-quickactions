@@ -154,6 +154,20 @@ export const HOPE_BAR_ENABLED = "hopeBarEnabled";
 export const DOWNTIME_DISABLED_USERS = "downtimeDisabledUsers";
 
 /**
+ * The Daggerheart system's "Unleash Chaos" domain card. The recharge finds the actor's copy by
+ * this origin rather than by its English name, so renamed or translated copies still resolve.
+ * @type {string}
+ */
+export const UNLEASH_CHAOS_UUID = "Compendium.daggerheart.domains.Item.o62i0QdbUDIiAhSq";
+
+/**
+ * The Daggerheart system's "Chain Lightning" domain card, used to recognise its Spellcast Roll
+ * whatever the owned copy is called.
+ * @type {string}
+ */
+export const CHAIN_LIGHTNING_UUID = "Compendium.daggerheart.domains.Item.0kAVO6rordCfZqYP";
+
+/**
  * World setting key holding the GM-configured image for each Cinematic Roll case.
  * Stored as an object keyed by CINEMATIC_CASE_KEYS, values are image paths (or "" when unset).
  * @type {string}

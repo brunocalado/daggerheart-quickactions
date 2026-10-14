@@ -11,7 +11,8 @@
  * Contains specific complex macros and features accessed via QuickActions.Features()
  */
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, UNLEASH_CHAOS_UUID, CHAIN_LIGHTNING_UUID } from "./constants.js";
+import { findSourcedItem } from "./helpers.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -73,7 +74,7 @@ async function executeUnleashChaos(token) {
     // Minimum of 1 token so the ability is always usable
     const maxTokens = Math.max(1, traitValue);
 
-    const targetItem = actor.items.find(i => i.name === "Unleash Chaos");
+    const targetItem = findSourcedItem(actor, UNLEASH_CHAOS_UUID);
     if (!targetItem) {
         ui.notifications.warn("Item 'Unleash Chaos' not found on this actor.");
         return;
@@ -291,7 +292,10 @@ async function undoChainLightningDamage(message, index) {
 function isChainLightningCast(message) {
     if (message?.type !== "dualityRoll") return false;
     const actor = fromUuidSync(message.system.source?.actor ?? "");
-    return actor?.items.get(message.system.source.item)?.name === CHAIN_LIGHTNING;
+    const item = actor?.items.get(message.system.source.item);
+    if (!item) return false;
+    return item._stats?.compendiumSource === CHAIN_LIGHTNING_UUID
+        || item.name === fromUuidSync(CHAIN_LIGHTNING_UUID)?.name;
 }
 
 /**

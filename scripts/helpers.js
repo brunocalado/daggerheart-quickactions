@@ -1,7 +1,31 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Shared helpers used across three or more call sites in the module.
  * All helpers must serve at least 3 call sites before being added here.
  */
+
+/**
+ * Finds the actor's copy of a compendium item, independent of the table's language.
+ * Matches the copy's compendium origin first; falls back to the name the source item has
+ * in this world, which covers hand-made copies and items replaced in Configure Moves.
+ * @param {Actor} actor
+ * @param {string} sourceUuid
+ * @returns {Item|undefined}
+ */
+export function findSourcedItem(actor, sourceUuid) {
+    if (!actor || !sourceUuid) return undefined;
+    const byOrigin = actor.items.find(i => i._stats?.compendiumSource === sourceUuid);
+    if (byOrigin) return byOrigin;
+    const name = fromUuidSync(sourceUuid)?.name;
+    return name ? actor.items.find(i => i.name === name) : undefined;
+}
 
 /**
  * Builds the standard chat card HTML wrapper used throughout the module.

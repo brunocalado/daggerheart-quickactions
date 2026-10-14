@@ -126,8 +126,8 @@ Hooks.once("init", () => {
         scope: "world",
         config: false,
         default: [
-            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" },
-            { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" }
+            { key: "efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t" },
+            { key: "forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl" }
         ],
         type: Array
     });

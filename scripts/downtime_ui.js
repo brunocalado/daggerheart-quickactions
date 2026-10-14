@@ -13,6 +13,7 @@
 
 import { rollD4WithDiceSoNice } from "./apps.js";
 import { MODULE_ID, DOWNTIME_DISABLED_USERS } from "./constants.js";
+import { findSourcedItem } from "./helpers.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -56,6 +57,30 @@ const NO_UPGRADE_MOVES = new Set([
  * @type {Set<string>}
  */
 const BONUS_MOVES = new Set(["core_forager", "core_pipeweed"]);
+
+/**
+ * The stock item behind each core downtime feature, with the label and help text shown in the
+ * Downtime configuration's Core tab. The GM can point any key at another item there; the saved
+ * `downtimeCoreFeatures` entry then overrides `itemUuid`. Detection goes by UUID, never by label.
+ * @type {Array<{key: string, label: string, itemUuid: string, description: string}>}
+ */
+const DEFAULT_CORE_FEATURES = [
+    { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t", description: "During Short Rest, one selected action can be upgraded to Long Rest quality." },
+    { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl", description: "Grants a bonus Forage action that does not count towards the move limit." },
+    { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "During downtime, you automatically clear 1 Stress." },
+    { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "Grants +1 extra move during downtime." },
+    { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
+    { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
+    { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." },
+    { key: "beastbound", label: "Beastbound", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "If you choose a downtime move that clears your Stress, your companion clears an equal amount." },
+    { key: "recovery", label: "Recovery", itemUuid: "Compendium.daggerheart.domains.Item.gsiQFT6q3WOgqerJ", description: "During a short rest, you can choose a long rest downtime move instead. You can spend 1 Hope to let an ally do the same." },
+    { key: "favor", label: "Favor", itemUuid: "Compendium.daggerheart.classes.Item.OGPn7DUJoJwAXh8o", description: "Adds the \"Show Tribute\" downtime move: describe how you honour your patron and gain Favor equal to your Spellcast trait. Spends one move; the Favor itself is applied by the player." },
+    { key: "changeShape", label: "Change Shape", itemUuid: "Compendium.daggerheart.transformations.Item.P1sdtkECFSdLz02W", description: "Shapeshifter. Adds the \"Change Shape\" downtime move: swap your current ancestry for another and describe how your appearance changes. Spends one move; the swap itself is applied by the player." },
+    { key: "onlySkinDeep", label: "Only Skin Deep", itemUuid: "Compendium.daggerheart.transformations.Item.qXA130mgMnvPZfNF", description: "Shapeshifter. Adds the \"Only Skin Deep\" downtime move: choose a different feature from your current ancestry. Spends one move; the swap itself is applied by the player." },
+    { key: "oasis", label: "Oasis", itemUuid: "Compendium.daggerheart.communities.Item.DOrvaVrES1HYhG2u", description: "Duneborne. During a short rest, reroll one die used for a downtime move and keep the higher result. Mark the move with the water badge, or hand the reroll to an ally." },
+    { key: "timekeepersPendant", label: "Timekeeper's Pendant", itemUuid: "Compendium.daggerheart.loot.Item.4qUp8YWnsgi7ws8Q", description: "Grants one additional downtime move each rest." },
+    { key: "pipeweed", label: "Pipeweed", itemUuid: "Compendium.daggerheart.consumables.Item.eBQAxdk4y85I7xQe", description: "Adds the free \"Smoke Pipeweed\" move during a short rest. Smoking one clears an additional Stress for every PC who chose Clear Stress, and spends one Pipeweed." }
+];
 
 /**
  * Moves that resolve by rolling a die during a short rest, which is what Duneborne's Oasis
@@ -192,61 +217,61 @@ function _getMaxHope(actor) {
 }
 
 /**
- * The item name a core feature is currently matched by. The GM can relabel a core feature (or
- * point it at homebrew) in the Downtime configuration's Core tab, in which case that label is what
- * we look for on the sheet; otherwise the stock name applies.
+ * The item a core feature is currently identified by. The GM can point a core feature at another
+ * item (homebrew, a world copy) in the Downtime configuration's Core tab; otherwise, or when the
+ * slot was emptied there, the stock compendium item applies. Only the UUID is used — a `label`
+ * saved by older versions held English text and is ignored.
  * @param {string} featureKey - Core feature key, e.g. "pipeweed".
- * @param {string} fallbackName - Stock item name to use when the key is not configured.
- * @returns {string} The item name to match against the actor's inventory.
+ * @returns {string|undefined} The UUID of the item to look for on the sheet.
  */
-function _coreFeatureName(featureKey, fallbackName) {
+function _coreFeatureUuid(featureKey) {
     const coreFeatures = game.settings.get(MODULE_ID, "downtimeCoreFeatures") ?? [];
-    return coreFeatures.find(f => f.key === featureKey)?.label || fallbackName;
+    return coreFeatures.find(f => f.key === featureKey)?.itemUuid
+        || DEFAULT_CORE_FEATURES.find(f => f.key === featureKey)?.itemUuid;
 }
 
-function _hasCoreFeature(actor, featureKey, fallbackName) {
-    const name = _coreFeatureName(featureKey, fallbackName);
-    return actor.items.some(i => i.name === name);
+function _hasCoreFeature(actor, featureKey) {
+    return !!findSourcedItem(actor, _coreFeatureUuid(featureKey));
 }
 
 function _hasEfficientFeature(actor) {
-    return _hasCoreFeature(actor, "efficient", "Efficient");
+    return _hasCoreFeature(actor, "efficient");
 }
 
 function _hasRecoveryFeature(actor) {
-    return _hasCoreFeature(actor, "recovery", "Recovery");
+    return _hasCoreFeature(actor, "recovery");
 }
 
 function _hasForagerFeature(actor) {
-    return _hasCoreFeature(actor, "forager", "Forager");
+    return _hasCoreFeature(actor, "forager");
 }
 
 function _hasPremiumBedrollFeature(actor) {
-    return _hasCoreFeature(actor, "premiumBedroll", "Premium Bedroll");
+    return _hasCoreFeature(actor, "premiumBedroll");
 }
 
 function _hasCelestialTranceFeature(actor) {
-    return _hasCoreFeature(actor, "celestialTrance", "Celestial Trance");
+    return _hasCoreFeature(actor, "celestialTrance");
 }
 
 function _hasEloquentFeature(actor) {
-    return _hasCoreFeature(actor, "eloquent", "Eloquent");
+    return _hasCoreFeature(actor, "eloquent");
 }
 
 function _hasSoothingSpeechFeature(actor) {
-    return _hasCoreFeature(actor, "soothingSpeech", "Soothing Speech");
+    return _hasCoreFeature(actor, "soothingSpeech");
 }
 
 function _hasArmorerFeature(actor) {
-    return _hasCoreFeature(actor, "armorer", "Armorer");
+    return _hasCoreFeature(actor, "armorer");
 }
 
 function _hasBeastboundFeature(actor) {
-    return _hasCoreFeature(actor, "beastbound", "Beastbound");
+    return _hasCoreFeature(actor, "beastbound");
 }
 
 function _hasFavorFeature(actor) {
-    return _hasCoreFeature(actor, "favor", "Favor");
+    return _hasCoreFeature(actor, "favor");
 }
 
 /**
@@ -266,23 +291,23 @@ function _hasSelfHealingArmor(actor) {
 }
 
 function _hasChangeShapeFeature(actor) {
-    return _hasCoreFeature(actor, "changeShape", "Change Shape");
+    return _hasCoreFeature(actor, "changeShape");
 }
 
 function _hasOnlySkinDeepFeature(actor) {
-    return _hasCoreFeature(actor, "onlySkinDeep", "Only Skin Deep");
+    return _hasCoreFeature(actor, "onlySkinDeep");
 }
 
 function _hasOasisFeature(actor) {
-    return _hasCoreFeature(actor, "oasis", "Oasis");
+    return _hasCoreFeature(actor, "oasis");
 }
 
 function _hasTimekeepersPendant(actor) {
-    return _hasCoreFeature(actor, "timekeepersPendant", "Timekeeper's Pendant");
+    return _hasCoreFeature(actor, "timekeepersPendant");
 }
 
 function _hasPipeweed(actor) {
-    return _hasCoreFeature(actor, "pipeweed", "Pipeweed");
+    return _hasCoreFeature(actor, "pipeweed");
 }
 
 /**
@@ -626,7 +651,7 @@ async function _applyDowntimeEffects() {
             // via pipeweedBonus, since the leaf helps the whole party and had to be counted before
             // anyone resolved. All that is left here is spending the consumable.
             if (action === "core_pipeweed") {
-                const leaf = actor.items.find(i => i.name === _coreFeatureName("pipeweed", "Pipeweed"));
+                const leaf = findSourcedItem(actor, _coreFeatureUuid("pipeweed"));
                 if (leaf) {
                     await _consumeOne(actor, leaf);
                     actorEvents.push("Smoke Pipeweed (−1 Pipeweed → +1 Stress cleared for everyone on Clear Stress)");
@@ -980,27 +1005,10 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Core features — merge saved with defaults so new features always appear
         const savedCore = game.settings.get(MODULE_ID, "downtimeCoreFeatures") ?? [];
-        const defaultCore = [
-            { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t", description: "During Short Rest, one selected action can be upgraded to Long Rest quality." },
-            { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl", description: "Grants a bonus Forage action that does not count towards the move limit." },
-            { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "During downtime, you automatically clear 1 Stress." },
-            { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "Grants +1 extra move during downtime." },
-            { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
-            { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
-            { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." },
-            { key: "beastbound", label: "Beastbound", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "If you choose a downtime move that clears your Stress, your companion clears an equal amount." },
-            { key: "recovery", label: "Recovery", itemUuid: "Compendium.daggerheart.domains.Item.gsiQFT6q3WOgqerJ", description: "During a short rest, you can choose a long rest downtime move instead. You can spend 1 Hope to let an ally do the same." },
-            { key: "favor", label: "Favor", itemUuid: "Compendium.daggerheart.classes.Item.OGPn7DUJoJwAXh8o", description: "Adds the \"Show Tribute\" downtime move: describe how you honour your patron and gain Favor equal to your Spellcast trait. Spends one move; the Favor itself is applied by the player." },
-            { key: "changeShape", label: "Change Shape", itemUuid: "Compendium.daggerheart.transformations.Item.P1sdtkECFSdLz02W", description: "Shapeshifter. Adds the \"Change Shape\" downtime move: swap your current ancestry for another and describe how your appearance changes. Spends one move; the swap itself is applied by the player." },
-            { key: "onlySkinDeep", label: "Only Skin Deep", itemUuid: "Compendium.daggerheart.transformations.Item.qXA130mgMnvPZfNF", description: "Shapeshifter. Adds the \"Only Skin Deep\" downtime move: choose a different feature from your current ancestry. Spends one move; the swap itself is applied by the player." },
-            { key: "oasis", label: "Oasis", itemUuid: "Compendium.daggerheart.communities.Item.DOrvaVrES1HYhG2u", description: "Duneborne. During a short rest, reroll one die used for a downtime move and keep the higher result. Mark the move with the water badge, or hand the reroll to an ally." },
-            { key: "timekeepersPendant", label: "Timekeeper's Pendant", itemUuid: "Compendium.daggerheart.loot.Item.4qUp8YWnsgi7ws8Q", description: "Grants one additional downtime move each rest." },
-            { key: "pipeweed", label: "Pipeweed", itemUuid: "Compendium.daggerheart.consumables.Item.eBQAxdk4y85I7xQe", description: "Adds the free \"Smoke Pipeweed\" move during a short rest. Smoking one clears an additional Stress for every PC who chose Clear Stress, and spends one Pipeweed." }
-        ];
         const savedByKey = new Map(savedCore.map(e => [e.key, e]));
-        const coreRaw = defaultCore.map(d => {
+        const coreRaw = DEFAULT_CORE_FEATURES.map(d => {
             const saved = savedByKey.get(d.key);
-            return saved ? { ...d, ...saved, description: d.description } : d;
+            return saved ? { ...d, ...saved, label: d.label, description: d.description } : d;
         });
         const coreFeatures = [];
         for (const entry of coreRaw) {
@@ -1361,9 +1369,8 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let k = 0;
         while (el.querySelector(`input[name="coreKey_${k}"]`)) {
             const key = el.querySelector(`input[name="coreKey_${k}"]`).value;
-            const label = el.querySelector(`input[name="coreLabel_${k}"]`).value;
             const itemUuid = el.querySelector(`input[name="coreItem_${k}"]`).value;
-            coreFeatures.push({ key, label, itemUuid });
+            coreFeatures.push({ key, itemUuid });
             k++;
         }
 
@@ -1508,10 +1515,10 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 const moveItem = await fromUuid(entry.itemUuid);
                 if (!moveItem) continue;
                 // Skip Eloquent if it's configured as a Core Feature
-                if (moveItem.name === "Eloquent" && _hasEloquentFeature(actor)) {
+                if (entry.itemUuid === _coreFeatureUuid("eloquent") && _hasEloquentFeature(actor)) {
                     continue;
                 }
-                const owned = actor.items.find(i => i.name === moveItem.name);
+                const owned = findSourcedItem(actor, entry.itemUuid);
                 if (owned) {
                     extraActions.push({ key: `itemmove_${entry.itemUuid}`, label: moveItem.name, hasTarget: false, isExtra: true });
                 }
