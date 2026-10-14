@@ -1,16 +1,15 @@
 <div class="custom-tables-settings-body">
 
     <div class="config-card">
-        <h3><i class="fas fa-dice-d20"></i> Custom Tables</h3>
+        <h3><i class="fas fa-dice-d20"></i> {{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.heading"}}</h3>
 
         <p class="dqa-ct-hint">
-            Drag roll tables here from the Rollable Tables directory or from a compendium. They
-            will be listed by <strong>QuickActions.CustomTables()</strong>.
+            {{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.hint"}}}
         </p>
 
         <div class="dqa-drop-zone">
             <i class="fas fa-dice-d20"></i>
-            <span>Drop a Rollable Table here</span>
+            <span>{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.dropZone"}}</span>
         </div>
 
         <ol class="dqa-table-list">
@@ -19,43 +18,37 @@
                 <div class="dqa-table-info">
                     <span class="dqa-table-name">{{this.label}}</span>
                     <span class="dqa-table-source">
-                        {{#if this.missing}}Not found — the table was deleted or its compendium is unavailable{{else}}{{this.results}} entries{{/if}}
+                        {{#if this.missing}}{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.missing"}}{{else}}{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.entries" count=this.results}}{{/if}}
                     </span>
                 </div>
                 <button type="button" class="dqa-icon-btn" data-action="removeTable" data-uuid="{{this.uuid}}"
-                        data-tooltip="Remove" aria-label="Remove {{this.label}}">
+                        data-tooltip="{{localize "DH_QUICKACTIONS.COMMON.remove"}}" aria-label="{{localize "DH_QUICKACTIONS.COMMON.removeNamed" name=this.label}}">
                     <i class="fas fa-trash"></i>
                 </button>
             </li>
             {{/each}}
 
             {{#unless hasTables}}
-            <li class="dqa-empty">No tables configured yet.</li>
+            <li class="dqa-empty">{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.none"}}</li>
             {{/unless}}
         </ol>
 
         <button type="button" class="reset-btn" data-action="clearTables" {{#unless hasTables}}disabled{{/unless}}>
-            <i class="fas fa-trash"></i> Clear All
+            <i class="fas fa-trash"></i> {{localize "DH_QUICKACTIONS.COMMON.clearAll"}}
         </button>
     </div>
 
     <div class="config-card">
-        <h3><i class="fas fa-circle-info"></i> Before You Start</h3>
+        <h3><i class="fas fa-circle-info"></i> {{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.beforeHeading"}}</h3>
 
         <p class="field-hint">
-            <strong>Players need to see the table.</strong> A roll table created in the sidebar
-            starts with no player access at all, so it works for you and fails for them. Set its
-            ownership to <em>Observer</em> — and do the same for the compendium holding the items
-            it hands out, which is one setting for the whole pack.
+            {{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.noteAccess"}}}
         </p>
         <p class="field-hint">
-            <strong>Items only.</strong> Results are handed to the sheet when they point at an
-            Item. A text entry, or a link to an actor or journal, is shown in the chat card but
-            nothing is added.
+            {{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.noteItems"}}}
         </p>
         <p class="field-hint">
-            <strong>Every draw is independent.</strong> A table set to draw without replacement
-            still repeats, because the roller never writes back to your table.
+            {{{localize "DH_QUICKACTIONS.CUSTOM_TABLES.settings.noteIndependent"}}}
         </p>
     </div>
 

@@ -266,11 +266,12 @@ function ensureToolbar(container, element, fieldsets) {
     const toolbar = document.createElement("div");
     toolbar.classList.add("dqa-menu-toolbar");
     toolbar.innerHTML = `
-        <input type="search" class="dqa-menu-search" placeholder="Search...">
+        <input type="search" class="dqa-menu-search">
         <button type="button" class="dqa-menu-collapse-all"><i class="fas fa-compress"></i></button>
         <button type="button" class="dqa-menu-expand-all"><i class="fas fa-expand"></i></button>
     `;
 
+    toolbar.querySelector(".dqa-menu-search").placeholder = game.i18n.localize("DH_QUICKACTIONS.MENU.search");
     toolbar.querySelector(".dqa-menu-search").addEventListener("input", (e) => {
         filterFieldsets(fieldsets, e.target.value.trim().toLowerCase());
     });

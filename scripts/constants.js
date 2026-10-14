@@ -89,14 +89,14 @@ export const LOOT_CONSUMABLE_TABLES = Object.freeze({
 });
 
 /**
- * Human-readable labels for the LOOT_CONSUMABLE_SOURCE choices, shown in the dropdown of the
+ * Labels for the LOOT_CONSUMABLE_SOURCE choices, as translation keys, shown in the dropdown of the
  * "Loot & Consumables Configuration" settings menu.
  * @type {Readonly<Record<string, string>>}
  */
 export const LOOT_SOURCE_LABELS = Object.freeze({
-    [LOOT_SOURCE.CORE]: "Core Set only",
-    [LOOT_SOURCE.HOPE_AND_FEAR]: "Hope & Fear only",
-    [LOOT_SOURCE.BOTH]: "Core Set + Hope & Fear"
+    [LOOT_SOURCE.CORE]: "DH_QUICKACTIONS.LOOT.source.core",
+    [LOOT_SOURCE.HOPE_AND_FEAR]: "DH_QUICKACTIONS.LOOT.source.hopeAndFear",
+    [LOOT_SOURCE.BOTH]: "DH_QUICKACTIONS.LOOT.source.both"
 });
 
 /**
@@ -219,20 +219,21 @@ export const CINEMATIC_CASE_KEYS = Object.freeze([
 ]);
 
 /**
- * Human-readable labels for CINEMATIC_CASE_KEYS, shown as row labels in the Cinematic Roll
- * Images settings menu.
+ * Labels for CINEMATIC_CASE_KEYS, as translation keys, shown as row labels in the Cinematic Roll
+ * Images settings menu. Traits, Hope and Fear reuse the Daggerheart system's own keys so they
+ * read exactly as the system words them in the player's language.
  * @type {Readonly<Record<string, string>>}
  */
 export const CINEMATIC_CASE_LABELS = Object.freeze({
-    agility: "Agility",
-    strength: "Strength",
-    finesse: "Finesse",
-    instinct: "Instinct",
-    presence: "Presence",
-    knowledge: "Knowledge",
-    hope: "Hope",
-    fear: "Fear",
-    none: "Duality Roll (no trait)"
+    agility: "DAGGERHEART.CONFIG.Traits.agility.name",
+    strength: "DAGGERHEART.CONFIG.Traits.strength.name",
+    finesse: "DAGGERHEART.CONFIG.Traits.finesse.name",
+    instinct: "DAGGERHEART.CONFIG.Traits.instinct.name",
+    presence: "DAGGERHEART.CONFIG.Traits.presence.name",
+    knowledge: "DAGGERHEART.CONFIG.Traits.knowledge.name",
+    hope: "DAGGERHEART.GENERAL.hope",
+    fear: "DAGGERHEART.GENERAL.fear",
+    none: "DH_QUICKACTIONS.CINEMATIC.noTrait"
 });
 
 /**

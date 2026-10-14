@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Template Creator App
  * Provides an interactive tool for placing measured templates on the canvas.
@@ -182,7 +190,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "daggerheart-template-app",
         classes: ["dh-qa-app"],
         window: {
-            title: "Template Tool",
+            title: "DH_QUICKACTIONS.TEMPLATE_CREATOR.title",
             icon: "fas fa-shapes",
             resizable: false,
             controls: []
@@ -298,7 +306,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static #onCopyCode(event, target) {
         const code = this._computeCodeString();
         game.clipboard.copyPlainText(code);
-        ui.notifications.info("Template code copied to clipboard!");
+        ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.TEMPLATE_CREATOR.copied"));
     }
 
     /**
@@ -311,12 +319,12 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const code = this._computeCodeString();
         if (!code) return;
 
-        const content = buildChatCard("Template Tool", `
+        const content = buildChatCard(game.i18n.localize("DH_QUICKACTIONS.TEMPLATE_CREATOR.title"), `
             <div style="color: #ffffff !important; font-size: 1.2em; font-weight: bold; margin-bottom: 10px; text-shadow: 0px 0px 8px #000;">
                 ${code}
             </div>
             <div style="color: #ccc; font-size: 0.9em; font-style: italic;">
-                Click above to place the template
+                ${game.i18n.localize("DH_QUICKACTIONS.TEMPLATE_CREATOR.chatHint")}
             </div>
         `);
 

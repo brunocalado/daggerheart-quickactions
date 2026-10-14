@@ -32,7 +32,7 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "dh-qa-ui-settings-app",
         tag: "div",
         classes: ["dh-qa-app", MODULE_ID, "dqa-ui-settings"],
-        window: { title: "Interface Settings", icon: "fas fa-sliders", resizable: true },
+        window: { title: "DH_QUICKACTIONS.INTERFACE.title", icon: "fas fa-sliders", resizable: true },
         position: { width: 540, height: "auto" }
     };
 

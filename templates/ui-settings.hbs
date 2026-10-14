@@ -1,64 +1,58 @@
 <div class="dqa-ui-wrapper">
 
     <p class="dqa-ui-intro">
-        World-wide interface changes made by this module, collected here. Each switch applies
-        immediately — there is nothing to save.
+        {{localize "DH_QUICKACTIONS.INTERFACE.intro"}}
     </p>
 
     <fieldset class="dqa-ui-section">
-        <legend><i class="fas fa-skull"></i> Daggerheart Sidebar Menu</legend>
+        <legend><i class="fas fa-skull"></i> {{localize "DH_QUICKACTIONS.INTERFACE.menuLegend"}}</legend>
 
         <div class="dqa-ui-row">
-            <label for="dqa-menu-enhancements">Menu Enhancements</label>
+            <label for="dqa-menu-enhancements">{{localize "DH_QUICKACTIONS.INTERFACE.menuLabel"}}</label>
             <input type="checkbox" id="dqa-menu-enhancements" class="dh-toggle" name="menuEnhancements"
                    {{#if menuEnhancements}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Turns off everything this module changes in the system's own sidebar menu: the purple
-            skull tab icon, the search bar, the alphabetical section ordering, the collapsible
-            sections and the two-column button grid. The module's own <strong>Quick Actions</strong>
-            section stays in the menu either way — only its layout falls back to the system default.
+            {{{localize "DH_QUICKACTIONS.INTERFACE.menuHint"}}}
         </p>
     </fieldset>
 
     <fieldset class="dqa-ui-section">
-        <legend><i class="fas fa-chess-pawn"></i> Tokens</legend>
+        <legend><i class="fas fa-chess-pawn"></i> {{localize "DH_QUICKACTIONS.INTERFACE.tokensLegend"}}</legend>
 
         <div class="dqa-ui-row">
-            <label for="dqa-token-tooltip">Token Hover Tooltip</label>
+            <label for="dqa-token-tooltip">{{localize "DH_QUICKACTIONS.SETTINGS.tokenTooltip.name"}}</label>
             <input type="checkbox" id="dqa-token-tooltip" class="dh-toggle" name="tokenTooltip"
                    {{#if tokenTooltip}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Shows a stat summary tooltip when hovering over character tokens on the canvas. Each
-            player picks its size with <strong>Token Tooltip Size</strong> in the module settings list.
+            {{{localize "DH_QUICKACTIONS.INTERFACE.tooltipHint"}}}
         </p>
 
         <div class="dqa-ui-row">
-            <label for="dqa-hope-bar">Token Hope Bar</label>
+            <label for="dqa-hope-bar">{{localize "DH_QUICKACTIONS.SETTINGS.hopeBarEnabled.name"}}</label>
             <input type="checkbox" id="dqa-hope-bar" class="dh-toggle" name="hopeBar"
                    {{#if hopeBar}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Draws a row of Hope diamonds above character tokens, following each token's own Display
-            Bars setting. Turn this off when another module already renders Hope on tokens.
+            {{localize "DH_QUICKACTIONS.INTERFACE.hopeHint"}}
         </p>
     </fieldset>
 
     <fieldset class="dqa-ui-section">
-        <legend><i class="fas fa-address-card"></i> Character Sheet</legend>
+        <legend><i class="fas fa-address-card"></i> {{localize "DH_QUICKACTIONS.INTERFACE.sheetLegend"}}</legend>
 
         <div class="dqa-ui-row">
-            <label for="dqa-hide-biography">Hide Biography Tab</label>
+            <label for="dqa-hide-biography">{{localize "DH_QUICKACTIONS.SETTINGS.hideBiographyTab.name"}}</label>
             <input type="checkbox" id="dqa-hide-biography" class="dh-toggle" name="hideBiography"
                    {{#if hideBiography}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Hides the Biography tab on character sheets for everyone. Off, the tab is shown as usual.
+            {{localize "DH_QUICKACTIONS.INTERFACE.biographyHint"}}
         </p>
     </fieldset>
 

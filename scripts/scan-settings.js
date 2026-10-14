@@ -26,7 +26,7 @@ class ScanSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "dh-qa-scan-settings-app",
         tag: "form",
         classes: ["scan-settings-wrapper"],
-        window: { title: "Scan Configuration", resizable: true },
+        window: { title: "DH_QUICKACTIONS.SCAN.settings.title", resizable: true },
         position: { width: 700, height: 520 }
     };
 

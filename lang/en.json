@@ -1,18 +1,50 @@
 {
   "DH_QUICKACTIONS": {
+    "COMMON": {
+      "cancel": "Cancel",
+      "clearAll": "Clear All",
+      "remove": "Remove",
+      "removeNamed": "Remove {name}",
+      "resetToDefaults": "Reset to Defaults",
+      "saveConfiguration": "Save Configuration"
+    },
     "SETTINGS": {
-      "downtimePCs": { "name": "Downtime PCs" },
-      "cinematicRequest": { "name": "Cinematic Roll Request" },
-      "downtimeCraftEntries": { "name": "Downtime Craft Entries" },
-      "downtimeCustomMoves": { "name": "Downtime Custom Moves" },
-      "downtimeItemMoveEntries": { "name": "Downtime Item Move Entries" },
-      "downtimeCoreFeatures": { "name": "Downtime Core Features" },
-      "downtimeDisabledUsers": { "name": "Downtime Disabled Users" },
-      "shortRestCount": { "name": "Short Rest Count" },
-      "downtimeActorConfigs": { "name": "Downtime Actor Configs" },
-      "downtimeUIState": { "name": "Downtime UI State" },
-      "downtimeUIOpen": { "name": "Downtime UI Open" },
-      "downtimeUIClosed": { "name": "Downtime UI Close" },
+      "downtimePCs": {
+        "name": "Downtime PCs"
+      },
+      "cinematicRequest": {
+        "name": "Cinematic Roll Request"
+      },
+      "downtimeCraftEntries": {
+        "name": "Downtime Craft Entries"
+      },
+      "downtimeCustomMoves": {
+        "name": "Downtime Custom Moves"
+      },
+      "downtimeItemMoveEntries": {
+        "name": "Downtime Item Move Entries"
+      },
+      "downtimeCoreFeatures": {
+        "name": "Downtime Core Features"
+      },
+      "downtimeDisabledUsers": {
+        "name": "Downtime Disabled Users"
+      },
+      "shortRestCount": {
+        "name": "Short Rest Count"
+      },
+      "downtimeActorConfigs": {
+        "name": "Downtime Actor Configs"
+      },
+      "downtimeUIState": {
+        "name": "Downtime UI State"
+      },
+      "downtimeUIOpen": {
+        "name": "Downtime UI Open"
+      },
+      "downtimeUIClosed": {
+        "name": "Downtime UI Close"
+      },
       "tokenTooltip": {
         "name": "Token Hover Tooltip",
         "hint": "Show a stat summary tooltip when hovering over character tokens on the canvas."
@@ -36,7 +68,9 @@
         "name": "Hide Biography Tab",
         "hint": "Hides the Biography tab on character sheets for everyone."
       },
-      "cinematicImages": { "name": "Cinematic Roll Images" },
+      "cinematicImages": {
+        "name": "Cinematic Roll Images"
+      },
       "cinematicImagesSettingsMenu": {
         "name": "Cinematic Roll Images",
         "label": "Configure Cinematic Images",
@@ -47,20 +81,28 @@
         "label": "Configure Custom Tables",
         "hint": "Pick the roll tables the Custom Tables roller draws from. Each table is rolled with its own formula."
       },
-      "menuEnhancementsEnabled": { "name": "Daggerheart Menu Enhancements" },
+      "menuEnhancementsEnabled": {
+        "name": "Daggerheart Menu Enhancements"
+      },
       "fallingDamageSettingsMenu": {
         "name": "Falling Damage Configuration",
         "label": "Configure Falling Damage",
         "hint": "Customize the dice formulas for each fall height category."
       },
-      "lootConsumableSource": { "name": "Loot & Consumable Table Source" },
+      "lootConsumableSource": {
+        "name": "Loot & Consumable Table Source"
+      },
       "lootConsumableSettingsMenu": {
         "name": "Loot & Consumables Configuration",
         "label": "Configure Loot & Consumables",
         "hint": "Pick which Daggerheart roll tables loot and consumables are drawn from, and customize the coin range of each tier."
       },
-      "quickActionsMacros": { "name": "Quick Actions Macros" },
-      "quickActionsEnabled": { "name": "Quick Actions Button" },
+      "quickActionsMacros": {
+        "name": "Quick Actions Macros"
+      },
+      "quickActionsEnabled": {
+        "name": "Quick Actions Button"
+      },
       "quickActionsMacrosMenu": {
         "name": "Quick Actions Macros",
         "label": "Configure Quick Actions",
@@ -95,7 +137,205 @@
           "overwhelmed": "Overwhelmed; panic or instability has taken hold, leaving them erratic and unpredictable.",
           "shattered": "Shattered; their mental defenses have crumbled, leaving them utterly exposed and vulnerable to any threat."
         }
+      },
+      "cardTitle": "Scan: {name}",
+      "notify": {
+        "disabled": "The Scan action is currently disabled by the GM.",
+        "noTarget": "Please target a token to scan.",
+        "noActor": "The targeted token has no actor.",
+        "invalidType": "Can only scan Characters, Adversaries, or Companions. Targeted a {type}."
+      },
+      "settings": {
+        "title": "Scan Configuration",
+        "tabGeneral": "General",
+        "generalHeading": "General Settings",
+        "enableLabel": "Enable Token Scan",
+        "enableHint": "Allows non-GM users to use the Scan quick action on targeted tokens.",
+        "tabHp": "Physical State",
+        "hpHeading": "Physical State Configuration",
+        "tabStress": "Mental State",
+        "stressHeading": "Mental State Configuration",
+        "titleLabel": "Chat Card Title",
+        "hpTitleHint": "The heading displayed on the scan chat card for hit points. Max 30 characters.",
+        "stressTitleHint": "The heading displayed on the scan chat card for stress. Max 30 characters.",
+        "labelPlaceholder": "Descriptive label..."
       }
+    },
+    "MENU": {
+      "quickActions": "Quick Actions",
+      "downtime": "Downtime",
+      "fallDamage": "Fall Damage",
+      "requestRoll": "Request Roll",
+      "levelUp": "Level Up",
+      "search": "Search..."
+    },
+    "INTERFACE": {
+      "title": "Interface Settings",
+      "intro": "World-wide interface changes made by this module, collected here. Each switch applies immediately — there is nothing to save.",
+      "menuLegend": "Daggerheart Sidebar Menu",
+      "menuLabel": "Menu Enhancements",
+      "menuHint": "Turns off everything this module changes in the system's own sidebar menu: the purple skull tab icon, the search bar, the alphabetical section ordering, the collapsible sections and the two-column button grid. The module's own <strong>Quick Actions</strong> section stays in the menu either way — only its layout falls back to the system default.",
+      "tokensLegend": "Tokens",
+      "tooltipHint": "Shows a stat summary tooltip when hovering over character tokens on the canvas. Each player picks its size with <strong>Token Tooltip Size</strong> in the module settings list.",
+      "hopeHint": "Draws a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens.",
+      "sheetLegend": "Character Sheet",
+      "biographyHint": "Hides the Biography tab on character sheets for everyone. Off, the tab is shown as usual."
+    },
+    "TOOLTIP": {
+      "actions": "Actions:",
+      "reactions": "Reactions:",
+      "passives": "Passives:"
+    },
+    "CINEMATIC": {
+      "noTrait": "Duality Roll (no trait)",
+      "difficulty": "Difficulty:",
+      "check": "Check:",
+      "settings": {
+        "title": "Cinematic Roll Images",
+        "hint": "Pick an image for each roll case. Every case starts on a core Foundry icon — point it at your own artwork, or clear it to fall back to a plain chat message instead of the cinematic prompt.",
+        "noImage": "No image configured",
+        "browse": "Browse",
+        "browseLabel": "Browse image for {name}",
+        "clear": "Clear",
+        "clearLabel": "Clear image for {name}",
+        "resetDefault": "Reset to Default",
+        "resetDefaultTooltip": "Restore the icon this module ships with for every case",
+        "clearAllTooltip": "Blank every case — Cinematic Mode falls back to plain chat messages"
+      }
+    },
+    "CUSTOM_TABLES": {
+      "notify": {
+        "onlyTables": "Quick Actions: only Rollable Tables can be dropped here.",
+        "unresolved": "Quick Actions: that table could not be resolved.",
+        "duplicate": "Quick Actions: \"{name}\" is already on the list."
+      },
+      "settings": {
+        "title": "Custom Tables Configuration",
+        "heading": "Custom Tables",
+        "hint": "Drag roll tables here from the Rollable Tables directory or from a compendium. They will be listed by <strong>QuickActions.CustomTables()</strong>.",
+        "dropZone": "Drop a Rollable Table here",
+        "missing": "Not found — the table was deleted or its compendium is unavailable",
+        "entries": "{count} entries",
+        "none": "No tables configured yet.",
+        "beforeHeading": "Before You Start",
+        "noteAccess": "<strong>Players need to see the table.</strong> A roll table created in the sidebar starts with no player access at all, so it works for you and fails for them. Set its ownership to <em>Observer</em> — and do the same for the compendium holding the items it hands out, which is one setting for the whole pack.",
+        "noteItems": "<strong>Items only.</strong> Results are handed to the sheet when they point at an Item. A text entry, or a link to an actor or journal, is shown in the chat card but nothing is added.",
+        "noteIndependent": "<strong>Every draw is independent.</strong> A table set to draw without replacement still repeats, because the roller never writes back to your table."
+      }
+    },
+    "FALLING": {
+      "settings": {
+        "title": "Falling Damage Configuration",
+        "heading": "Falling Damage Formulas",
+        "placeholder": "e.g., {example}",
+        "veryClose": "Very Close Range",
+        "veryCloseHint": "Damage formula for very close fall distances.",
+        "close": "Close Range",
+        "closeHint": "Damage formula for close fall distances.",
+        "far": "Far / Very Far Range",
+        "farHint": "Damage formula for far and very far fall distances.",
+        "collision": "Collision",
+        "collisionHint": "Damage formula for collision damage."
+      }
+    },
+    "LOOT": {
+      "source": {
+        "core": "Core Set only",
+        "hopeAndFear": "Hope & Fear only",
+        "both": "Core Set + Hope & Fear"
+      },
+      "settings": {
+        "title": "Loot & Consumables Configuration",
+        "tablesHeading": "Loot & Consumable Tables",
+        "sourceLabel": "Table Source",
+        "sourceHint": "Which Daggerheart roll tables the loot and consumable rolls draw from. With <strong>Core Set + Hope &amp; Fear</strong> the two books share one rarity scale, so a 1d12 sees 24 common items instead of 12 — a second d12 decides which book the entry comes from (1–6 Core Set, 7–12 Hope &amp; Fear). It widens the pick at every rarity; it does not make loot rarer.",
+        "coinsHeading": "Coin Tier Ranges",
+        "tier": "Tier {number}",
+        "min": "Min",
+        "max": "Max",
+        "coins": "coins"
+      }
+    },
+    "MACROS": {
+      "buttonLabel": "Quick Actions",
+      "noneDefined": "No macros defined.",
+      "notify": {
+        "none": "Quick Actions: no macros configured. A GM can add them in the module settings.",
+        "noneFound": "Quick Actions: none of the configured macros could be found.",
+        "onlyMacros": "Quick Actions: only Macros can be dropped here.",
+        "unresolved": "Quick Actions: that macro could not be resolved.",
+        "duplicate": "Quick Actions: \"{name}\" is already on the list."
+      },
+      "source": {
+        "compendium": "Compendium",
+        "world": "World"
+      },
+      "settings": {
+        "title": "Quick Actions Macros",
+        "hint": "Drag macros here from the Macro directory or from a compendium. They will be listed by the <strong>Quick Actions</strong> button on character sheets.",
+        "dropZone": "Drop a Macro here",
+        "missing": "Not found — the macro was deleted or its compendium is unavailable",
+        "none": "No macros configured yet.",
+        "preview": "Preview",
+        "resetDefault": "Reset to Default",
+        "disable": "Disable Quick Actions",
+        "enable": "Enable Quick Actions",
+        "statusOn": "The <strong>Quick Actions</strong> button is shown on every character sheet.",
+        "statusOff": "The feature is <strong>off</strong> — no button is shown on character sheets.",
+        "confirmClear": "Remove every macro from the Quick Actions list?",
+        "confirmReset": "Replace the current list with the module's default macros?"
+      }
+    },
+    "WHISPER": {
+      "title": "Whisper",
+      "message": "Message",
+      "shortcut": "Ctrl+Enter sends",
+      "placeholder": "Type your private message...",
+      "sendTo": "Send To",
+      "noUsers": "No other users are connected.",
+      "send": "Send Whisper",
+      "notify": {
+        "noRecipient": "Whisper: select at least one recipient.",
+        "noMessage": "Whisper: type a message before sending.",
+        "sent": "Whisper sent to {names}."
+      }
+    },
+    "TEMPLATE_CREATOR": {
+      "title": "Template Tool",
+      "shape": "Shape",
+      "circle": "Circle",
+      "cone": "Cone",
+      "front": "Front",
+      "ray": "Ray",
+      "rect": "Rect",
+      "distance": "Distance",
+      "melee": "Melee",
+      "veryClose": "V.Close",
+      "close": "Close",
+      "far": "Far",
+      "copy": "Copy",
+      "sendToChat": "Send to Chat",
+      "magicEffect": "Magic Effect",
+      "effects": {
+        "none": "None",
+        "glow": "Glowing Outline",
+        "rays": "Annihilating Rays",
+        "bulge": "Bulging Out",
+        "classicRays": "Classic Rays",
+        "classicRays2": "Classic Rays 2",
+        "fairy": "Fairy Fireflies",
+        "fire": "Fire Rays",
+        "flames": "Flames",
+        "protoplasm": "Protoplasm",
+        "water": "Watery Surface",
+        "zoneBlizzard": "Zone: Blizzard",
+        "zoneElectricity": "Zone: Electricity",
+        "zoneFire": "Zone: Fire"
+      },
+      "hideTemplate": "Hide Template",
+      "place": "Place Template",
+      "copied": "Template code copied to clipboard!",
+      "chatHint": "Click above to place the template"
     }
   }
 }

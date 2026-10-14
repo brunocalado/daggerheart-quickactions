@@ -3,9 +3,9 @@
 
     <div class="cinematic-details">
         {{#if hasDifficulty}}
-            Difficulty: <span class="cinematic-highlight">{{difficulty}}</span><br>
+            {{localize "DH_QUICKACTIONS.CINEMATIC.difficulty"}} <span class="cinematic-highlight">{{difficulty}}</span><br>
         {{/if}}
-        Check: <span class="cinematic-highlight">{{checkLabel}}</span>
+        {{localize "DH_QUICKACTIONS.CINEMATIC.check"}} <span class="cinematic-highlight">{{checkLabel}}</span>
     </div>
 
     {{#if imagePath}}

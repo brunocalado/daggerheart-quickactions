@@ -64,7 +64,7 @@ class CustomTablesSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) 
         id: "dh-qa-custom-tables-settings-app",
         tag: "form",
         classes: [MODULE_ID, "custom-tables-settings"],
-        window: { title: "Custom Tables Configuration", icon: "fas fa-dice-d20", resizable: true },
+        window: { title: "DH_QUICKACTIONS.CUSTOM_TABLES.settings.title", icon: "fas fa-dice-d20", resizable: true },
         position: { width: 520, height: "auto" },
         actions: {
             removeTable: CustomTablesSettingsApp.prototype._onRemoveTable,
@@ -133,19 +133,19 @@ class CustomTablesSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) 
     async _onDropTable(event) {
         const uuid = getDroppedTableUuid(event);
         if (!uuid) {
-            ui.notifications.warn("Quick Actions: only Rollable Tables can be dropped here.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.CUSTOM_TABLES.notify.onlyTables"));
             return;
         }
 
         const table = await fromUuid(uuid);
         if (!table || table.documentName !== "RollTable") {
-            ui.notifications.warn("Quick Actions: that table could not be resolved.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.CUSTOM_TABLES.notify.unresolved"));
             return;
         }
 
         const stored = getStoredTables();
         if (stored.some(entry => entry.uuid === uuid)) {
-            ui.notifications.info(`Quick Actions: "${table.name}" is already on the list.`);
+            ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.CUSTOM_TABLES.notify.duplicate", { name: table.name }));
             return;
         }
 

@@ -33,7 +33,7 @@ class FallingDamageSettingsApp extends HandlebarsApplicationMixin(ApplicationV2)
         id: "dh-qa-falling-damage-settings-app",
         tag: "form",
         classes: ["falling-damage-settings"],
-        window: { title: "Falling Damage Configuration", icon: "fas fa-skull-crossbones", resizable: false },
+        window: { title: "DH_QUICKACTIONS.FALLING.settings.title", icon: "fas fa-skull-crossbones", resizable: false },
         position: { width: 460, height: "auto" }
     };
 

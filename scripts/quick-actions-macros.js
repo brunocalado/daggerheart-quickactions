@@ -80,7 +80,7 @@ async function resolveMacros(entries) {
             uuid: entry.uuid,
             name: doc?.name ?? entry.name ?? entry.uuid,
             img: doc?.img ?? entry.img ?? DEFAULT_MACRO_IMG,
-            source: packTitle ?? (isCompendium ? "Compendium" : "World"),
+            source: packTitle ?? game.i18n.localize(isCompendium ? "DH_QUICKACTIONS.MACROS.source.compendium" : "DH_QUICKACTIONS.MACROS.source.world"),
             missing: !doc
         });
     }
@@ -119,14 +119,14 @@ function getDroppedMacroUuid(event) {
 export async function showQuickActionsMacros() {
     const stored = getStoredMacros();
     if (!stored.length) {
-        ui.notifications.warn("Quick Actions: no macros configured. A GM can add them in the module settings.");
+        ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.MACROS.notify.none"));
         return;
     }
 
     const resolved = await resolveMacros(stored);
     const available = resolved.filter(entry => !entry.missing);
     if (!available.length) {
-        ui.notifications.warn("Quick Actions: none of the configured macros could be found.");
+        ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.MACROS.notify.noneFound"));
         return;
     }
 
@@ -143,7 +143,7 @@ class QuickActionsMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "dh-qa-quick-actions-macros-app",
         tag: "div",
         classes: ["dh-qa-app", MODULE_ID, "dqa-quick-actions-macros"],
-        window: { title: "Quick Actions Macros", icon: "fas fa-bolt", resizable: true },
+        window: { title: "DH_QUICKACTIONS.MACROS.settings.title", icon: "fas fa-bolt", resizable: true },
         position: { width: 480, height: 560 },
         actions: {
             removeMacro: QuickActionsMacrosApp.prototype._onRemoveMacro,
@@ -169,9 +169,9 @@ class QuickActionsMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         // Markup survives the trip: Handlebars escapes it into the attribute, the HTML parser decodes
         // it back, and the tooltip manager runs the result through cleanHTML.
-        const statusHint = enabled
-            ? "The <strong>Quick Actions</strong> button is shown on every character sheet."
-            : "The feature is <strong>off</strong> — no button is shown on character sheets.";
+        const statusHint = game.i18n.localize(enabled
+            ? "DH_QUICKACTIONS.MACROS.settings.statusOn"
+            : "DH_QUICKACTIONS.MACROS.settings.statusOff");
 
         return { macros, hasMacros: macros.length > 0, enabled, statusHint };
     }
@@ -210,19 +210,19 @@ class QuickActionsMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onDropMacro(event) {
         const uuid = getDroppedMacroUuid(event);
         if (!uuid) {
-            ui.notifications.warn("Quick Actions: only Macros can be dropped here.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.MACROS.notify.onlyMacros"));
             return;
         }
 
         const macro = await fromUuid(uuid);
         if (!macro || macro.documentName !== "Macro") {
-            ui.notifications.warn("Quick Actions: that macro could not be resolved.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.MACROS.notify.unresolved"));
             return;
         }
 
         const stored = getStoredMacros();
         if (stored.some(entry => entry.uuid === uuid)) {
-            ui.notifications.info(`Quick Actions: "${macro.name}" is already on the list.`);
+            ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.MACROS.notify.duplicate", { name: macro.name }));
             return;
         }
 
@@ -249,8 +249,8 @@ class QuickActionsMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _onClearMacros() {
         const confirmed = await foundry.applications.api.DialogV2.confirm({
-            window: { title: "Quick Actions Macros" },
-            content: "<p>Remove every macro from the Quick Actions list?</p>",
+            window: { title: "DH_QUICKACTIONS.MACROS.settings.title" },
+            content: `<p>${game.i18n.localize("DH_QUICKACTIONS.MACROS.settings.confirmClear")}</p>`,
             modal: true
         });
         if (!confirmed) return;
@@ -265,8 +265,8 @@ class QuickActionsMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     async _onResetMacros() {
         const confirmed = await foundry.applications.api.DialogV2.confirm({
-            window: { title: "Quick Actions Macros" },
-            content: "<p>Replace the current list with the module's default macros?</p>",
+            window: { title: "DH_QUICKACTIONS.MACROS.settings.title" },
+            content: `<p>${game.i18n.localize("DH_QUICKACTIONS.MACROS.settings.confirmReset")}</p>`,
             modal: true
         });
         if (!confirmed) return;
@@ -361,8 +361,9 @@ function onRenderCharacterSheet(_app, element) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `header-control ${MODULE_ID} ${HEADER_BUTTON_CLASS}`;
-    button.setAttribute("aria-label", "Quick Actions");
-    button.innerHTML = `<i class="fa-solid fa-bolt"></i><span>Quick Actions</span>`;
+    const buttonLabel = game.i18n.localize("DH_QUICKACTIONS.MACROS.buttonLabel");
+    button.setAttribute("aria-label", buttonLabel);
+    button.innerHTML = `<i class="fa-solid fa-bolt"></i><span>${buttonLabel}</span>`;
 
     // The header is inside the sheet's own click delegation; stop the event so it cannot bubble
     // into the sheet's action handling or start a window drag.

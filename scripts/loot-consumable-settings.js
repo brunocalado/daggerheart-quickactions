@@ -34,7 +34,7 @@ class LootConsumableSettingsApp extends HandlebarsApplicationMixin(ApplicationV2
         id: "dh-qa-loot-consumable-settings-app",
         tag: "form",
         classes: [MODULE_ID, "loot-consumable-settings"],
-        window: { title: "Loot & Consumables Configuration", icon: "fas fa-treasure-chest", resizable: false },
+        window: { title: "DH_QUICKACTIONS.LOOT.settings.title", icon: "fas fa-treasure-chest", resizable: false },
         position: { width: 480, height: "auto" }
     };
 
@@ -53,7 +53,7 @@ class LootConsumableSettingsApp extends HandlebarsApplicationMixin(ApplicationV2
             tiers: game.settings.get(MODULE_ID, "coinTierRanges"),
             sources: Object.values(LOOT_SOURCE).map(value => ({
                 value,
-                label: LOOT_SOURCE_LABELS[value],
+                label: game.i18n.localize(LOOT_SOURCE_LABELS[value]),
                 selected: value === source
             }))
         };

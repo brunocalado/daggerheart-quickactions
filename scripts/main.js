@@ -343,23 +343,23 @@ Hooks.on("renderPartySheet", (app, html) => {
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
 
     const buttonDefs = [
-        { icon: "fa-bed", label: "Downtime", onClick: activateDowntimeUI },
-        { icon: "fa-skull-crossbones", label: "Fall Damage", onClick: activateFallingDamage },
-        { icon: "fa-dice-d20", label: "Request Roll", onClick: activateRequestRoll },
-        { icon: "fa-arrow-up", label: "Level Up", onClick: activateLevelUp }
+        { icon: "fa-bed", label: "DH_QUICKACTIONS.MENU.downtime", onClick: activateDowntimeUI },
+        { icon: "fa-skull-crossbones", label: "DH_QUICKACTIONS.MENU.fallDamage", onClick: activateFallingDamage },
+        { icon: "fa-dice-d20", label: "DH_QUICKACTIONS.MENU.requestRoll", onClick: activateRequestRoll },
+        { icon: "fa-arrow-up", label: "DH_QUICKACTIONS.MENU.levelUp", onClick: activateLevelUp }
     ];
 
     const newFieldset = document.createElement("fieldset");
     newFieldset.classList.add(MODULE_ID, "dqa-menu-quick-actions-grid");
 
     const legend = document.createElement("legend");
-    legend.innerText = "Quick Actions";
+    legend.innerText = game.i18n.localize("DH_QUICKACTIONS.MENU.quickActions");
     newFieldset.appendChild(legend);
 
     for (const { icon, label, onClick } of buttonDefs) {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.innerHTML = `<i class="fas ${icon}"></i> ${label}`;
+        btn.innerHTML = `<i class="fas ${icon}"></i> ${game.i18n.localize(label)}`;
         btn.classList.add("dh-custom-btn", "dqa-menu-grid-btn");
         btn.onclick = onClick;
         newFieldset.appendChild(btn);

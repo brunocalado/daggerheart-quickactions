@@ -54,7 +54,7 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
         id: "dh-qa-cinematic-images-settings-app",
         tag: "div",
         classes: ["dh-qa-app", MODULE_ID, "dqa-cinematic-images"],
-        window: { title: "Cinematic Roll Images", icon: "fas fa-images", resizable: true },
+        window: { title: "DH_QUICKACTIONS.CINEMATIC.settings.title", icon: "fas fa-images", resizable: true },
         position: { width: 480, height: "auto" },
         actions: {
             browseImage: CinematicImagesSettingsApp.prototype._onBrowseImage,
@@ -77,7 +77,7 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
         const stored = getStoredCinematicImages();
         const rows = CINEMATIC_CASE_KEYS.map(key => ({
             key,
-            label: CINEMATIC_CASE_LABELS[key],
+            label: game.i18n.localize(CINEMATIC_CASE_LABELS[key]),
             path: stored[key] || "",
             hasImage: !!stored[key]
         }));

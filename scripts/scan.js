@@ -71,22 +71,22 @@ function getLabel(pct, labels) {
 export async function scan() {
     // Check if the feature is enabled by the GM
     if (!game.settings.get(MODULE_ID, "enableScan")) {
-        return ui.notifications.warn("The Scan action is currently disabled by the GM.");
+        return ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.SCAN.notify.disabled"));
     }
 
     const targets = game.user.targets;
     if (targets.size === 0) {
-        return ui.notifications.warn("Please target a token to scan.");
+        return ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.SCAN.notify.noTarget"));
     }
     const target = targets.first();
 
     const actor = target.actor;
     if (!actor) {
-        return ui.notifications.warn("The targeted token has no actor.");
+        return ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.SCAN.notify.noActor"));
     }
     const validTypes = ["character", "adversary", "companion"];
     if (!validTypes.includes(actor.type)) {
-        return ui.notifications.warn(`Can only scan Characters, Adversaries, or Companions. Targeted a ${actor.type}.`);
+        return ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.SCAN.notify.invalidType", { type: actor.type }));
     }
 
     const hp = actor.system.resources?.hitPoints;
@@ -122,7 +122,7 @@ export async function scan() {
                         <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${stressLabel.charAt(0).toUpperCase() + stressLabel.slice(1)}</div>
                     </div>` : ''}
                 </div>`;
-    const content = buildChatCard(`Scan: ${target.name}`, bodyHtml);
+    const content = buildChatCard(game.i18n.localize("DH_QUICKACTIONS.SCAN.cardTitle", { name: foundry.utils.escapeHTML(target.name) }), bodyHtml);
 
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),
