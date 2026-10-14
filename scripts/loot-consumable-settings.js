@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Loot & Consumables Settings Module
  * Provides an ApplicationV2 menu covering everything QuickActions.LootConsumable() rolls:
@@ -99,7 +107,7 @@ export function registerLootConsumableSettings() {
     // Edited through the menu below rather than as a standalone dropdown, so the roller's whole
     // configuration lives behind one button.
     game.settings.register(MODULE_ID, LOOT_CONSUMABLE_SOURCE, {
-        name: "Loot & Consumable Table Source",
+        name: "DH_QUICKACTIONS.SETTINGS.lootConsumableSource.name",
         scope: "world",
         config: false,
         type: String,
@@ -114,9 +122,9 @@ export function registerLootConsumableSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "lootConsumableSettingsMenu", {
-        name: "Loot & Consumables Configuration",
-        label: "Configure Loot & Consumables",
-        hint: "Pick which Daggerheart roll tables loot and consumables are drawn from, and customize the coin range of each tier.",
+        name: "DH_QUICKACTIONS.SETTINGS.lootConsumableSettingsMenu.name",
+        label: "DH_QUICKACTIONS.SETTINGS.lootConsumableSettingsMenu.label",
+        hint: "DH_QUICKACTIONS.SETTINGS.lootConsumableSettingsMenu.hint",
         icon: "fas fa-treasure-chest",
         type: LootConsumableSettingsApp,
         restricted: true

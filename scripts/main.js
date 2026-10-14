@@ -57,7 +57,7 @@ import { registerUISettings } from "./ui-settings.js";
 Hooks.once("init", () => {
     // 1. Downtime Setting
     game.settings.register(MODULE_ID, "downtimePCs", {
-        name: "Downtime PCs",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimePCs.name",
         scope: "world",
         config: false,
         type: Number,
@@ -66,7 +66,7 @@ Hooks.once("init", () => {
 
     // 2. Cinematic Request Synchronization (Force Open Logic)
     game.settings.register(MODULE_ID, "cinematicRequest", {
-        name: "Cinematic Roll Request",
+        name: "DH_QUICKACTIONS.SETTINGS.cinematicRequest.name",
         scope: "world",     // Synchronizes between all clients
         config: false,      // Invisible in menu
         default: {},
@@ -95,7 +95,7 @@ Hooks.once("init", () => {
 
     // 5. Global craft entries (shared across all actors)
     game.settings.register(MODULE_ID, "downtimeCraftEntries", {
-        name: "Downtime Craft Entries",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeCraftEntries.name",
         scope: "world",
         config: false,
         default: [],
@@ -104,7 +104,7 @@ Hooks.once("init", () => {
 
     // 5b. Global custom moves (shared across all actors)
     game.settings.register(MODULE_ID, "downtimeCustomMoves", {
-        name: "Downtime Custom Moves",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeCustomMoves.name",
         scope: "world",
         config: false,
         default: [],
@@ -113,7 +113,7 @@ Hooks.once("init", () => {
 
     // 5c. Global item move entries (shared across all actors)
     game.settings.register(MODULE_ID, "downtimeItemMoveEntries", {
-        name: "Downtime Item Move Entries",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeItemMoveEntries.name",
         scope: "world",
         config: false,
         default: [],
@@ -122,7 +122,7 @@ Hooks.once("init", () => {
 
     // 5d. Core feature entries (e.g. Efficient)
     game.settings.register(MODULE_ID, "downtimeCoreFeatures", {
-        name: "Downtime Core Features",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeCoreFeatures.name",
         scope: "world",
         config: false,
         default: [
@@ -134,7 +134,7 @@ Hooks.once("init", () => {
 
     // 5e. Users switched off in the Downtime config — never take part in downtime
     game.settings.register(MODULE_ID, DOWNTIME_DISABLED_USERS, {
-        name: "Downtime Disabled Users",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeDisabledUsers.name",
         scope: "world",
         config: false,
         default: [],
@@ -153,7 +153,7 @@ Hooks.once("init", () => {
 
     // 6a. Persistent per-actor downtime configs (modifiers, maxChoices)
     game.settings.register(MODULE_ID, "shortRestCount", {
-        name: "Short Rest Count",
+        name: "DH_QUICKACTIONS.SETTINGS.shortRestCount.name",
         scope: "world",
         config: false,
         type: Number,
@@ -161,7 +161,7 @@ Hooks.once("init", () => {
     });
 
     game.settings.register(MODULE_ID, "downtimeActorConfigs", {
-        name: "Downtime Actor Configs",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeActorConfigs.name",
         scope: "world",
         config: false,
         default: {},
@@ -170,7 +170,7 @@ Hooks.once("init", () => {
 
     // 6b. Downtime UI State (player choices, GM config)
     game.settings.register(MODULE_ID, "downtimeUIState", {
-        name: "Downtime UI State",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeUIState.name",
         scope: "world",
         config: false,
         default: {},
@@ -185,7 +185,7 @@ Hooks.once("init", () => {
 
     // 7. Downtime UI Open Broadcast
     game.settings.register(MODULE_ID, "downtimeUIOpen", {
-        name: "Downtime UI Open",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeUIOpen.name",
         scope: "world",
         config: false,
         default: {},
@@ -200,7 +200,7 @@ Hooks.once("init", () => {
 
     // 7b. Downtime UI Close Broadcast
     game.settings.register(MODULE_ID, "downtimeUIClosed", {
-        name: "Downtime UI Close",
+        name: "DH_QUICKACTIONS.SETTINGS.downtimeUIClosed.name",
         scope: "world",
         config: false,
         default: {},
@@ -216,8 +216,8 @@ Hooks.once("init", () => {
     // 8. Token Hover Tooltip
     // Edited from the Interface Settings window (ui-settings.js).
     game.settings.register(MODULE_ID, TOKEN_TOOLTIP_ENABLED, {
-        name: "Token Hover Tooltip",
-        hint: "Show a stat summary tooltip when hovering over character tokens on the canvas.",
+        name: "DH_QUICKACTIONS.SETTINGS.tokenTooltip.name",
+        hint: "DH_QUICKACTIONS.SETTINGS.tokenTooltip.hint",
         scope: "world",
         config: false,
         type: Boolean,
@@ -226,25 +226,25 @@ Hooks.once("init", () => {
 
     // 8b. Token Tooltip Size
     game.settings.register(MODULE_ID, "tokenTooltipSize", {
-        name: "Token Tooltip Size",
-        hint: "Controls the size of the token hover tooltip.",
+        name: "DH_QUICKACTIONS.SETTINGS.tokenTooltipSize.name",
+        hint: "DH_QUICKACTIONS.SETTINGS.tokenTooltipSize.hint",
         scope: "client",
         config: true,
         type: String,
         default: "normal",
         choices: {
-            small: "Small",
-            normal: "Normal",
-            large: "Large",
-            xlarge: "Extra Large",
-            xxlarge: "Massive"
+            small: "DH_QUICKACTIONS.SETTINGS.tokenTooltipSize.choices.small",
+            normal: "DH_QUICKACTIONS.SETTINGS.tokenTooltipSize.choices.normal",
+            large: "DH_QUICKACTIONS.SETTINGS.tokenTooltipSize.choices.large",
+            xlarge: "DH_QUICKACTIONS.SETTINGS.tokenTooltipSize.choices.xlarge",
+            xxlarge: "DH_QUICKACTIONS.SETTINGS.tokenTooltipSize.choices.xxlarge"
         }
     });
 
     // 8c. Hope Bar — edited from the Interface Settings window (ui-settings.js).
     game.settings.register(MODULE_ID, HOPE_BAR_ENABLED, {
-        name: "Token Hope Bar",
-        hint: "Draw a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens.",
+        name: "DH_QUICKACTIONS.SETTINGS.hopeBarEnabled.name",
+        hint: "DH_QUICKACTIONS.SETTINGS.hopeBarEnabled.hint",
         scope: "world",
         config: false,
         type: Boolean,

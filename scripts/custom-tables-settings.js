@@ -193,9 +193,9 @@ export function registerCustomTablesSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "customTablesSettingsMenu", {
-        name: "Custom Tables Configuration",
-        label: "Configure Custom Tables",
-        hint: "Pick the roll tables the Custom Tables roller draws from. Each table is rolled with its own formula.",
+        name: "DH_QUICKACTIONS.SETTINGS.customTablesSettingsMenu.name",
+        label: "DH_QUICKACTIONS.SETTINGS.customTablesSettingsMenu.label",
+        hint: "DH_QUICKACTIONS.SETTINGS.customTablesSettingsMenu.hint",
         icon: "fas fa-dice-d20",
         type: CustomTablesSettingsApp,
         restricted: true

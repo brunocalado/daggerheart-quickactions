@@ -31,8 +31,8 @@ const FALLBACK_TAB = "features";
  */
 export function registerBiographyTabSettings() {
     game.settings.register(MODULE_ID, HIDE_BIOGRAPHY_TAB, {
-        name: "Hide Biography Tab",
-        hint: "Hides the Biography tab on character sheets for everyone.",
+        name: "DH_QUICKACTIONS.SETTINGS.hideBiographyTab.name",
+        hint: "DH_QUICKACTIONS.SETTINGS.hideBiographyTab.hint",
         scope: "world",
         config: false,
         type: Boolean,

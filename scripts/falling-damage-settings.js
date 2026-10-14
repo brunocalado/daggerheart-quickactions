@@ -1,3 +1,11 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Falling Damage Settings Module
  * Provides an ApplicationV2 menu for customizing falling damage dice formulas.
@@ -91,9 +99,9 @@ export function registerFallingDamageSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "fallingDamageSettingsMenu", {
-        name: "Falling Damage Configuration",
-        label: "Configure Falling Damage",
-        hint: "Customize the dice formulas for each fall height category.",
+        name: "DH_QUICKACTIONS.SETTINGS.fallingDamageSettingsMenu.name",
+        label: "DH_QUICKACTIONS.SETTINGS.fallingDamageSettingsMenu.label",
+        hint: "DH_QUICKACTIONS.SETTINGS.fallingDamageSettingsMenu.hint",
         icon: "fas fa-skull-crossbones",
         type: FallingDamageSettingsApp,
         restricted: true

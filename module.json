@@ -152,6 +152,13 @@
       "src": "styles/barter.css"
     }
   ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
   "url": "https://github.com/brunocalado/daggerheart-quickactions",
   "manifest": "https://github.com/brunocalado/daggerheart-quickactions/releases/latest/download/module.json",
   "download": "https://github.com/brunocalado/daggerheart-quickactions/releases/latest/download/module.zip",

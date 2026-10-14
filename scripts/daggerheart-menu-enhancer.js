@@ -53,7 +53,7 @@ export function initDaggerheartMenuEnhancer() {
 
     // Surfaced by the Interface Settings menu (ui-settings.js), not by the settings list.
     game.settings.register(MODULE_ID, MENU_ENHANCEMENTS_ENABLED, {
-        name: "Daggerheart Menu Enhancements",
+        name: "DH_QUICKACTIONS.SETTINGS.menuEnhancementsEnabled.name",
         scope: "world",
         config: false,
         type: Boolean,

@@ -1,53 +1,48 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Scan Module
  * Contains the logic for the QuickActions.Scan() feature.
  * Labels and titles are configurable via the Scan Settings menu.
  */
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, SCAN_DEFAULT_LABELS, SCAN_DEFAULT_TITLES } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
 
-/** Fallback HP labels used when settings are unavailable. */
-const DEFAULT_HP_LABELS = [
-    { min: 100, label: "Imposing; their form is pristine, radiating an aura of untouched power." },
-    { min: 75,  label: "Weathered; minor injuries or disruptions mark their form, but their stance remains firm." },
-    { min: 50,  label: "Battered; visible wounds or flickering essence betray the toll of battle, slowing them down." },
-    { min: 25,  label: "Broken; they stagger with ragged desperation, their existence hanging by a thread." },
-    { min: 0,   label: "Fallen; the vessel has succumbed, collapsing into stillness or dissipation." },
-];
-
-/** Fallback Stress labels used when settings are unavailable. */
-const DEFAULT_STRESS_LABELS = [
-    { min: 100, label: "Unshakeable; their mind is a fortress, operating with absolute, terrifying clarity." },
-    { min: 70,  label: "Guarded; a subtle tension tightens their movements, the weight of the moment setting in." },
-    { min: 50,  label: "Rattled; hesitation fractures their focus, erratic energy revealing their inner turmoil." },
-    { min: 25,  label: "Overwhelmed; panic or instability has taken hold, leaving them erratic and unpredictable." },
-    { min: 0,   label: "Shattered; their mental defenses have crumbled, leaving them utterly exposed and vulnerable to any threat." },
-];
-
 /**
- * Reads the configured scan labels from world settings, falling back to defaults.
+ * Reads the configured scan labels from world settings. Each threshold uses the GM's text when
+ * one is stored for it, and the localized default otherwise — an empty or unparsable setting
+ * means "all defaults", so the card follows the client's language until the GM writes their own.
  * @param {"hp"|"stress"} type - Which label set to retrieve.
  * @returns {Array<{min: number, label: string}>}
  */
-function getScanLabels(type) {
+export function getScanLabels(type) {
     const key = type === "hp" ? "scanHpLabels" : "scanStressLabels";
-    const fallback = type === "hp" ? DEFAULT_HP_LABELS : DEFAULT_STRESS_LABELS;
+    let stored = [];
     try {
-        return JSON.parse(game.settings.get(MODULE_ID, key));
-    } catch {
-        return fallback;
-    }
+        stored = JSON.parse(game.settings.get(MODULE_ID, key));
+    } catch { /* empty or malformed: every threshold falls back to its default */ }
+    if (!Array.isArray(stored)) stored = [];
+    return SCAN_DEFAULT_LABELS[type].map(({ min, label }) => ({
+        min,
+        label: stored.find(entry => entry?.min === min)?.label || game.i18n.localize(label)
+    }));
 }
 
 /**
- * Reads the configured scan title from world settings, falling back to defaults.
+ * Reads the configured scan title from world settings, falling back to the localized default.
  * @param {"hp"|"stress"} type - Which title to retrieve.
  * @returns {string}
  */
-function getScanTitle(type) {
+export function getScanTitle(type) {
     const key = type === "hp" ? "scanHpTitle" : "scanStressTitle";
-    const fallback = type === "hp" ? "Physical State" : "Mental State";
+    const fallback = game.i18n.localize(SCAN_DEFAULT_TITLES[type]);
     try {
         return game.settings.get(MODULE_ID, key) || fallback;
     } catch {

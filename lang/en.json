@@ -1,0 +1,101 @@
+{
+  "DH_QUICKACTIONS": {
+    "SETTINGS": {
+      "downtimePCs": { "name": "Downtime PCs" },
+      "cinematicRequest": { "name": "Cinematic Roll Request" },
+      "downtimeCraftEntries": { "name": "Downtime Craft Entries" },
+      "downtimeCustomMoves": { "name": "Downtime Custom Moves" },
+      "downtimeItemMoveEntries": { "name": "Downtime Item Move Entries" },
+      "downtimeCoreFeatures": { "name": "Downtime Core Features" },
+      "downtimeDisabledUsers": { "name": "Downtime Disabled Users" },
+      "shortRestCount": { "name": "Short Rest Count" },
+      "downtimeActorConfigs": { "name": "Downtime Actor Configs" },
+      "downtimeUIState": { "name": "Downtime UI State" },
+      "downtimeUIOpen": { "name": "Downtime UI Open" },
+      "downtimeUIClosed": { "name": "Downtime UI Close" },
+      "tokenTooltip": {
+        "name": "Token Hover Tooltip",
+        "hint": "Show a stat summary tooltip when hovering over character tokens on the canvas."
+      },
+      "tokenTooltipSize": {
+        "name": "Token Tooltip Size",
+        "hint": "Controls the size of the token hover tooltip.",
+        "choices": {
+          "small": "Small",
+          "normal": "Normal",
+          "large": "Large",
+          "xlarge": "Extra Large",
+          "xxlarge": "Massive"
+        }
+      },
+      "hopeBarEnabled": {
+        "name": "Token Hope Bar",
+        "hint": "Draw a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens."
+      },
+      "hideBiographyTab": {
+        "name": "Hide Biography Tab",
+        "hint": "Hides the Biography tab on character sheets for everyone."
+      },
+      "cinematicImages": { "name": "Cinematic Roll Images" },
+      "cinematicImagesSettingsMenu": {
+        "name": "Cinematic Roll Images",
+        "label": "Configure Cinematic Images",
+        "hint": "Assign an image to each Request Roll case. Every case starts on a core Foundry icon; Cinematic Mode only activates for cases that have an image, so a case left empty falls back to a plain chat message."
+      },
+      "customTablesSettingsMenu": {
+        "name": "Custom Tables Configuration",
+        "label": "Configure Custom Tables",
+        "hint": "Pick the roll tables the Custom Tables roller draws from. Each table is rolled with its own formula."
+      },
+      "menuEnhancementsEnabled": { "name": "Daggerheart Menu Enhancements" },
+      "fallingDamageSettingsMenu": {
+        "name": "Falling Damage Configuration",
+        "label": "Configure Falling Damage",
+        "hint": "Customize the dice formulas for each fall height category."
+      },
+      "lootConsumableSource": { "name": "Loot & Consumable Table Source" },
+      "lootConsumableSettingsMenu": {
+        "name": "Loot & Consumables Configuration",
+        "label": "Configure Loot & Consumables",
+        "hint": "Pick which Daggerheart roll tables loot and consumables are drawn from, and customize the coin range of each tier."
+      },
+      "quickActionsMacros": { "name": "Quick Actions Macros" },
+      "quickActionsEnabled": { "name": "Quick Actions Button" },
+      "quickActionsMacrosMenu": {
+        "name": "Quick Actions Macros",
+        "label": "Configure Quick Actions",
+        "hint": "Choose the macros listed by the \"Quick Actions\" button on character sheets. Drag macros in from the Macro directory or a compendium."
+      },
+      "scanSettingsMenu": {
+        "name": "Scan Labels Configuration",
+        "label": "Configure Scan Labels",
+        "hint": "Customize the descriptive labels and titles shown in the Scan chat card."
+      },
+      "uiSettingsMenu": {
+        "name": "Interface Settings",
+        "label": "Configure Interface",
+        "hint": "World-wide interface changes made by this module, in one place: the Daggerheart sidebar menu enhancements, the token tooltip and Hope bar, and the character sheet Biography tab."
+      }
+    },
+    "SCAN": {
+      "hpTitle": "Physical State",
+      "stressTitle": "Mental State",
+      "labels": {
+        "hp": {
+          "imposing": "Imposing; their form is pristine, radiating an aura of untouched power.",
+          "weathered": "Weathered; minor injuries or disruptions mark their form, but their stance remains firm.",
+          "battered": "Battered; visible wounds or flickering essence betray the toll of battle, slowing them down.",
+          "broken": "Broken; they stagger with ragged desperation, their existence hanging by a thread.",
+          "fallen": "Fallen; the vessel has succumbed, collapsing into stillness or dissipation."
+        },
+        "stress": {
+          "unshakeable": "Unshakeable; their mind is a fortress, operating with absolute, terrifying clarity.",
+          "guarded": "Guarded; a subtle tension tightens their movements, the weight of the moment setting in.",
+          "rattled": "Rattled; hesitation fractures their focus, erratic energy revealing their inner turmoil.",
+          "overwhelmed": "Overwhelmed; panic or instability has taken hold, leaving them erratic and unpredictable.",
+          "shattered": "Shattered; their mental defenses have crumbled, leaving them utterly exposed and vulnerable to any threat."
+        }
+      }
+    }
+  }
+}

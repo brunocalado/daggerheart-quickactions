@@ -168,6 +168,40 @@ export const UNLEASH_CHAOS_UUID = "Compendium.daggerheart.domains.Item.o62i0QdbU
 export const CHAIN_LIGHTNING_UUID = "Compendium.daggerheart.domains.Item.0kAVO6rordCfZqYP";
 
 /**
+ * Default Scan chat card titles, as translation keys. The `scanHpTitle` / `scanStressTitle`
+ * settings default to "" and fall back to these when read, because settings register in `init`,
+ * before translations load.
+ * @type {Readonly<{hp: string, stress: string}>}
+ */
+export const SCAN_DEFAULT_TITLES = Object.freeze({
+    hp: "DH_QUICKACTIONS.SCAN.hpTitle",
+    stress: "DH_QUICKACTIONS.SCAN.stressTitle"
+});
+
+/**
+ * Default Scan descriptors per track, keyed by minimum remaining percentage, as translation keys.
+ * The thresholds are fixed; a GM's text in `scanHpLabels` / `scanStressLabels` overrides the
+ * entry with the same `min`, and an empty entry falls back to the key.
+ * @type {Readonly<{hp: ReadonlyArray<{min: number, label: string}>, stress: ReadonlyArray<{min: number, label: string}>}>}
+ */
+export const SCAN_DEFAULT_LABELS = Object.freeze({
+    hp: Object.freeze([
+        { min: 100, label: "DH_QUICKACTIONS.SCAN.labels.hp.imposing" },
+        { min: 75,  label: "DH_QUICKACTIONS.SCAN.labels.hp.weathered" },
+        { min: 50,  label: "DH_QUICKACTIONS.SCAN.labels.hp.battered" },
+        { min: 25,  label: "DH_QUICKACTIONS.SCAN.labels.hp.broken" },
+        { min: 0,   label: "DH_QUICKACTIONS.SCAN.labels.hp.fallen" }
+    ]),
+    stress: Object.freeze([
+        { min: 100, label: "DH_QUICKACTIONS.SCAN.labels.stress.unshakeable" },
+        { min: 70,  label: "DH_QUICKACTIONS.SCAN.labels.stress.guarded" },
+        { min: 50,  label: "DH_QUICKACTIONS.SCAN.labels.stress.rattled" },
+        { min: 25,  label: "DH_QUICKACTIONS.SCAN.labels.stress.overwhelmed" },
+        { min: 0,   label: "DH_QUICKACTIONS.SCAN.labels.stress.shattered" }
+    ])
+});
+
+/**
  * World setting key holding the GM-configured image for each Cinematic Roll case.
  * Stored as an object keyed by CINEMATIC_CASE_KEYS, values are image paths (or "" when unset).
  * @type {string}

@@ -301,7 +301,7 @@ class QuickActionsMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
  */
 export function registerQuickActionsMacrosSettings() {
     game.settings.register(MODULE_ID, QUICK_ACTIONS_MACROS, {
-        name: "Quick Actions Macros",
+        name: "DH_QUICKACTIONS.SETTINGS.quickActionsMacros.name",
         scope: "world",
         config: false,
         type: Array,
@@ -309,7 +309,7 @@ export function registerQuickActionsMacrosSettings() {
     });
 
     game.settings.register(MODULE_ID, QUICK_ACTIONS_ENABLED, {
-        name: "Quick Actions Button",
+        name: "DH_QUICKACTIONS.SETTINGS.quickActionsEnabled.name",
         scope: "world",
         config: false,
         type: Boolean,
@@ -318,9 +318,9 @@ export function registerQuickActionsMacrosSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "quickActionsMacrosMenu", {
-        name: "Quick Actions Macros",
-        label: "Configure Quick Actions",
-        hint: "Choose the macros listed by the \"Quick Actions\" button on character sheets. Drag macros in from the Macro directory or a compendium.",
+        name: "DH_QUICKACTIONS.SETTINGS.quickActionsMacrosMenu.name",
+        label: "DH_QUICKACTIONS.SETTINGS.quickActionsMacrosMenu.label",
+        hint: "DH_QUICKACTIONS.SETTINGS.quickActionsMacrosMenu.hint",
         icon: "fas fa-bolt",
         type: QuickActionsMacrosApp,
         restricted: true

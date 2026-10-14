@@ -1,30 +1,21 @@
+/*!
+ * Daggerheart: Quick Actions
+ * Copyright (c) 2026 https://github.com/brunocalado
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3.
+ */
+
 /**
  * Scan Settings Module
  * Provides an ApplicationV2 menu for customizing scan label text and chat card titles.
  * Registered from the init hook in main.js.
  */
 
-import { MODULE_ID } from "./constants.js";
+import { MODULE_ID, SCAN_DEFAULT_LABELS, SCAN_DEFAULT_TITLES } from "./constants.js";
+import { getScanLabels, getScanTitle } from "./scan.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-
-/** Default HP label descriptors, keyed by minimum percentage threshold. */
-const DEFAULT_HP_LABELS = [
-    { min: 100, label: "Imposing; their form is pristine, radiating an aura of untouched power." },
-    { min: 75,  label: "Weathered; minor injuries or disruptions mark their form, but their stance remains firm." },
-    { min: 50,  label: "Battered; visible wounds or flickering essence betray the toll of battle, slowing them down." },
-    { min: 25,  label: "Broken; they stagger with ragged desperation, their existence hanging by a thread." },
-    { min: 0,   label: "Fallen; the vessel has succumbed, collapsing into stillness or dissipation." },
-];
-
-/** Default Stress label descriptors, keyed by minimum percentage threshold. */
-const DEFAULT_STRESS_LABELS = [
-    { min: 100, label: "Unshakeable; their mind is a fortress, operating with absolute, terrifying clarity." },
-    { min: 70,  label: "Guarded; a subtle tension tightens their movements, the weight of the moment setting in." },
-    { min: 50,  label: "Rattled; hesitation fractures their focus, erratic energy revealing their inner turmoil." },
-    { min: 25,  label: "Overwhelmed; panic or instability has taken hold, leaving them erratic and unpredictable." },
-    { min: 0,   label: "Shattered; their mental defenses have crumbled, leaving them utterly exposed and vulnerable to any threat." },
-];
 
 /**
  * Menu Application for customizing Scan feature labels and chat card titles.
@@ -51,10 +42,10 @@ class ScanSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _prepareContext(_options) {
         return {
             enableScan: game.settings.get(MODULE_ID, "enableScan"),
-            hpTitle: game.settings.get(MODULE_ID, "scanHpTitle"),
-            stressTitle: game.settings.get(MODULE_ID, "scanStressTitle"),
-            hpLabels: JSON.parse(game.settings.get(MODULE_ID, "scanHpLabels")),
-            stressLabels: JSON.parse(game.settings.get(MODULE_ID, "scanStressLabels"))
+            hpTitle: getScanTitle("hp"),
+            stressTitle: getScanTitle("stress"),
+            hpLabels: getScanLabels("hp"),
+            stressLabels: getScanLabels("stress")
         };
     }
 
@@ -79,15 +70,12 @@ class ScanSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         this.element.querySelectorAll('.reset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const type = btn.dataset.reset;
-                const defaults = type === "hp" ? DEFAULT_HP_LABELS : DEFAULT_STRESS_LABELS;
-                const defaultTitle = type === "hp" ? "Physical State" : "Mental State";
-
                 const titleInput = this.element.querySelector(`input[name="${type}Title"]`);
-                if (titleInput) titleInput.value = defaultTitle;
+                if (titleInput) titleInput.value = game.i18n.localize(SCAN_DEFAULT_TITLES[type]);
 
-                for (const entry of defaults) {
+                for (const entry of SCAN_DEFAULT_LABELS[type]) {
                     const input = this.element.querySelector(`input[name="${type}Label-${entry.min}"]`);
-                    if (input) input.value = entry.label;
+                    if (input) input.value = game.i18n.localize(entry.label);
                 }
             });
         });
@@ -97,18 +85,23 @@ class ScanSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
             e.preventDefault();
             const formData = new FormData(e.target);
 
-            await game.settings.set(MODULE_ID, 'scanHpTitle', formData.get('hpTitle') || 'Physical State');
-            await game.settings.set(MODULE_ID, 'scanStressTitle', formData.get('stressTitle') || 'Mental State');
-
-            const collectLabels = (type, defaults) => {
-                return defaults.map(entry => ({
-                    min: entry.min,
-                    label: formData.get(`${type}Label-${entry.min}`) || entry.label
-                }));
+            // A field still holding the localized default is stored as "", so it keeps following
+            // the client's language instead of freezing the text of whoever saved the form.
+            const custom = (value, defaultKey) => {
+                const text = value || "";
+                return text === game.i18n.localize(defaultKey) ? "" : text;
             };
 
-            await game.settings.set(MODULE_ID, 'scanHpLabels', JSON.stringify(collectLabels('hp', DEFAULT_HP_LABELS)));
-            await game.settings.set(MODULE_ID, 'scanStressLabels', JSON.stringify(collectLabels('stress', DEFAULT_STRESS_LABELS)));
+            await game.settings.set(MODULE_ID, 'scanHpTitle', custom(formData.get('hpTitle'), SCAN_DEFAULT_TITLES.hp));
+            await game.settings.set(MODULE_ID, 'scanStressTitle', custom(formData.get('stressTitle'), SCAN_DEFAULT_TITLES.stress));
+
+            const collectLabels = type => SCAN_DEFAULT_LABELS[type].map(entry => ({
+                min: entry.min,
+                label: custom(formData.get(`${type}Label-${entry.min}`), entry.label)
+            }));
+
+            await game.settings.set(MODULE_ID, 'scanHpLabels', JSON.stringify(collectLabels('hp')));
+            await game.settings.set(MODULE_ID, 'scanStressLabels', JSON.stringify(collectLabels('stress')));
             await game.settings.set(MODULE_ID, 'enableScan', formData.get('enableScan') === 'true');
 
             this.close();
@@ -128,38 +121,41 @@ export function registerScanSettings() {
         default: false
     });
 
+    // The four text settings below default to "" and are resolved by getScanTitle / getScanLabels
+    // when read: this runs in `init`, before translations load, so a localized default could not
+    // be computed here.
     game.settings.register(MODULE_ID, "scanHpTitle", {
         scope: "world",
         config: false,
         type: String,
-        default: "Physical State"
+        default: ""
     });
 
     game.settings.register(MODULE_ID, "scanStressTitle", {
         scope: "world",
         config: false,
         type: String,
-        default: "Mental State"
+        default: ""
     });
 
     game.settings.register(MODULE_ID, "scanHpLabels", {
         scope: "world",
         config: false,
         type: String,
-        default: JSON.stringify(DEFAULT_HP_LABELS)
+        default: ""
     });
 
     game.settings.register(MODULE_ID, "scanStressLabels", {
         scope: "world",
         config: false,
         type: String,
-        default: JSON.stringify(DEFAULT_STRESS_LABELS)
+        default: ""
     });
 
     game.settings.registerMenu(MODULE_ID, "scanSettingsMenu", {
-        name: "Scan Labels Configuration",
-        label: "Configure Scan Labels",
-        hint: "Customize the descriptive labels and titles shown in the Scan chat card.",
+        name: "DH_QUICKACTIONS.SETTINGS.scanSettingsMenu.name",
+        label: "DH_QUICKACTIONS.SETTINGS.scanSettingsMenu.label",
+        hint: "DH_QUICKACTIONS.SETTINGS.scanSettingsMenu.hint",
         icon: "fas fa-crosshairs",
         type: ScanSettingsApp,
         restricted: true

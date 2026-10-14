@@ -154,7 +154,7 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
  */
 export function registerCinematicImagesSettings() {
     game.settings.register(MODULE_ID, CINEMATIC_IMAGES, {
-        name: "Cinematic Roll Images",
+        name: "DH_QUICKACTIONS.SETTINGS.cinematicImages.name",
         scope: "world",
         config: false,
         type: Object,
@@ -162,9 +162,9 @@ export function registerCinematicImagesSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "cinematicImagesSettingsMenu", {
-        name: "Cinematic Roll Images",
-        label: "Configure Cinematic Images",
-        hint: "Assign an image to each Request Roll case. Every case starts on a core Foundry icon; Cinematic Mode only activates for cases that have an image, so a case left empty falls back to a plain chat message.",
+        name: "DH_QUICKACTIONS.SETTINGS.cinematicImagesSettingsMenu.name",
+        label: "DH_QUICKACTIONS.SETTINGS.cinematicImagesSettingsMenu.label",
+        hint: "DH_QUICKACTIONS.SETTINGS.cinematicImagesSettingsMenu.hint",
         icon: "fas fa-images",
         type: CinematicImagesSettingsApp,
         restricted: true

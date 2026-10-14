@@ -88,9 +88,9 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
  */
 export function registerUISettings() {
     game.settings.registerMenu(MODULE_ID, "uiSettingsMenu", {
-        name: "Interface Settings",
-        label: "Configure Interface",
-        hint: "World-wide interface changes made by this module, in one place: the Daggerheart sidebar menu enhancements, the token tooltip and Hope bar, and the character sheet Biography tab.",
+        name: "DH_QUICKACTIONS.SETTINGS.uiSettingsMenu.name",
+        label: "DH_QUICKACTIONS.SETTINGS.uiSettingsMenu.label",
+        hint: "DH_QUICKACTIONS.SETTINGS.uiSettingsMenu.hint",
         icon: "fas fa-sliders",
         type: UISettingsApp,
         restricted: true
