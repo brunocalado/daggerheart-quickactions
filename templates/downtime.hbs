@@ -1,20 +1,20 @@
 <div class="downtime-content standard-form">
     <!-- Inline style removed to use global .dh-qa-app CSS -->
-    <p class="notes">What type of rest would you like to take?</p>
+    <p class="notes">{{localize "DHQA.Downtime.WhatTypeOfRestWould"}}</p>
     
     <!-- Input for Number of PCs -->
     <div class="form-group" style="margin: 10px 0; display: flex; align-items: center; justify-content: center; gap: 10px;">
-        <label for="numberOfPCs" style="font-weight: bold; color: var(--color-text-dark-primary);">PCs:</label>
+        <label for="numberOfPCs" style="font-weight: bold; color: var(--color-text-dark-primary);">{{localize "DHQA.Downtime.Pcs"}}</label>
         <input type="number" name="numberOfPCs" id="numberOfPCs" value="{{numberOfPCs}}" min="1" step="1" style="max-width: 60px; text-align: center;">
     </div>
 
     <div class="form-footer" style="display: flex; gap: 10px; margin-top: 15px;">
         <button type="button" data-action="shortRest" class="dh-btn">
-            <i class="fas fa-campground"></i> Short Rest
+            <i class="fas fa-campground"></i> {{localize "DHQA.Downtime.ShortRest"}}
         </button>
         
         <button type="button" data-action="longRest" class="dh-btn">
-            <i class="fas fa-bed"></i> Long Rest
+            <i class="fas fa-bed"></i> {{localize "DHQA.Downtime.LongRest"}}
         </button>
     </div>
 </div>

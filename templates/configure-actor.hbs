@@ -3,25 +3,25 @@
     {{!-- General Panel --}}
     <div class="dui-cfg-panel active" data-panel="general">
         <div class="dui-cfg-field">
-            <label>Max Actions:</label>
+            <label>{{localize "DHQA.ConfigureActor.MaxActions"}}</label>
             <input type="number" name="maxChoices" value="{{maxChoices}}" min="1" max="6">
         </div>
         <hr class="dui-cfg-divider">
-        <div class="dui-cfg-section-title">Rest Recovery Modifiers</div>
+        <div class="dui-cfg-section-title">{{localize "DHQA.ConfigureActor.RestRecoveryModifiers"}}</div>
         <div class="dui-cfg-field">
-            <label>HP Modifier:</label>
+            <label>{{localize "DHQA.ConfigureActor.HpModifier"}}</label>
             <input type="number" name="hpModifier" value="{{hpModifier}}" min="0" max="10">
         </div>
         <div class="dui-cfg-field">
-            <label>Stress Modifier:</label>
+            <label>{{localize "DHQA.ConfigureActor.StressModifier"}}</label>
             <input type="number" name="stressModifier" value="{{stressModifier}}" min="0" max="10">
         </div>
         <div class="dui-cfg-field">
-            <label>Hope Modifier:</label>
+            <label>{{localize "DHQA.ConfigureActor.HopeModifier"}}</label>
             <input type="number" name="hopeModifier" value="{{hopeModifier}}" min="0" max="10">
         </div>
         <div class="dui-cfg-field">
-            <label>Armor Slot Modifier:</label>
+            <label>{{localize "DHQA.ConfigureActor.ArmorSlotModifier"}}</label>
             <input type="number" name="armorSlotModifier" value="{{armorSlotModifier}}" min="0" max="10">
         </div>
     </div>
@@ -29,7 +29,7 @@
     {{!-- Footer --}}
     <div class="dui-cfg-footer">
         <button type="button" class="dui-cfg-save-btn" data-action="saveConfig">
-            <i class="fas fa-save"></i> Save
+            <i class="fas fa-save"></i> {{localize "DHQA.ConfigureActor.Save"}}
         </button>
     </div>
 

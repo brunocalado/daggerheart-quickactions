@@ -12,6 +12,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
+import { tr } from "./i18n.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -30,7 +31,7 @@ class WhisperApp extends HandlebarsApplicationMixin(ApplicationV2) {
         tag: "div",
         id: "dh-qa-whisper-app",
         classes: ["dh-qa-app", MODULE_ID, "dqa-whisper"],
-        window: { title: "Whisper", icon: "fas fa-comment-dots", resizable: false, controls: [] },
+        window: { title: "DHQA.Whisper.Title", icon: "fas fa-comment-dots", resizable: false, controls: [] },
         position: { width: 620, height: "auto" },
         actions: {
             toggleUser: WhisperApp.prototype._onToggleUser,
@@ -102,13 +103,13 @@ class WhisperApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onSend() {
         const recipients = [...this._selectedTargets];
         if (!recipients.length) {
-            ui.notifications.warn("Whisper: select at least one recipient.");
+            ui.notifications.warn(tr("Notify.WhisperNoRecipient"));
             return;
         }
 
         const message = (this.element.querySelector('textarea[name="message"]')?.value ?? "").trim();
         if (!message) {
-            ui.notifications.warn("Whisper: type a message before sending.");
+            ui.notifications.warn(tr("Notify.WhisperNoMessage"));
             return;
         }
 
@@ -119,7 +120,7 @@ class WhisperApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await ChatMessage.create({
             author: game.user.id,
             speaker: ChatMessage.getSpeaker({ user: game.user }),
-            content: buildChatCard("Whisper", `
+            content: buildChatCard(tr("Whisper.Title"), `
                 <span style="color: #ffffff !important; font-size: 1.05em; text-shadow: 0 0 8px #000000; font-family: 'Lato', sans-serif; line-height: 1.5; width: 100%; text-align: left;">
                     ${safeMessage}
                 </span>
@@ -129,7 +130,7 @@ class WhisperApp extends HandlebarsApplicationMixin(ApplicationV2) {
         });
 
         const names = recipients.map(id => game.users.get(id)?.name).filter(name => name).join(", ");
-        ui.notifications.info(`Whisper sent to ${names}.`);
+        ui.notifications.info(tr("Notify.WhisperSent", { names }));
         this.close();
     }
 

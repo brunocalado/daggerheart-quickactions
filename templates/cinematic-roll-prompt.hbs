@@ -3,9 +3,9 @@
 
     <div class="cinematic-details">
         {{#if hasDifficulty}}
-            Difficulty: <span class="cinematic-highlight">{{difficulty}}</span><br>
+            {{localize "DHQA.CinematicRollPrompt.Difficulty"}}: <span class="cinematic-highlight">{{difficulty}}</span><br>
         {{/if}}
-        Check: <span class="cinematic-highlight">{{checkLabel}}</span>
+        {{localize "DHQA.CinematicRollPrompt.Check"}}: <span class="cinematic-highlight">{{checkLabel}}</span>
     </div>
 
     {{#if imagePath}}

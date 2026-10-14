@@ -54,7 +54,7 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
         id: "dh-qa-cinematic-images-settings-app",
         tag: "div",
         classes: ["dh-qa-app", MODULE_ID, "dqa-cinematic-images"],
-        window: { title: "Cinematic Roll Images", icon: "fas fa-images", resizable: true },
+        window: { title: "DHQA.CinematicSettings.Title", icon: "fas fa-images", resizable: true },
         position: { width: 480, height: "auto" },
         actions: {
             browseImage: CinematicImagesSettingsApp.prototype._onBrowseImage,
@@ -77,7 +77,7 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
         const stored = getStoredCinematicImages();
         const rows = CINEMATIC_CASE_KEYS.map(key => ({
             key,
-            label: CINEMATIC_CASE_LABELS[key],
+            label: game.i18n.localize(CINEMATIC_CASE_LABELS[key]),
             path: stored[key] || "",
             hasImage: !!stored[key]
         }));
@@ -154,7 +154,7 @@ class CinematicImagesSettingsApp extends HandlebarsApplicationMixin(ApplicationV
  */
 export function registerCinematicImagesSettings() {
     game.settings.register(MODULE_ID, CINEMATIC_IMAGES, {
-        name: "Cinematic Roll Images",
+        name: "DHQA.CinematicSettings.Title",
         scope: "world",
         config: false,
         type: Object,
@@ -162,9 +162,9 @@ export function registerCinematicImagesSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "cinematicImagesSettingsMenu", {
-        name: "Cinematic Roll Images",
-        label: "Configure Cinematic Images",
-        hint: "Assign an image to each Request Roll case. Every case starts on a core Foundry icon; Cinematic Mode only activates for cases that have an image, so a case left empty falls back to a plain chat message.",
+        name: "DHQA.CinematicSettings.Title",
+        label: "DHQA.CinematicSettings.Label",
+        hint: "DHQA.CinematicSettings.Hint",
         icon: "fas fa-images",
         type: CinematicImagesSettingsApp,
         restricted: true

@@ -37,7 +37,7 @@
         {{/if}}
     </div>
     {{else}}
-    <p class="dqa-barter-empty">No {{this.label}} available.</p>
+    <p class="dqa-barter-empty">{{localize "DHQA.Barter.NoneAvailable" label=this.label}}</p>
     {{/each}}
 </div>
 {{/each}}
@@ -46,7 +46,7 @@
 {{#*inline "dqaBarterGold"}}
 <div class="dqa-barter-gold">
     {{#each gold}}
-    <label class="dqa-barter-gold-entry" data-tooltip="{{this.owned}} available">
+    <label class="dqa-barter-gold-entry" data-tooltip="{{localize "DHQA.Barter.OwnedAvailable" n=this.owned}}">
         <span class="dqa-barter-gold-label"><i class="{{this.icon}}"></i> {{this.label}}</span>
         <input type="number" class="dqa-barter-gold-input" min="0" max="{{this.owned}}" step="1"
                value="{{this.offered}}" data-side="{{this.side}}" data-currency="{{this.key}}"
@@ -68,7 +68,7 @@
                 <span class="dqa-barter-title">{{mineTitle}}</span>
                 <span class="dqa-barter-subtitle">{{actorName}}</span>
             </div>
-            <span class="dqa-barter-badge">{{myOfferCount}} selected</span>
+            <span class="dqa-barter-badge">{{localize "DHQA.Barter.Selected" n=myOfferCount}}</span>
         </header>
 
         {{> dqaBarterInventory tabs=tabs}}
@@ -81,23 +81,23 @@
             {{#if isParty}}
             <button type="button" class="dqa-barter-confirm" data-action="transfer"
                     {{#unless canTransfer}}disabled{{/unless}}>
-                <i class="fa-solid fa-right-left"></i> Complete Transfer
+                <i class="fa-solid fa-right-left"></i> {{localize "DHQA.Barter.CompleteTransfer"}}
             </button>
             {{else if isInitiator}}
             <button type="button" class="dqa-barter-confirm" data-action="approve"
                     {{#unless canApprove}}disabled{{/unless}}>
-                <i class="fa-solid fa-handshake"></i> Approve Trade
+                <i class="fa-solid fa-handshake"></i> {{localize "DHQA.Barter.ApproveTrade"}}
             </button>
             {{else}}
             <button type="button" class="dqa-barter-confirm {{#if myLocked}}locked{{/if}}" data-action="toggleLock">
                 {{#if myLocked}}
-                <i class="fa-solid fa-lock"></i> Offer Confirmed — Click to Edit
+                <i class="fa-solid fa-lock"></i> {{localize "DHQA.Barter.OfferConfirmed"}}
                 {{else}}
-                <i class="fa-solid fa-check"></i> Confirm Offer
+                <i class="fa-solid fa-check"></i> {{localize "DHQA.Barter.ConfirmOffer"}}
                 {{/if}}
             </button>
             {{/if}}
-            <button type="button" class="dqa-barter-cancel" data-action="cancel">Cancel</button>
+            <button type="button" class="dqa-barter-cancel" data-action="cancel">{{localize "DHQA.Barter.Cancel"}}</button>
         </footer>
     </section>
 
@@ -107,14 +107,14 @@
         {{#if isDraft}}
         <header class="dqa-barter-header">
             <div class="dqa-barter-heading">
-                <span class="dqa-barter-title">Trade With</span>
-                <span class="dqa-barter-subtitle">Pick a party stash or a connected player</span>
+                <span class="dqa-barter-title">{{localize "DHQA.Barter.TradeWith"}}</span>
+                <span class="dqa-barter-subtitle">{{localize "DHQA.Barter.PickAPartyStashOr"}}</span>
             </div>
         </header>
 
         <div class="dqa-barter-users">
             {{#if parties.length}}
-            <span class="dqa-barter-group">Party</span>
+            <span class="dqa-barter-group">{{localize "DHQA.Barter.Party"}}</span>
             {{#each parties}}
             <button type="button" class="dqa-barter-target {{#if this.selected}}selected{{/if}}"
                     data-action="selectTarget" data-target-type="party" data-target-id="{{this.uuid}}">
@@ -122,14 +122,14 @@
                 <span class="dqa-barter-target-names">
                     <strong>{{this.name}}</strong>
                     <span class="dqa-barter-target-sep">-</span>
-                    <span class="dqa-barter-target-tag">Party Stash</span>
+                    <span class="dqa-barter-target-tag">{{localize "DHQA.Barter.PartyStash"}}</span>
                 </span>
             </button>
             {{/each}}
             {{/if}}
 
             {{#if users.length}}
-            <span class="dqa-barter-group">Players</span>
+            <span class="dqa-barter-group">{{localize "DHQA.Barter.Players"}}</span>
             {{#each users}}
             <button type="button" class="dqa-barter-target {{#if this.selected}}selected{{/if}}"
                     data-action="selectTarget" data-target-type="user" data-target-id="{{this.id}}">
@@ -144,14 +144,14 @@
             {{/if}}
 
             {{#unless hasTargets}}
-            <p class="dqa-barter-empty">No party stash or connected player is available to trade with.</p>
+            <p class="dqa-barter-empty">{{localize "DHQA.Barter.NoPartyStashOrConnected"}}</p>
             {{/unless}}
         </div>
 
         <footer class="dqa-barter-footer">
             <button type="button" class="dqa-barter-start" data-action="startTrade"
                     {{#unless canStart}}disabled{{/unless}}>
-                <i class="fa-solid fa-right-left"></i> Start Trade
+                <i class="fa-solid fa-right-left"></i> {{localize "DHQA.Barter.StartTrade"}}
             </button>
         </footer>
         {{/if}}
@@ -159,7 +159,7 @@
         {{#if isPending}}
         <div class="dqa-barter-waiting">
             <i class="fa-solid fa-hourglass-half fa-fade"></i>
-            <p>Waiting for <strong>{{peerName}}</strong> to accept…</p>
+            <p>{{localize "DHQA.Barter.WaitingFor"}} <strong>{{peerName}}</strong> {{localize "DHQA.Barter.ToAccept"}}</p>
         </div>
         {{/if}}
 
@@ -167,10 +167,10 @@
         <header class="dqa-barter-header">
             <img class="dqa-barter-portrait" src="{{partyImg}}" alt="{{partyName}}">
             <div class="dqa-barter-heading">
-                <span class="dqa-barter-title">You Take</span>
+                <span class="dqa-barter-title">{{localize "DHQA.Barter.YouTake"}}</span>
                 <span class="dqa-barter-subtitle">{{partyName}}</span>
             </div>
-            <span class="dqa-barter-badge">{{partyTakeCount}} selected</span>
+            <span class="dqa-barter-badge">{{localize "DHQA.Barter.Selected" n=partyTakeCount}}</span>
         </header>
 
         {{> dqaBarterInventory tabs=partyTabs}}
@@ -180,7 +180,7 @@
         {{/if}}
 
         <footer class="dqa-barter-footer">
-            <p class="dqa-barter-status">Party stash — give and take freely, no approval needed.</p>
+            <p class="dqa-barter-status">{{localize "DHQA.Barter.PartyStashGiveAndTake"}}</p>
         </footer>
         {{/if}}
 
@@ -192,9 +192,9 @@
                 <span class="dqa-barter-subtitle">{{peerName}}</span>
             </div>
             {{#if peerLocked}}
-            <span class="dqa-barter-badge confirmed"><i class="fa-solid fa-lock"></i> Confirmed</span>
+            <span class="dqa-barter-badge confirmed"><i class="fa-solid fa-lock"></i> {{localize "DHQA.Barter.Confirmed"}}</span>
             {{else}}
-            <span class="dqa-barter-badge"><i class="fa-solid fa-pen"></i> Choosing</span>
+            <span class="dqa-barter-badge"><i class="fa-solid fa-pen"></i> {{localize "DHQA.Barter.Choosing"}}</span>
             {{/if}}
         </header>
 
@@ -209,7 +209,7 @@
             </div>
             {{/each}}
             {{#if peerEmpty}}
-            <p class="dqa-barter-empty">Nothing offered in return — this is a gift.</p>
+            <p class="dqa-barter-empty">{{localize "DHQA.Barter.NothingOfferedInReturnThis"}}</p>
             {{/if}}
         </div>
 
@@ -227,11 +227,11 @@
         <footer class="dqa-barter-footer">
             <p class="dqa-barter-status">
                 {{#if isInitiator}}
-                {{#if peerLocked}}Their offer is locked in — approve to complete the trade.
-                {{else}}Waiting for {{peerName}} to confirm their offer.{{/if}}
+                {{#if peerLocked}}{{localize "DHQA.Barter.PeerLockedApprove"}}
+                {{else}}{{localize "DHQA.Barter.WaitingConfirm" name=peerName}}{{/if}}
                 {{else}}
-                {{#if myLocked}}Waiting for {{peerName}} to approve the trade.
-                {{else}}Add anything you want to send back, then confirm your offer.{{/if}}
+                {{#if myLocked}}{{localize "DHQA.Barter.WaitingApprove" name=peerName}}
+                {{else}}{{localize "DHQA.Barter.AddSendBack"}}{{/if}}
                 {{/if}}
             </p>
         </footer>

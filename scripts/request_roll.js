@@ -6,6 +6,7 @@
 import { MODULE_ID } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
 import { getCinematicImagePath } from "./cinematic-images-settings.js";
+import { tr } from "./i18n.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -36,71 +37,65 @@ function truncateName(name, maxLength) {
 const LABEL_SUGGESTIONS = Object.freeze([
     {
         trait: "agility",
-        traitLabel: "Agility",
         suggestions: [
-            { label: "Sprint / Maneuver", hint: "Run at high speed or dodge dynamic obstacles." },
-            { label: "Leap", hint: "Jump across gaps, crevices, or reach elevations." },
-            { label: "Dodge / Evade", hint: "Duck away from immediate danger (falling rocks, traps)." },
-            { label: "Acrobatics / Balance", hint: "Cross unstable surfaces, tightropes, or narrow spaces." },
-            { label: "Scale", hint: "Quickly climb walls or trees using agility, not just strength." },
-            { label: "Catch", hint: "Grab falling objects or people mid-air." }
+            { id: "sprintManeuver" },
+            { id: "leap" },
+            { id: "dodgeEvade" },
+            { id: "acrobaticsBalance" },
+            { id: "scale" },
+            { id: "catch" }
         ]
     },
     {
         trait: "strength",
-        traitLabel: "Strength",
         suggestions: [
-            { label: "Lift / Push / Pull", hint: "Hoist, move, or drag massive and heavy objects." },
-            { label: "Smash / Break / Wreck", hint: "Destroy the environment, bash down doors, or break chains." },
-            { label: "Grapple", hint: "Physically grab and restrain a creature." },
-            { label: "Endure", hint: "Withstand physical exhaustion, hold your breath, resist continuous pain." },
-            { label: "Intimidate (Physical)", hint: "Coerce through a display of brute force (e.g., breaking something in front of the target)." }
+            { id: "liftPushPull" },
+            { id: "smashBreakWreck" },
+            { id: "grapple" },
+            { id: "endure" },
+            { id: "intimidatePhysical" }
         ]
     },
     {
         trait: "finesse",
-        traitLabel: "Finesse",
         suggestions: [
-            { label: "Control / Manipulate", hint: "Handle delicate objects with extreme fine motor coordination." },
-            { label: "Hide / Sneak / Prowl", hint: "Conceal yourself and move in absolute silence to avoid detection." },
-            { label: "Tinker / Disable / Pick Lock", hint: "Create and fix mechanisms, disarm traps, or pick complex locks." },
-            { label: "Pickpocket / Sleight of Hand", hint: "Steal small objects or hide items without being noticed." },
-            { label: "Aim", hint: "Make extremely precise shots or throws outside the pace of combat." }
+            { id: "controlManipulate" },
+            { id: "hideSneakProwl" },
+            { id: "tinkerDisablePick" },
+            { id: "pickpocketSleightOf" },
+            { id: "aim" }
         ]
     },
     {
         trait: "instinct",
-        traitLabel: "Instinct",
         suggestions: [
-            { label: "Perceive / Sense", hint: "Notice unobvious details, feel changes in the environment, hidden dangers, or intentions." },
-            { label: "Navigate", hint: "Orient yourself in unknown terrain, find the way." },
-            { label: "Track", hint: "Follow physical trails or identify natural disturbances left by creatures." },
-            { label: "Forage / Survive", hint: "Find food, drinkable water, and safe shelters in hostile environments." },
-            { label: "Anticipate / React", hint: "Act in a split second when faced with surprises or imminent ambushes." },
-            { label: "Handle Animal", hint: "Calm wild beasts or control unruly mounts." }
+            { id: "perceiveSense" },
+            { id: "navigate" },
+            { id: "track" },
+            { id: "forageSurvive" },
+            { id: "anticipateReact" },
+            { id: "handleAnimal" }
         ]
     },
     {
         trait: "presence",
-        traitLabel: "Presence",
         suggestions: [
-            { label: "Charm / Persuade / Convince", hint: "Change someone's mind through dialogue, empathy, or magnetism." },
-            { label: "Perform", hint: "Entertain, draw attention, or convey emotions through acting or art." },
-            { label: "Deceive", hint: "Lie, cheat, or omit information while maintaining a convincing posture." },
-            { label: "Intimidate (Verbal/Social)", hint: "Impose authority, threaten verbally, or use status to generate fear." },
-            { label: "Command / Inspire", hint: "Motivate allies to endure, organize panicking people, or lead." },
-            { label: "Distract", hint: "Calculatedly become the center of attention to provide cover for allies." }
+            { id: "charmPersuadeConvince" },
+            { id: "perform" },
+            { id: "deceive" },
+            { id: "intimidateVerbalSocial" },
+            { id: "commandInspire" },
+            { id: "distract" }
         ]
     },
     {
         trait: "knowledge",
-        traitLabel: "Knowledge",
         suggestions: [
-            { label: "Recall", hint: "Accurately remember facts, history, legends, or academic information." },
-            { label: "Analyse / Investigate", hint: "Systematically search for clues and deduce events from a scene." },
-            { label: "Comprehend / Decipher", hint: "Understand theoretical mechanics, break codes, translate languages." },
-            { label: "Strategize", hint: "Formulate action or battle plans based on maps, geography, or military theory." },
-            { label: "Treat / Medic", hint: "Identify properties of plants and poisons, or systematically apply medical first aid." }
+            { id: "recall" },
+            { id: "analyseInvestigate" },
+            { id: "comprehendDecipher" },
+            { id: "strategize" },
+            { id: "treatMedic" }
         ]
     }
 ]);
@@ -119,7 +114,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         tag: "form",
         id: "request-roll-app",
         classes: ["dh-qa-app", "request-roll-app"],
-        window: { title: "Roll Configuration", icon: "fas fa-dice-d20", resizable: false, controls: [] },
+        window: { title: "DHQA.RequestRoll.Title", icon: "fas fa-dice-d20", resizable: false, controls: [] },
         position: { width: 740, height: "auto" }, // Widened to fit "Actor - User" labels in the Send To column
         actions: {
             roll: RequestRollApp.prototype._onRoll,
@@ -152,7 +147,14 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         
         return {
             connectedUsers,
-            labelSuggestions: LABEL_SUGGESTIONS,
+            labelSuggestions: LABEL_SUGGESTIONS.map(group => ({
+                trait: group.trait,
+                traitLabel: game.i18n.localize(`DHQA.CinematicCase.${group.trait}`),
+                suggestions: group.suggestions.map(({ id }) => ({
+                    label: tr(`RequestRoll.Suggestions.${group.trait}.${id}.label`),
+                    hint: tr(`RequestRoll.Suggestions.${group.trait}.${id}.hint`)
+                }))
+            })),
             difficulty: 15
         };
     }
@@ -368,7 +370,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const displaySpecial = capSpecial.charAt(0).toUpperCase() + capSpecial.slice(1);
             rawCommand = `/fr type=${displaySpecial}`;
 
-            cinematicTraitLabel = displaySpecial; // "Hope" or "Fear"
+            cinematicTraitLabel = game.i18n.localize(`DHQA.CinematicCase.${capSpecial}`); // "Hope" or "Fear"
             cinematicDifficulty = ""; // Do not show difficulty
         } else {
             // Standard Logic
@@ -383,13 +385,13 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
             rawCommand = "/dr";
             if (params.length > 0) rawCommand += " " + params.join(" ");
 
-            cinematicTraitLabel = trait ? trait.charAt(0).toUpperCase() + trait.slice(1) : "Roll";
+            cinematicTraitLabel = trait ? game.i18n.localize(`DHQA.CinematicCase.${trait.toLowerCase()}`) : "";
         }
 
         // Open the Cinematic Roll prompt on the targeted players' screens.
         const dataPacket = {
             command: rawCommand,
-            label: labelInput || "GM Requests a Roll",
+            label: labelInput || tr("RequestRoll.DefaultLabel"),
             difficulty: cinematicDifficulty,
             trait: cinematicTraitLabel,
             imagePath: configuredPath // Resolved from the GM's world settings at request time; may be empty
@@ -406,7 +408,7 @@ export class RequestRollApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let displayCommand = `[[${rawCommand}]]`;
         if (labelInput) displayCommand += `{${labelInput}}`;
 
-        const content = buildChatCard(labelInput || "Roll Request", `
+        const content = buildChatCard(labelInput || tr("RequestRoll.ChatTitle"), `
             <span style="color: #ffffff !important; font-size: 1.1em; font-weight: bold; text-shadow: 0px 0px 8px #000000; font-family: 'Lato', sans-serif; line-height: 1.4; width: 100%;">
                 ${displayCommand}
             </span>
@@ -437,7 +439,7 @@ export class CinematicRollPrompt extends HandlebarsApplicationMixin(ApplicationV
         tag: "div",
         id: "cinematic-roll-prompt",
         classes: ["dh-qa-app"],
-        window: { title: "Action Required", icon: "fas fa-dice-d20", resizable: false, controls: [] },
+        window: { title: "DHQA.RequestRoll.PromptTitle", icon: "fas fa-dice-d20", resizable: false, controls: [] },
         position: { width: 500, height: "auto" },
         actions: {}
     };
@@ -457,7 +459,7 @@ export class CinematicRollPrompt extends HandlebarsApplicationMixin(ApplicationV
     async _prepareContext(_options) {
         // Resolve the display label for the roll type
         let checkLabel = this.data.trait;
-        if (!checkLabel || checkLabel === "Roll") checkLabel = "Duality Roll";
+        if (!checkLabel || checkLabel === "Roll") checkLabel = tr("RequestRoll.DualityRoll");
 
         // Image path was already resolved from the GM's Cinematic Roll Images settings when the
         // request was sent (see RequestRollApp._onRoll) — this prompt just displays it.

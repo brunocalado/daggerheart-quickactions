@@ -1,12 +1,12 @@
 <div class="dqa-qam-wrapper">
     <p class="dqa-qam-hint">
-        Drag macros here from the Macro directory or from a compendium. They will be listed by the
-        <strong>Quick Actions</strong> button on character sheets.
+        {{localize "DHQA.QuickActionsMacros.DragMacrosHereFromThe"}}
+        <strong>{{localize "DHQA.QuickActionsMacros.QuickActions"}}</strong> {{localize "DHQA.QuickActionsMacros.ButtonOnCharacterSheets"}}
     </p>
 
     <div class="dqa-drop-zone">
         <i class="fas fa-bolt"></i>
-        <span>Drop a Macro here</span>
+        <span>{{localize "DHQA.QuickActionsMacros.DropAMacroHere"}}</span>
     </div>
 
     <ol class="dqa-macro-list">
@@ -16,40 +16,40 @@
             <div class="dqa-macro-info">
                 <span class="dqa-macro-name">{{this.name}}</span>
                 <span class="dqa-macro-source">
-                    {{#if this.missing}}Not found — the macro was deleted or its compendium is unavailable{{else}}{{this.source}}{{/if}}
+                    {{#if this.missing}}{{localize "DHQA.QuickActionsMacros.Missing"}}{{else}}{{this.source}}{{/if}}
                 </span>
             </div>
             <button type="button" class="dqa-icon-btn" data-action="removeMacro" data-uuid="{{this.uuid}}"
-                    data-tooltip="Remove" aria-label="Remove {{this.name}}">
+                    data-tooltip="{{localize 'DHQA.QuickActionsMacros.Remove'}}" aria-label="{{localize "DHQA.QuickActionsMacros.RemoveName" name=this.name}}">
                 <i class="fas fa-trash"></i>
             </button>
         </li>
         {{/each}}
 
         {{#unless hasMacros}}
-        <li class="dqa-empty">No macros configured yet.</li>
+        <li class="dqa-empty">{{localize "DHQA.QuickActionsMacros.NoMacrosConfiguredYet"}}</li>
         {{/unless}}
     </ol>
 
     <footer class="dqa-qam-footer">
         <div class="dqa-qam-actions">
             <button type="button" class="dh-btn" data-action="previewMacros" {{#unless hasMacros}}disabled{{/unless}}>
-                <i class="fas fa-play-circle"></i> Preview
+                <i class="fas fa-play-circle"></i> {{localize "DHQA.QuickActionsMacros.Preview"}}
             </button>
             <button type="button" class="dh-btn" data-action="resetMacros">
-                <i class="fas fa-rotate-left"></i> Reset to Default
+                <i class="fas fa-rotate-left"></i> {{localize "DHQA.QuickActionsMacros.ResetToDefault"}}
             </button>
             <button type="button" class="dh-btn" data-action="clearMacros" {{#unless hasMacros}}disabled{{/unless}}>
-                <i class="fas fa-trash"></i> Clear All
+                <i class="fas fa-trash"></i> {{localize "DHQA.QuickActionsMacros.ClearAll"}}
             </button>
         </div>
 
         <div class="dqa-qam-toggle-row">
             <button type="button" class="dh-btn dqa-toggle-btn {{#unless enabled}}dqa-off{{/unless}}" data-action="toggleFeature">
                 {{#if enabled}}
-                <i class="fas fa-power-off"></i> Disable Quick Actions
+                <i class="fas fa-power-off"></i> {{localize "DHQA.QuickActionsMacros.Disable"}}
                 {{else}}
-                <i class="fas fa-power-off"></i> Enable Quick Actions
+                <i class="fas fa-power-off"></i> {{localize "DHQA.QuickActionsMacros.Enable"}}
                 {{/if}}
             </button>
             <i class="fas fa-circle-question dqa-qam-help" data-tooltip-html="{{statusHint}}"></i>

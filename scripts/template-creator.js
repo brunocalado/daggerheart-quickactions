@@ -6,6 +6,7 @@
 
 import { MODULE_ID } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
+import { tr } from "./i18n.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -182,7 +183,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "daggerheart-template-app",
         classes: ["dh-qa-app"],
         window: {
-            title: "Template Tool",
+            title: "DHQA.TemplateTool.Title",
             icon: "fas fa-shapes",
             resizable: false,
             controls: []
@@ -298,7 +299,7 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static #onCopyCode(event, target) {
         const code = this._computeCodeString();
         game.clipboard.copyPlainText(code);
-        ui.notifications.info("Template code copied to clipboard!");
+        ui.notifications.info(tr("Notify.TemplateCopied"));
     }
 
     /**
@@ -311,12 +312,12 @@ class TemplateCreatorApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const code = this._computeCodeString();
         if (!code) return;
 
-        const content = buildChatCard("Template Tool", `
+        const content = buildChatCard(tr("TemplateTool.Title"), `
             <div style="color: #ffffff !important; font-size: 1.2em; font-weight: bold; margin-bottom: 10px; text-shadow: 0px 0px 8px #000;">
                 ${code}
             </div>
             <div style="color: #ccc; font-size: 0.9em; font-style: italic;">
-                Click above to place the template
+                ${tr("TemplateTool.ClickToPlace")}
             </div>
         `);
 

@@ -2,9 +2,9 @@
 
     <!-- NAVIGATION TABS -->
     <nav class="tracker-nav tabs">
-        <a class="item active" data-tab="general"><i class="fas fa-cog"></i> General</a>
-        <a class="item" data-tab="hp"><i class="fas fa-heart"></i> Physical State</a>
-        <a class="item" data-tab="stress"><i class="fas fa-brain"></i> Mental State</a>
+        <a class="item active" data-tab="general"><i class="fas fa-cog"></i> {{localize "DHQA.ScanSettingsMenu.General"}}</a>
+        <a class="item" data-tab="hp"><i class="fas fa-heart"></i> {{localize "DHQA.ScanSettingsMenu.PhysicalState"}}</a>
+        <a class="item" data-tab="stress"><i class="fas fa-brain"></i> {{localize "DHQA.ScanSettingsMenu.MentalState"}}</a>
     </nav>
 
     <!-- TAB CONTENT CONTAINER -->
@@ -15,12 +15,12 @@
              ======================= -->
         <div class="tab active" data-tab="general">
             <div class="config-card">
-                <h3><i class="fas fa-cog"></i> General Settings</h3>
+                <h3><i class="fas fa-cog"></i> {{localize "DHQA.ScanSettingsMenu.GeneralSettings"}}</h3>
 
                 <div class="form-group toggle-group">
-                    <label for="enableScanToggle">Enable Token Scan</label>
+                    <label for="enableScanToggle">{{localize "DHQA.ScanSettingsMenu.EnableTokenScan"}}</label>
                     <input type="checkbox" id="enableScanToggle" name="enableScan" value="true" {{#if enableScan}}checked{{/if}}>
-                    <span class="hint">Allows non-GM users to use the Scan quick action on targeted tokens.</span>
+                    <span class="hint">{{localize "DHQA.ScanSettingsMenu.AllowsNonGmUsersTo"}}</span>
                 </div>
             </div>
         </div>
@@ -30,25 +30,25 @@
              ======================= -->
         <div class="tab" data-tab="hp">
             <div class="config-card">
-                <h3><i class="fas fa-heart"></i> Physical State Configuration</h3>
+                <h3><i class="fas fa-heart"></i> {{localize "DHQA.ScanSettingsMenu.PhysicalStateConfiguration"}}</h3>
 
                 <div class="form-group">
-                    <label>Chat Card Title</label>
-                    <input type="text" name="hpTitle" value="{{hpTitle}}" maxlength="30" placeholder="Physical State">
-                    <span class="hint">The heading displayed on the scan chat card for hit points. Max 30 characters.</span>
+                    <label>{{localize "DHQA.ScanSettingsMenu.ChatCardTitle"}}</label>
+                    <input type="text" name="hpTitle" value="{{hpTitle}}" maxlength="30" placeholder="{{localize 'DHQA.ScanSettingsMenu.PhysicalState'}}">
+                    <span class="hint">{{localize "DHQA.ScanSettingsMenu.TheHeadingDisplayedOnThe"}}</span>
                 </div>
 
                 <div class="label-list" data-label-type="hp">
                     {{#each hpLabels}}
                     <div class="label-row">
                         <span class="label-threshold">{{this.min}}%+</span>
-                        <input type="text" class="label-text" name="hpLabel-{{this.min}}" value="{{this.label}}" maxlength="140" placeholder="Descriptive label...">
+                        <input type="text" class="label-text" name="hpLabel-{{this.min}}" value="{{this.label}}" maxlength="140" placeholder="{{localize 'DHQA.ScanSettingsMenu.DescriptiveLabel'}}">
                     </div>
                     {{/each}}
                 </div>
 
                 <button type="button" class="reset-btn" data-reset="hp">
-                    <i class="fas fa-undo"></i> Reset to Defaults
+                    <i class="fas fa-undo"></i> {{localize "DHQA.ScanSettingsMenu.ResetToDefaults"}}
                 </button>
             </div>
         </div>
@@ -58,25 +58,25 @@
              ======================= -->
         <div class="tab" data-tab="stress">
             <div class="config-card">
-                <h3><i class="fas fa-brain"></i> Mental State Configuration</h3>
+                <h3><i class="fas fa-brain"></i> {{localize "DHQA.ScanSettingsMenu.MentalStateConfiguration"}}</h3>
 
                 <div class="form-group">
-                    <label>Chat Card Title</label>
-                    <input type="text" name="stressTitle" value="{{stressTitle}}" maxlength="30" placeholder="Mental State">
-                    <span class="hint">The heading displayed on the scan chat card for stress. Max 30 characters.</span>
+                    <label>{{localize "DHQA.ScanSettingsMenu.ChatCardTitle"}}</label>
+                    <input type="text" name="stressTitle" value="{{stressTitle}}" maxlength="30" placeholder="{{localize 'DHQA.ScanSettingsMenu.MentalState'}}">
+                    <span class="hint">{{localize "DHQA.ScanSettingsMenu.TheHeadingDisplayedOnThe2"}}</span>
                 </div>
 
                 <div class="label-list" data-label-type="stress">
                     {{#each stressLabels}}
                     <div class="label-row">
                         <span class="label-threshold">{{this.min}}%+</span>
-                        <input type="text" class="label-text" name="stressLabel-{{this.min}}" value="{{this.label}}" maxlength="140" placeholder="Descriptive label...">
+                        <input type="text" class="label-text" name="stressLabel-{{this.min}}" value="{{this.label}}" maxlength="140" placeholder="{{localize 'DHQA.ScanSettingsMenu.DescriptiveLabel'}}">
                     </div>
                     {{/each}}
                 </div>
 
                 <button type="button" class="reset-btn" data-reset="stress">
-                    <i class="fas fa-undo"></i> Reset to Defaults
+                    <i class="fas fa-undo"></i> {{localize "DHQA.ScanSettingsMenu.ResetToDefaults"}}
                 </button>
             </div>
         </div>
@@ -85,7 +85,7 @@
 
     <footer class="sheet-footer flexrow">
         <button type="submit" name="submit">
-            <i class="far fa-save"></i> Save Configuration
+            <i class="far fa-save"></i> {{localize "DHQA.ScanSettingsMenu.SaveConfiguration"}}
         </button>
     </footer>
 </div>

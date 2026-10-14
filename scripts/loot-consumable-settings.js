@@ -26,7 +26,7 @@ class LootConsumableSettingsApp extends HandlebarsApplicationMixin(ApplicationV2
         id: "dh-qa-loot-consumable-settings-app",
         tag: "form",
         classes: [MODULE_ID, "loot-consumable-settings"],
-        window: { title: "Loot & Consumables Configuration", icon: "fas fa-treasure-chest", resizable: false },
+        window: { title: "DHQA.LootSettings.Title", icon: "fas fa-treasure-chest", resizable: false },
         position: { width: 480, height: "auto" }
     };
 
@@ -45,7 +45,7 @@ class LootConsumableSettingsApp extends HandlebarsApplicationMixin(ApplicationV2
             tiers: game.settings.get(MODULE_ID, "coinTierRanges"),
             sources: Object.values(LOOT_SOURCE).map(value => ({
                 value,
-                label: LOOT_SOURCE_LABELS[value],
+                label: game.i18n.localize(LOOT_SOURCE_LABELS[value]),
                 selected: value === source
             }))
         };
@@ -114,9 +114,9 @@ export function registerLootConsumableSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "lootConsumableSettingsMenu", {
-        name: "Loot & Consumables Configuration",
-        label: "Configure Loot & Consumables",
-        hint: "Pick which Daggerheart roll tables loot and consumables are drawn from, and customize the coin range of each tier.",
+        name: "DHQA.LootSettings.Title",
+        label: "DHQA.LootSettings.Label",
+        hint: "DHQA.LootSettings.Hint",
         icon: "fas fa-treasure-chest",
         type: LootConsumableSettingsApp,
         restricted: true

@@ -6,27 +6,27 @@
             class="type-btn {{#if isLoot}}active{{/if}}"
             data-action="selectType"
             data-type="Loot"
-            title="Search Loot Tables">
-            <img src="icons/containers/chest/chest-oak-steel-brown.webp" alt="Loot Icon"/>
-            <span>Loot</span>
+            title="{{localize 'DHQA.Lootconsumable.SearchLootTables'}}">
+            <img src="icons/containers/chest/chest-oak-steel-brown.webp" alt="{{localize 'DHQA.Lootconsumable.LootIcon'}}"/>
+            <span>{{localize "DHQA.Lootconsumable.Loot"}}</span>
         </button>
 
         <button type="button"
             class="type-btn {{#if isConsumable}}active{{/if}}"
             data-action="selectType"
             data-type="Consumable"
-            title="Search Consumable Tables">
-            <img src="icons/consumables/potions/bottle-corked-red.webp" alt="Consumable Icon"/>
-            <span>Consumable</span>
+            title="{{localize 'DHQA.Lootconsumable.SearchConsumableTables'}}">
+            <img src="icons/consumables/potions/bottle-corked-red.webp" alt="{{localize 'DHQA.Lootconsumable.ConsumableIcon'}}"/>
+            <span>{{localize "DHQA.Lootconsumable.Consumable"}}</span>
         </button>
 
         <button type="button"
             class="type-btn {{#if isCoins}}active{{/if}}"
             data-action="selectType"
             data-type="Coins"
-            title="Roll Coins by Tier">
-            <img src="icons/commodities/currency/coin-engraved-skull-gold.webp" alt="Coins Icon"/>
-            <span>Coins</span>
+            title="{{localize 'DHQA.Lootconsumable.RollCoinsByTier'}}">
+            <img src="icons/commodities/currency/coin-engraved-skull-gold.webp" alt="{{localize 'DHQA.Lootconsumable.CoinsIcon'}}"/>
+            <span>{{localize "DHQA.Lootconsumable.Coins"}}</span>
         </button>
     </div>
 
@@ -40,10 +40,10 @@
     <div class="dice-pool-row">
         <div class="pool-group">
             <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="-1"
-                title="Remove a d12" {{#if atMinDice}}disabled{{/if}}>&minus;</button>
-            <div class="dice-pool-display"><span class="dice-pool-count">{{diceCount}}</span>d12</div>
+                title="{{localize 'DHQA.Lootconsumable.RemoveAD12'}}" {{#if atMinDice}}disabled{{/if}}>{{{localize "DHQA.Lootconsumable.Text"}}}</button>
+            <div class="dice-pool-display"><span class="dice-pool-count">{{diceCount}}</span>{{localize "DHQA.Lootconsumable.D12"}}</div>
             <button type="button" class="dice-adjust" data-action="adjustDice" data-delta="1"
-                title="Add a d12 (max {{maxDice}}d12)" {{#if atMaxDice}}disabled{{/if}}>+</button>
+                title="{{localize 'DHQA.LootConsumable.AddD12' max=maxDice}}" {{#if atMaxDice}}disabled{{/if}}>+</button>
         </div>
 
         <!-- Optional modifier, for the calls the stepper cannot express: it only moves in steps
@@ -51,9 +51,9 @@
              both need to be typed. Left blank the roll is exactly the pool beside it, as before.
              Sits on the same line because the two together are one formula. -->
         <div class="mod-group">
-            <label for="dh-qa-mod-formula">Mod</label>
+            <label for="dh-qa-mod-formula">{{localize "DHQA.Lootconsumable.Mod"}}</label>
             <input type="text" id="dh-qa-mod-formula" class="mod-formula" name="mod"
-                value="{{mod}}" placeholder="+5, +1d6, -2 …" autocomplete="off">
+                value="{{mod}}" placeholder="{{localize 'DHQA.Lootconsumable.51d62'}}" autocomplete="off">
         </div>
     </div>
 
@@ -63,18 +63,18 @@
     {{#if isCoins}}
     <!-- Coins: Tier Selection -->
     <div class="tier-row">
-        <button type="button" class="tier-btn {{#if (eq coinsTier 1)}}active{{/if}}" data-action="selectTier" data-tier="1">Tier 1</button>
-        <button type="button" class="tier-btn {{#if (eq coinsTier 2)}}active{{/if}}" data-action="selectTier" data-tier="2">Tier 2</button>
-        <button type="button" class="tier-btn {{#if (eq coinsTier 3)}}active{{/if}}" data-action="selectTier" data-tier="3">Tier 3</button>
-        <button type="button" class="tier-btn {{#if (eq coinsTier 4)}}active{{/if}}" data-action="selectTier" data-tier="4">Tier 4</button>
+        <button type="button" class="tier-btn {{#if (eq coinsTier 1)}}active{{/if}}" data-action="selectTier" data-tier="1">{{localize "DHQA.Lootconsumable.Tier1"}}</button>
+        <button type="button" class="tier-btn {{#if (eq coinsTier 2)}}active{{/if}}" data-action="selectTier" data-tier="2">{{localize "DHQA.Lootconsumable.Tier2"}}</button>
+        <button type="button" class="tier-btn {{#if (eq coinsTier 3)}}active{{/if}}" data-action="selectTier" data-tier="3">{{localize "DHQA.Lootconsumable.Tier3"}}</button>
+        <button type="button" class="tier-btn {{#if (eq coinsTier 4)}}active{{/if}}" data-action="selectTier" data-tier="4">{{localize "DHQA.Lootconsumable.Tier4"}}</button>
     </div>
     {{/if}}
 
     <!-- 3. Queue: stack several draws ("3d12 loot, then 2d12 loot") and resolve them all with a
          single ROLL, into a single chat card. -->
     <div class="queue-row">
-        <button type="button" class="queue-add-btn" data-action="queueRoll" title="Stack this roll and set up another">
-            <i class="fas fa-layer-group"></i> Add to Roll
+        <button type="button" class="queue-add-btn" data-action="queueRoll" title="{{localize 'DHQA.Lootconsumable.StackThisRollAndSet'}}">
+            <i class="fas fa-layer-group"></i> {{localize "DHQA.Lootconsumable.AddToRoll"}}
         </button>
     </div>
 
@@ -83,7 +83,7 @@
         {{#each queue}}
         <li class="queue-item">
             <span class="queue-label">{{this.label}}</span>
-            <button type="button" class="queue-remove" data-action="unqueueRoll" data-index="{{this.index}}" title="Remove">&times;</button>
+            <button type="button" class="queue-remove" data-action="unqueueRoll" data-index="{{this.index}}" title="{{localize 'DHQA.Lootconsumable.Remove'}}">{{{localize "DHQA.Lootconsumable.Text2"}}}</button>
         </li>
         {{/each}}
     </ul>
@@ -95,15 +95,15 @@
     <div class="destination-row">
         <button type="button" class="destination-btn {{#unless toParty}}active{{/unless}}"
             data-action="selectDestination" data-destination="self"
-            title="Keep the results on your own sheet">
+            title="{{localize 'DHQA.Lootconsumable.KeepTheResultsOnYour'}}">
             <i class="fas fa-user"></i>
-            <span>To Myself</span>
+            <span>{{localize "DHQA.Lootconsumable.ToMyself"}}</span>
         </button>
         <button type="button" class="destination-btn {{#if toParty}}active{{/if}}"
             data-action="selectDestination" data-destination="party"
-            title="Send the results to {{partyName}}">
+            title="{{localize 'DHQA.LootConsumable.SendResultsTo' party=partyName}}">
             <i class="fas fa-users"></i>
-            <span>To Party</span>
+            <span>{{localize "DHQA.Lootconsumable.ToParty"}}</span>
         </button>
     </div>
     {{/if}}
@@ -111,7 +111,7 @@
     <!-- 5. Footer: Botão Roll Grande -->
     <div class="footer-row">
         <button type="button" class="main-roll-btn" data-action="roll">
-            <i class="fas fa-dice"></i> ROLL{{#if hasQueue}} &times;{{queueSize}}{{/if}}
+            <i class="fas fa-dice"></i> {{localize "DHQA.LootConsumable.Roll"}}{{#if hasQueue}} &times;{{queueSize}}{{/if}}
         </button>
     </div>
 

@@ -32,7 +32,7 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "dh-qa-ui-settings-app",
         tag: "div",
         classes: ["dh-qa-app", MODULE_ID, "dqa-ui-settings"],
-        window: { title: "Interface Settings", icon: "fas fa-sliders", resizable: true },
+        window: { title: "DHQA.UiSettings.Title", icon: "fas fa-sliders", resizable: true },
         position: { width: 540, height: "auto" }
     };
 
@@ -88,9 +88,9 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
  */
 export function registerUISettings() {
     game.settings.registerMenu(MODULE_ID, "uiSettingsMenu", {
-        name: "Interface Settings",
-        label: "Configure Interface",
-        hint: "World-wide interface changes made by this module, in one place: the Daggerheart sidebar menu enhancements, the token tooltip and Hope bar, and the character sheet Biography tab.",
+        name: "DHQA.UiSettings.Title",
+        label: "DHQA.UiSettings.Label",
+        hint: "DHQA.UiSettings.Hint",
         icon: "fas fa-sliders",
         type: UISettingsApp,
         restricted: true

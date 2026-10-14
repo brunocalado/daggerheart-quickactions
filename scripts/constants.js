@@ -94,9 +94,9 @@ export const LOOT_CONSUMABLE_TABLES = Object.freeze({
  * @type {Readonly<Record<string, string>>}
  */
 export const LOOT_SOURCE_LABELS = Object.freeze({
-    [LOOT_SOURCE.CORE]: "Core Set only",
-    [LOOT_SOURCE.HOPE_AND_FEAR]: "Hope & Fear only",
-    [LOOT_SOURCE.BOTH]: "Core Set + Hope & Fear"
+    [LOOT_SOURCE.CORE]: "DHQA.LootSource.core",
+    [LOOT_SOURCE.HOPE_AND_FEAR]: "DHQA.LootSource.hopeAndFear",
+    [LOOT_SOURCE.BOTH]: "DHQA.LootSource.both"
 });
 
 /**
@@ -176,15 +176,15 @@ export const CINEMATIC_CASE_KEYS = Object.freeze([
  * @type {Readonly<Record<string, string>>}
  */
 export const CINEMATIC_CASE_LABELS = Object.freeze({
-    agility: "Agility",
-    strength: "Strength",
-    finesse: "Finesse",
-    instinct: "Instinct",
-    presence: "Presence",
-    knowledge: "Knowledge",
-    hope: "Hope",
-    fear: "Fear",
-    none: "Duality Roll (no trait)"
+    agility: "DHQA.CinematicCase.agility",
+    strength: "DHQA.CinematicCase.strength",
+    finesse: "DHQA.CinematicCase.finesse",
+    instinct: "DHQA.CinematicCase.instinct",
+    presence: "DHQA.CinematicCase.presence",
+    knowledge: "DHQA.CinematicCase.knowledge",
+    hope: "DHQA.CinematicCase.hope",
+    fear: "DHQA.CinematicCase.fear",
+    none: "DHQA.CinematicCase.none"
 });
 
 /**

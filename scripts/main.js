@@ -50,6 +50,7 @@ import { registerLightSources } from "./light-sources-integration.js";
 import { initDaggerheartMenuEnhancer } from "./daggerheart-menu-enhancer.js";
 // Import Interface Settings (single window for every UI change this module makes)
 import { registerUISettings } from "./ui-settings.js";
+import { tr } from "./i18n.js";
 
 // ==================================================================
 // GLOBAL API
@@ -226,18 +227,18 @@ Hooks.once("init", () => {
 
     // 8b. Token Tooltip Size
     game.settings.register(MODULE_ID, "tokenTooltipSize", {
-        name: "Token Tooltip Size",
-        hint: "Controls the size of the token hover tooltip.",
+        name: "DHQA.Settings.TooltipSize.Name",
+        hint: "DHQA.Settings.TooltipSize.Hint",
         scope: "client",
         config: true,
         type: String,
         default: "normal",
         choices: {
-            small: "Small",
-            normal: "Normal",
-            large: "Large",
-            xlarge: "Extra Large",
-            xxlarge: "Massive"
+            small: "DHQA.Settings.TooltipSize.small",
+            normal: "DHQA.Settings.TooltipSize.normal",
+            large: "DHQA.Settings.TooltipSize.large",
+            xlarge: "DHQA.Settings.TooltipSize.xlarge",
+            xxlarge: "DHQA.Settings.TooltipSize.xxlarge"
         }
     });
 
@@ -326,7 +327,7 @@ Hooks.on("renderPartySheet", (app, html) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.classList.add("dqa-downtime-party-btn");
-    btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>Downtime</span>`;
+    btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>${tr("Menu.Downtime")}</span>`;
 
     btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -343,17 +344,17 @@ Hooks.on("renderPartySheet", (app, html) => {
 Hooks.on("renderDaggerheartMenu", (app, element, data) => {
 
     const buttonDefs = [
-        { icon: "fa-bed", label: "Downtime", onClick: activateDowntimeUI },
-        { icon: "fa-skull-crossbones", label: "Fall Damage", onClick: activateFallingDamage },
-        { icon: "fa-dice-d20", label: "Request Roll", onClick: activateRequestRoll },
-        { icon: "fa-arrow-up", label: "Level Up", onClick: activateLevelUp }
+        { icon: "fa-bed", label: tr("Menu.Downtime"), onClick: activateDowntimeUI },
+        { icon: "fa-skull-crossbones", label: tr("Menu.FallDamage"), onClick: activateFallingDamage },
+        { icon: "fa-dice-d20", label: tr("Menu.RequestRoll"), onClick: activateRequestRoll },
+        { icon: "fa-arrow-up", label: tr("Menu.LevelUp"), onClick: activateLevelUp }
     ];
 
     const newFieldset = document.createElement("fieldset");
     newFieldset.classList.add(MODULE_ID, "dqa-menu-quick-actions-grid");
 
     const legend = document.createElement("legend");
-    legend.innerText = "Quick Actions";
+    legend.innerText = tr("Menu.QuickActions");
     newFieldset.appendChild(legend);
 
     for (const { icon, label, onClick } of buttonDefs) {

@@ -4,6 +4,7 @@
  * Compatible with Foundry V13 (ApplicationV2).
  */
 
+import { tr } from "./i18n.js";
 import { MODULE_ID, LOOT_CONSUMABLE_SOURCE, LOOT_CONSUMABLE_TABLES, LOOT_SOURCE, CUSTOM_TABLES } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
 
@@ -23,7 +24,7 @@ export async function rollD4WithDiceSoNice() {
         return roll.total;
     } catch (error) {
         console.error("Error rolling 1d4:", error);
-        ui.notifications.error("Error rolling the die!");
+        ui.notifications.error(tr("Notify.DieError"));
         return null;
     }
 }
@@ -38,7 +39,7 @@ export async function rollD6WithDiceSoNice() {
         return roll.total;
     } catch (error) {
         console.error("Error rolling 1d6:", error);
-        ui.notifications.error("Error rolling the die!");
+        ui.notifications.error(tr("Notify.DieError"));
         return null;
     }
 }
@@ -75,10 +76,10 @@ async function performVisualFateRoll(dieFormula, rollType) {
         roll.terms[0].options.appearance = appearance;
     }
 
-    const title = `${rollType.charAt(0).toUpperCase() + rollType.slice(1)} Roll`;
+    const title = tr("Apps.FateRollTitle", { type: game.i18n.localize(`DHQA.CinematicCase.${rollType}`) });
     const glowColor = rollType === 'hope' ? '#FFD700' : '#800080';
     const content = buildChatCard(title, `
-        <div style="color: #ffffff; font-size: 0.9em; margin-bottom: 5px;">Result</div>
+        <div style="color: #ffffff; font-size: 0.9em; margin-bottom: 5px;">${tr("Apps.Result")}</div>
         <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px ${glowColor}, 2px 2px 0px #000; font-family: 'Lato', sans-serif; line-height: 1;">
             ${roll.total}
         </div>
@@ -99,7 +100,7 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         tag: "form",
         id: "downtime-app",
         classes: ["dh-qa-app", "downtime-app"],
-        window: { title: "Choose Rest Type", icon: "fas fa-bed", resizable: false, controls: [] },
+        window: { title: "DHQA.Apps.ChooseRestType", icon: "fas fa-bed", resizable: false, controls: [] },
         position: { width: 400, height: "auto" },
         actions: { shortRest: DowntimeApp.prototype._onShortRest, longRest: DowntimeApp.prototype._onLongRest }
     };
@@ -126,17 +127,17 @@ class DowntimeApp extends HandlebarsApplicationMixin(ApplicationV2) {
         let calculationText = `(1d4) ${fearRoll}`;
         if (type === "long") {
             addedFear += numberOfPCs;
-            calculationText = `(1d4 + ${numberOfPCs} PCs) ${fearRoll} + ${numberOfPCs}`;
+            calculationText = `(1d4 + ${numberOfPCs} ${tr("Apps.PCs")}) ${fearRoll} + ${numberOfPCs}`;
         }
         let newFear = Math.min(currentFear + addedFear, 12);
         await game.settings.set(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Resources.Fear, newFear);
 
-        const MESSAGE_TITLE = type === "short" ? "Short Rest" : "Long Rest";
+        const MESSAGE_TITLE = tr(type === "short" ? "Apps.ShortRest" : "Apps.LongRest");
         const content = buildChatCard(MESSAGE_TITLE, `
-            <div style="color: #ffffff; font-size: 1.4em; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; font-family: 'Aleo', serif;">The GM earns Fear</div>
+            <div style="color: #ffffff; font-size: 1.4em; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; font-family: 'Aleo', serif;">${tr("Apps.GMEarnsFear")}</div>
             <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #800080, 2px 2px 2px #000; font-family: 'Lato', sans-serif;">+${addedFear}</div>
             <div style="color: #ccc; font-size: 0.8em; margin-top: 5px; font-style: italic;">${calculationText}</div>
-            <div style="color: #e0e0e0; font-size: 0.9em; margin-top: 8px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px;">Current Total: ${newFear}</div>
+            <div style="color: #e0e0e0; font-size: 0.9em; margin-top: 8px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 4px;">${tr("Apps.CurrentTotal", { n: newFear })}</div>
         `);
         await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content: content });
     }
@@ -150,7 +151,7 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
         tag: "form",
         id: "falling-damage-app",
         classes: ["dh-qa-app", "falling-app"],
-        window: { title: "Falling & Collision Damage", icon: "fas fa-skull-crossbones", resizable: false, controls: [] },
+        window: { title: "DHQA.Apps.FallingTitle", icon: "fas fa-skull-crossbones", resizable: false, controls: [] },
         position: { width: 420, height: "auto" },
         actions: { rollDamage: FallingDamageApp.prototype._onRollDamage, cancel: FallingDamageApp.prototype._onCancel }
     };
@@ -170,12 +171,12 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const selection = target.dataset.height;
         if (!selection) return;
         const formulas = game.settings.get(MODULE_ID, "fallingDamageFormulas");
-        let damageFormula = "", heightText = "", damageType = "Physical Damage";
+        let damageFormula = "", heightText = "", damageType = tr("Apps.PhysicalDamage");
         switch (selection) {
-            case "veryclose": damageFormula = formulas.veryclose; heightText = "Very Close Range"; break;
-            case "close": damageFormula = formulas.close; heightText = "Close Range"; break;
-            case "far": damageFormula = formulas.far; heightText = "Far/Very Far Range"; break;
-            case "collision": damageFormula = formulas.collision; heightText = "Collision"; damageType = "Direct Physical Damage"; break;
+            case "veryclose": damageFormula = formulas.veryclose; heightText = tr("Apps.VeryClose"); break;
+            case "close": damageFormula = formulas.close; heightText = tr("Apps.Close"); break;
+            case "far": damageFormula = formulas.far; heightText = tr("Apps.Far"); break;
+            case "collision": damageFormula = formulas.collision; heightText = tr("Apps.Collision"); damageType = tr("Apps.DirectPhysicalDamage"); break;
         }
         try {
             const roll = new Roll(damageFormula);
@@ -191,7 +192,7 @@ class FallingDamageApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 sound: CONFIG.sounds.dice
             });
             this.close();
-        } catch (error) { console.error("Falling Damage Error:", error); ui.notifications.error("Error calculating falling damage."); }
+        } catch (error) { console.error("Falling Damage Error:", error); ui.notifications.error(tr("Notify.FallingError")); }
     }
     _onCancel() { this.close(); }
 }
@@ -259,8 +260,8 @@ function buildDrawFormula(diceCount, mod) {
  */
 function describeQueueEntry(entry) {
     return entry.type === "Coins"
-        ? `Coins — Tier ${entry.coinsTier}`
-        : `${entry.type} — ${buildDrawFormula(entry.diceCount, entry.mod)}`;
+        ? `${tr("Apps.DrawType.Coins")} — ${tr("Apps.TierN", { n: entry.coinsTier })}`
+        : `${tr(`Apps.DrawType.${entry.type}`)} — ${buildDrawFormula(entry.diceCount, entry.mod)}`;
 }
 
 class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -270,7 +271,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     static DEFAULT_OPTIONS = {
         tag: "form", id: "loot-consumable-app", classes: ["dh-qa-app", "loot-consumable-app"],
-        window: { title: "Loot & Consumables", icon: "fas fa-treasure-chest", resizable: false, controls: [] },
+        window: { title: "DHQA.Apps.LootTitle", icon: "fas fa-treasure-chest", resizable: false, controls: [] },
         position: { width: 450, height: "auto" },
         actions: {
             selectType: LootConsumableApp.prototype._onSelectType,
@@ -324,9 +325,9 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const min = await bound({ minimize: true });
             const max = await bound({ maximize: true });
             const count = (max - min + 1) * this.tableCount;
-            reachHint = `Reaches ${min}–${max} · ${count} item${count === 1 ? "" : "s"} in reach`;
+            reachHint = tr(count === 1 ? "Apps.ReachOne" : "Apps.ReachMany", { min, max, count });
         } catch (_err) {
-            reachHint = "That formula cannot be rolled.";
+            reachHint = tr("Apps.FormulaUnrollable");
         }
 
         const linkedActor = game.user.character;
@@ -372,7 +373,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // Validated here rather than at roll time: a bad formula found partway through a queue
             // of five would already have played the earlier animations.
             if (value && !Roll.validate(buildDrawFormula(this.localState.diceCount, value))) {
-                ui.notifications.warn(`"${value}" is not a valid roll formula.`);
+                ui.notifications.warn(tr("Notify.InvalidRollFormula", { value }));
                 event.target.value = this.localState.mod ?? "";
                 return;
             }
@@ -451,7 +452,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // Resolved by stable compendium id (fromUuid), never by name: Daggerheart 2.9.2 renamed
         // these tables ("Loot" -> "Core Set Items", "Consumables" -> "Core Set Consumables").
         const uuids = LOOT_CONSUMABLE_TABLES[type];
-        if (!uuids) { ui.notifications.error(`Unknown loot type '${type}'.`); return null; }
+        if (!uuids) { ui.notifications.error(tr("Notify.UnknownLootType", { type })); return null; }
 
         const source = game.settings.get(MODULE_ID, LOOT_CONSUMABLE_SOURCE);
         const sourceKeys = source === LOOT_SOURCE.BOTH ? [LOOT_SOURCE.CORE, LOOT_SOURCE.HOPE_AND_FEAR] : [source];
@@ -461,7 +462,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const doc = await fromUuid(uuids[key]);
             if (doc) tables.push(doc);
         }
-        if (!tables.length) { ui.notifications.error("Daggerheart loot/consumable roll table not found — is the system installed?"); return null; }
+        if (!tables.length) { ui.notifications.error(tr("Notify.LootTableMissing")); return null; }
 
         // Both books share ONE rarity scale rather than being chained end to end: position 7 is
         // the seventh-cheapest entry in *either* book. Chaining them would bury the Hope & Fear
@@ -555,7 +556,7 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (entry.type === "Coins") {
                 if (coinTiers.has(entry.coinsTier)) continue;
                 const tier = game.settings.get(MODULE_ID, "coinTierRanges")?.[`tier${entry.coinsTier}`];
-                if (!tier) { ui.notifications.error(`Coin tier ${entry.coinsTier} is not configured.`); return; }
+                if (!tier) { ui.notifications.error(tr("Notify.CoinTierMissing", { tier: entry.coinsTier })); return; }
                 coinTiers.set(entry.coinsTier, tier);
                 continue;
             }
@@ -587,16 +588,16 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 const tier = coinTiers.get(entry.coinsTier);
                 const amount = Math.floor(Math.random() * (tier.max - tier.min + 1)) + tier.min;
                 coinTotal += amount;
-                rows.push(this._buildRow(`Coins &middot; Tier ${entry.coinsTier}`, `<i class="fas fa-coins"></i> ${amount} Coins`, null, rows.length));
+                rows.push(this._buildRow(`${tr("Apps.DrawType.Coins")} &middot; ${tr("Apps.TierN", { n: entry.coinsTier })}`, `<i class="fas fa-coins"></i> ${tr("Apps.CoinsAmount", { n: amount })}`, null, rows.length));
                 continue;
             }
 
             const draw = await this._resolveDraw(entry, tableSets.get(entry.type), hopeAndFearByEntry[index]);
 
             if (draw.referencedUuid) drawnUuids.push(draw.referencedUuid);
-            const name = draw.result ? (draw.result.name || draw.result.description) : "Nothing found";
+            const name = draw.result ? (draw.result.name || draw.result.description) : tr("Apps.NothingFound");
             const display = draw.referencedUuid ? `@UUID[${draw.referencedUuid}]{${name}}` : name;
-            const meta = `${entry.type} &middot; ${draw.formula} &rarr; ${draw.total}${draw.table ? ` &middot; ${foundry.utils.escapeHTML(draw.table.name)}` : ""}`;
+            const meta = `${tr(`Apps.DrawType.${entry.type}`)} &middot; ${draw.formula} &rarr; ${draw.total}${draw.table ? ` &middot; ${foundry.utils.escapeHTML(draw.table.name)}` : ""}`;
             rows.push(this._buildRow(meta, display, draw.result?.img ?? null, rows.length));
         }
 
@@ -633,11 +634,11 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const destinationLine = (destination && granted)
             ? `<div style="color: #ccc; font-size: 0.85em; margin-bottom: 10px; font-style: italic;">
                    <i class="fas ${destination === party ? "fa-users" : "fa-user"}"></i>
-                   Sent to <strong style="color: #C9A060;">${foundry.utils.escapeHTML(destination.name)}</strong>${destination === party ? " (party stash)" : ""}
+                   ${tr("Apps.SentTo")} <strong style="color: #C9A060;">${foundry.utils.escapeHTML(destination.name)}</strong>${destination === party ? ` ${tr("Apps.PartyStash")}` : ""}
                </div>`
             : "";
 
-        const title = entries.length > 1 ? "Loot & Consumables" : `${entries[0].type} Roll`;
+        const title = entries.length > 1 ? tr("Apps.LootTitle") : tr("Apps.DrawRoll", { type: tr(`Apps.DrawType.${entries[0].type}`) });
         const content = buildChatCard(title, `${destinationLine}${rows.join("")}`);
         // Public, never whispered: the items land on a sheet other players can see — above all the
         // shared party stash — so the whole table needs the card that explains where they came from.
@@ -675,20 +676,20 @@ class LootConsumableApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // ==================================================================
 export async function helpAnAlly() {
     const selectedToken = canvas.tokens.controlled[0];
-    if (!selectedToken) { ui.notifications.warn("Please select a token first!"); return; }
+    if (!selectedToken) { ui.notifications.warn(tr("Notify.SelectTokenFirst")); return; }
     const actor = selectedToken.actor;
     if (!actor) return;
     const currentHope = actor.system.resources?.hope?.value;
-    if (currentHope === undefined) { ui.notifications.warn("No Hope resource!"); return; }
+    if (currentHope === undefined) { ui.notifications.warn(tr("Notify.NoHopeResource")); return; }
 
     if (currentHope <= 0) {
         await ChatMessage.create({
             user: game.user.id,
             speaker: ChatMessage.getSpeaker({actor: actor}),
             style: CONST.CHAT_MESSAGE_STYLES.OTHER,
-            content: buildChatCard("Help an Ally", `
+            content: buildChatCard(tr("Apps.HelpAnAlly"), `
                 <i class="fas fa-heart-broken" style="font-size: 32px; color: #ff6b6b; margin-bottom: 10px;"></i>
-                <div style="color: #ff6b6b; font-size: 1.1em; font-weight: bold; font-family: 'Aleo', serif;">No Hope remaining!</div>
+                <div style="color: #ff6b6b; font-size: 1.1em; font-weight: bold; font-family: 'Aleo', serif;">${tr("Apps.NoHopeRemaining")}</div>
             `)
         });
         return;
@@ -697,11 +698,11 @@ export async function helpAnAlly() {
     const roll = new Roll("1d6"); await roll.evaluate();
     await actor.update({"system.resources.hope.value": currentHope - 1});
 
-    const content = buildChatCard("Help an Ally", `
+    const content = buildChatCard(tr("Apps.HelpAnAlly"), `
         <div style="color: #ffffff !important; font-size: 3.5em; font-weight: bold; text-shadow: 0px 0px 15px #4CAF50, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">${roll.total}</div>
-        <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">Hope used: ${currentHope} → ${currentHope - 1}</div>
+        <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">${tr("Apps.HopeUsed", { from: currentHope, to: currentHope - 1 })}</div>
     `);
-    await roll.toMessage({ speaker: ChatMessage.getSpeaker({actor: actor}), flavor: "<strong>Help an Ally</strong>", content: content });
+    await roll.toMessage({ speaker: ChatMessage.getSpeaker({actor: actor}), flavor: `<strong>${tr("Apps.HelpAnAlly")}</strong>`, content: content });
 }
 
 // ==================================================================
@@ -709,38 +710,38 @@ export async function helpAnAlly() {
 // ==================================================================
 export async function scarCheck() {
     const token = canvas.tokens.controlled[0];
-    if (!token || !token.actor) { ui.notifications.error("Select a token with an actor!"); return; }
+    if (!token || !token.actor) { ui.notifications.error(tr("Notify.SelectTokenActor")); return; }
     
     const currentLevel = token.actor.system.levelData?.level?.current;
-    if (currentLevel === undefined) { ui.notifications.error("Could not find level data!"); return; }
+    if (currentLevel === undefined) { ui.notifications.error(tr("Notify.NoLevelData")); return; }
 
     const roll = new Roll("1d12"); await roll.evaluate();
     const isScar = roll.total <= currentLevel;
     const resultColor = isScar ? "#ff6b6b" : "#4CAF50";
-    const resultTitle = isScar ? "YOU TAKE A SCAR" : "SAFE";
+    const resultTitle = tr(isScar ? "Apps.ScarTaken" : "Apps.ScarSafe");
     const resultIcon = isScar ? "fas fa-skull" : "fas fa-shield-alt";
-    const resultDesc = isScar ? "Mark a Scar manually on your sheet." : "No scar taken.";
+    const resultDesc = tr(isScar ? "Apps.ScarMark" : "Apps.ScarNone");
 
-    const content = buildChatCard("Scar Check", `
-        <div style="color: #ccc; font-size: 0.9em; margin-bottom: 5px; font-weight: bold; text-shadow: 1px 1px 0 #000;">Level: ${currentLevel} vs Roll:</div>
+    const content = buildChatCard(tr("Apps.ScarCheck"), `
+        <div style="color: #ccc; font-size: 0.9em; margin-bottom: 5px; font-weight: bold; text-shadow: 1px 1px 0 #000;">${tr("Apps.LevelVsRoll", { level: currentLevel })}</div>
         <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 10px ${resultColor}, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">${roll.total}</div>
         <i class="${resultIcon}" style="font-size: 24px; color: ${resultColor}; margin: 10px 0; text-shadow: 1px 1px 0 #000;"></i>
         <div style="color: ${resultColor}; font-size: 1.2em; font-weight: bold; text-transform: uppercase; font-family: 'Aleo', serif; text-shadow: 1px 1px 0 #000;">${resultTitle}</div>
         <div style="color: #eee; font-size: 0.9em; margin-top: 5px; font-style: italic;">${resultDesc}</div>
     `);
-    await roll.toMessage({ speaker: ChatMessage.getSpeaker({token: token}), flavor: "<strong>Scar Check</strong>", content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
+    await roll.toMessage({ speaker: ChatMessage.getSpeaker({token: token}), flavor: `<strong>${tr("Apps.ScarCheck")}</strong>`, content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
 }
 
 // ==================================================================
 // 7. SPOTLIGHT TOKEN
 // ==================================================================
 export async function spotlightToken() {
-    if (!game.combat) return ui.notifications.warn("No active combat found!");
+    if (!game.combat) return ui.notifications.warn(tr("Notify.NoCombat"));
     const token = canvas.tokens.controlled[0];
-    if (!token || !token.inCombat) return ui.notifications.warn("Select a combatant token!");
+    if (!token || !token.inCombat) return ui.notifications.warn(tr("Notify.SelectCombatant"));
     const turnIndex = game.combat.turns.findIndex(turn => turn.id === token.combatant?.id);
     if (turnIndex !== -1) await game.combat.update({ turn: turnIndex });
-    else ui.notifications.warn("Token not found in combat.");
+    else ui.notifications.warn(tr("Notify.TokenNotInCombat"));
 }
 
 // ==================================================================
@@ -748,7 +749,7 @@ export async function spotlightToken() {
 // ==================================================================
 class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
     constructor(macroNames, options = {}) { super(options); this.macroNames = macroNames; }
-    static DEFAULT_OPTIONS = { tag: "form", id: "show-macros-app", classes: ["dh-qa-app", "show-macros-app"], window: { title: "Macros", icon: "fas fa-play-circle", resizable: true }, position: { width: 300, height: "auto" }, actions: { executeMacro: ShowMacrosApp.prototype._onExecuteMacro } };
+    static DEFAULT_OPTIONS = { tag: "form", id: "show-macros-app", classes: ["dh-qa-app", "show-macros-app"], window: { title: "DHQA.Apps.Macros", icon: "fas fa-play-circle", resizable: true }, position: { width: 300, height: "auto" }, actions: { executeMacro: ShowMacrosApp.prototype._onExecuteMacro } };
     static PARTS = { form: { template: `modules/${MODULE_ID}/templates/showmacros.hbs` } };
 
     async _prepareContext(options) {
@@ -777,7 +778,7 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!macro) try { macro = await fromUuid(identifier); } catch(e){}
         if (!macro) macro = game.macros.find(m => m.name === identifier);
         if (macro && typeof macro.execute === 'function') macro.execute();
-        else ui.notifications.warn(`Macro '${identifier}' not found.`);
+        else ui.notifications.warn(tr("Notify.MacroNotFound", { name: identifier }));
     }
 }
 
@@ -786,11 +787,11 @@ class ShowMacrosApp extends HandlebarsApplicationMixin(ApplicationV2) {
 // ==================================================================
 class FateRollDialog extends ApplicationV2 {
     constructor(rollType, options = {}) { super(options); this.rollType = rollType; }
-    static DEFAULT_OPTIONS = { tag: "div", id: "dh-fate-ask-dialog", window: { title: "Select Fate Die", icon: "fas fa-dice", resizable: false }, position: { width: 320, height: "auto" }, actions: { roll: FateRollDialog.prototype._onRoll } };
+    static DEFAULT_OPTIONS = { tag: "div", id: "dh-fate-ask-dialog", window: { title: "DHQA.Apps.SelectFateDie", icon: "fas fa-dice", resizable: false }, position: { width: 320, height: "auto" }, actions: { roll: FateRollDialog.prototype._onRoll } };
     async _renderHTML(context, options) {
         const dice = ["1d4", "1d6", "1d8", "1d10", "1d12", "1d20"];
         const buttons = dice.map(d => `<button type="button" class="dh-btn" data-action="roll" data-value="${d}" style="margin: 4px; width: 30%; flex: 1 0 30%;">${d}</button>`).join("");
-        return `<div class="dh-qa-app" style="background: #191919; padding: 15px; height: 100%;"><p style="color: #C9A060; font-family: 'Aleo', serif; text-align: center; margin-bottom: 10px; font-size: 1.1em;">Rolling <strong>${this.rollType.toUpperCase()}</strong>. Choose die:</p><div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">${buttons}</div></div>`;
+        return `<div class="dh-qa-app" style="background: #191919; padding: 15px; height: 100%;"><p style="color: #C9A060; font-family: 'Aleo', serif; text-align: center; margin-bottom: 10px; font-size: 1.1em;">${tr("Apps.RollingFate", { type: `<strong>${game.i18n.localize(`DHQA.CinematicCase.${this.rollType}`).toUpperCase()}</strong>` })}</p><div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;">${buttons}</div></div>`;
     }
     _replaceHTML(result, content, options) { content.innerHTML = result; return content; }
     async _onRoll(event, target) { await performVisualFateRoll(target.dataset.value, this.rollType); this.close(); }
@@ -806,24 +807,24 @@ export async function fateRoll(rollType = 'hope', mode = 'default') {
 // 10. HOPE SPENDER APP
 // ==================================================================
 class HopeSpenderApp extends ApplicationV2 {
-    static DEFAULT_OPTIONS = { id: "daggerheart-hope-spender-v2", tag: "div", window: { title: "Spend Hope", icon: "fas fa-sun", resizable: false }, position: { width: 320, height: "auto" }, actions: { spend: HopeSpenderApp.prototype._onSpend } };
+    static DEFAULT_OPTIONS = { id: "daggerheart-hope-spender-v2", tag: "div", window: { title: "DHQA.Apps.SpendHope", icon: "fas fa-sun", resizable: false }, position: { width: 320, height: "auto" }, actions: { spend: HopeSpenderApp.prototype._onSpend } };
     async _renderHTML(context, options) {
         const buttons = [1, 2, 3, 4, 5, 6].map(num => `<button type="button" class="dh-hope-btn" data-action="spend" data-value="${num}">${num}</button>`).join("");
-        return `<style>.dh-wrapper { background: #191919; padding: 10px; display: flex; flex-direction: column; gap: 10px; color: #C9A060; height: 100%; } .dh-title { text-align: center; font-family: 'Aleo', serif; font-size: 1.1em; border-bottom: 1px solid #444; padding-bottom: 5px; } .dh-hope-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; } .dh-hope-btn { background: #2a2a2a; color: #C9A060; border: 1px solid #C9A060; font-family: 'Aleo', serif; font-size: 1.5em; font-weight: bold; height: 50px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; } .dh-hope-btn:hover { background: #C9A060; color: #191919; box-shadow: 0 0 8px #C9A060; }</style><div class="dh-wrapper"><div class="dh-title">Select Hope to Spend</div><div class="dh-hope-grid">${buttons}</div></div>`;
+        return `<style>.dh-wrapper { background: #191919; padding: 10px; display: flex; flex-direction: column; gap: 10px; color: #C9A060; height: 100%; } .dh-title { text-align: center; font-family: 'Aleo', serif; font-size: 1.1em; border-bottom: 1px solid #444; padding-bottom: 5px; } .dh-hope-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; } .dh-hope-btn { background: #2a2a2a; color: #C9A060; border: 1px solid #C9A060; font-family: 'Aleo', serif; font-size: 1.5em; font-weight: bold; height: 50px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; } .dh-hope-btn:hover { background: #C9A060; color: #191919; box-shadow: 0 0 8px #C9A060; }</style><div class="dh-wrapper"><div class="dh-title">${tr("Apps.SelectHopeToSpend")}</div><div class="dh-hope-grid">${buttons}</div></div>`;
     }
     _replaceHTML(result, content, options) { content.innerHTML = result; return content; }
     async _onSpend(event, target) {
         const spendAmount = parseInt(target.dataset.value);
         const token = canvas.tokens.controlled[0];
-        if (!token) return ui.notifications.warn("Select a token!");
+        if (!token) return ui.notifications.warn(tr("Notify.SelectTokenShort"));
         const actor = token.actor;
         const currentHope = actor.system.resources?.hope?.value;
-        if (currentHope === undefined) return ui.notifications.warn("No Hope resource!");
-        if (currentHope < spendAmount) return ui.notifications.error("Not enough Hope!");
+        if (currentHope === undefined) return ui.notifications.warn(tr("Notify.NoHopeResource"));
+        if (currentHope < spendAmount) return ui.notifications.error(tr("Notify.NotEnoughHope"));
         await actor.update({"system.resources.hope.value": currentHope - spendAmount});
-        const content = buildChatCard("Hope Spent", `
+        const content = buildChatCard(tr("Apps.HopeSpent"), `
             <div style="color: #ffffff !important; font-size: 3em; font-weight: bold; text-shadow: 0px 0px 15px #C9A060, 2px 2px 0 #000; font-family: 'Lato', sans-serif;">-${spendAmount}</div>
-            <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">Hope Remaining: ${currentHope} → <span style="color: #C9A060; font-weight: bold;">${currentHope - spendAmount}</span></div>
+            <div style="color: #ccc; font-size: 0.9em; margin-top: 10px; font-style: italic;">${tr("Apps.HopeRemaining")} ${currentHope} → <span style="color: #C9A060; font-weight: bold;">${currentHope - spendAmount}</span></div>
         `);
         await ChatMessage.create({ user: game.user.id, speaker: ChatMessage.getSpeaker({actor: actor}), content: content, style: CONST.CHAT_MESSAGE_STYLES.OTHER });
         this.close();
@@ -839,7 +840,7 @@ class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         id: "daggerheart-level-up",
         classes: ["dh-level-up"],
-        window: { title: "Level Up Players", icon: "fas fa-arrow-up", resizable: false, controls: [] },
+        window: { title: "DHQA.Apps.LevelUpTitle", icon: "fas fa-arrow-up", resizable: false, controls: [] },
         position: { width: 420, height: "auto" },
         actions: { levelUp: LevelUpApp.prototype._onLevelUp, levelUpAll: LevelUpApp.prototype._onLevelUpAll }
     };
@@ -885,7 +886,7 @@ class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
             actors.push(actor.name);
         }
         if (actors.length) {
-            ui.notifications.info(`Leveled up: ${actors.join(", ")}`);
+            ui.notifications.info(tr("Notify.LeveledUpMany", { names: actors.join(", ") }));
         }
         this.render();
     }
@@ -894,7 +895,7 @@ class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const actorId = target.dataset.actorId;
         const actor = game.actors.get(actorId);
         if (!actor) {
-            ui.notifications.error("Actor not found.");
+            ui.notifications.error(tr("Notify.ActorNotFound"));
             return;
         }
         const currentLevel = actor.system?.levelData?.level?.current ?? 1;
@@ -902,7 +903,7 @@ class LevelUpApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const newChanged = changedLevel + 1;
 
         await actor.update({ "system.levelData.level.changed": newChanged });
-        ui.notifications.info(`${actor.name} leveled up to ${newChanged}!`);
+        ui.notifications.info(tr("Notify.LeveledUp", { name: actor.name, level: newChanged }));
         this.render();
     }
 
@@ -953,7 +954,7 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     static DEFAULT_OPTIONS = {
         tag: "form", id: "custom-tables-app", classes: ["dh-qa-app", "custom-tables-app"],
-        window: { title: "Custom Tables", icon: "fas fa-dice-d20", resizable: false, controls: [] },
+        window: { title: "DHQA.Apps.CustomTablesTitle", icon: "fas fa-dice-d20", resizable: false, controls: [] },
         position: { width: 450, height: "auto" },
         actions: {
             adjustDraws: CustomTablesApp.prototype._onAdjustDraws,
@@ -1042,7 +1043,7 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
      */
     _onQueueRoll() {
         const entry = this._currentEntry();
-        if (!entry) { ui.notifications.warn("Custom Tables: no table is configured."); return; }
+        if (!entry) { ui.notifications.warn(tr("Notify.NoTableConfigured")); return; }
         this.localState.queue.push(entry);
         this.render();
     }
@@ -1073,7 +1074,7 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // screen, which keeps the one-off case a single click.
         const current = this._currentEntry();
         const entries = this.localState.queue.length ? [...this.localState.queue] : (current ? [current] : []);
-        if (!entries.length) { ui.notifications.warn("Custom Tables: no table is configured."); return; }
+        if (!entries.length) { ui.notifications.warn(tr("Notify.NoTableConfigured")); return; }
 
         // Every table the queue touches, resolved once up front. Nothing has been written yet and
         // no die has been thrown, so bailing anywhere in this pre-flight leaves the queue and both
@@ -1085,7 +1086,7 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (!doc || doc.documentName !== "RollTable") {
                 // The common cause is ownership: a world RollTable is created with no player
                 // access at all, so the GM sees it and the players do not.
-                ui.notifications.error(`Custom Tables: "${entry.label}" could not be found. Check that the table still exists and that players can see it.`);
+                ui.notifications.error(tr("Notify.CustomTableMissing", { label: entry.label }));
                 return;
             }
             tables.set(entry.uuid, doc);
@@ -1109,7 +1110,7 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
                 const meta = `${foundry.utils.escapeHTML(entry.label)} &middot; ${roll.formula} &rarr; ${roll.total}`;
                 if (!results.length) {
-                    rows.push(this._buildRow(meta, "Nothing found", null, rows.length));
+                    rows.push(this._buildRow(meta, tr("Apps.NothingFound"), null, rows.length));
                     continue;
                 }
 
@@ -1119,7 +1120,7 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                     // `documentUuid` (V13+ schema).
                     const referencedUuid = result.type === "document" ? result.documentUuid : null;
                     if (referencedUuid) drawnUuids.push(referencedUuid);
-                    const name = result.name || result.description || "Nothing found";
+                    const name = result.name || result.description || tr("Apps.NothingFound");
                     const display = referencedUuid ? `@UUID[${referencedUuid}]{${name}}` : name;
                     rows.push(this._buildRow(meta, display, result.img ?? null, rows.length));
                 }
@@ -1155,11 +1156,11 @@ class CustomTablesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const destinationLine = (destination && grantedCount)
             ? `<div style="color: #ccc; font-size: 0.85em; margin-bottom: 10px; font-style: italic;">
                    <i class="fas ${destination === party ? "fa-users" : "fa-user"}"></i>
-                   Sent to <strong style="color: #C9A060;">${foundry.utils.escapeHTML(destination.name)}</strong>${destination === party ? " (party stash)" : ""}
+                   ${tr("Apps.SentTo")} <strong style="color: #C9A060;">${foundry.utils.escapeHTML(destination.name)}</strong>${destination === party ? ` ${tr("Apps.PartyStash")}` : ""}
                </div>`
             : "";
 
-        const title = entries.length > 1 ? "Custom Tables" : entries[0].label;
+        const title = entries.length > 1 ? tr("Apps.CustomTablesTitle") : entries[0].label;
         const content = buildChatCard(title, `${destinationLine}${rows.join("")}`);
         // Public for the same reason as the Loot & Consumables card: whatever was drawn may land in
         // the shared party stash, and every player should see where it came from.
@@ -1203,7 +1204,7 @@ export async function activateSpendHope() { new HopeSpenderApp().render(true); }
 
 export async function activateLevelUp() {
     if (!game.user.isGM) {
-        ui.notifications.warn("Only the GM can use Level Up.");
+        ui.notifications.warn(tr("Notify.GMOnlyLevelUp"));
         return;
     }
     if (LevelUpApp._instance?.rendered) {
@@ -1217,6 +1218,6 @@ export async function activateLevelUp() {
 export async function showMacros(...args) {
     let rawMacros = Array.isArray(args[0]) ? args[0] : args;
     const macros = rawMacros.filter(m => m !== undefined && m !== null);
-    if (macros.length === 0) return ui.notifications.warn("QuickActions: No valid macros provided.");
+    if (macros.length === 0) return ui.notifications.warn(tr("Notify.NoValidMacros"));
     new ShowMacrosApp(macros).render(true);
 }

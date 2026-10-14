@@ -1,5 +1,5 @@
 <div class="falling-content standard-form">
-    <p class="notes" style="margin-bottom: 10px;">Select the fall height to roll damage instantly:</p>
+    <p class="notes" style="margin-bottom: 10px;">{{localize "DHQA.Falling.SelectTheFallHeightTo"}}</p>
     
     <div class="falling-buttons">
         <!-- 
@@ -8,29 +8,29 @@
         -->
         
         <button type="button" class="fall-btn" data-action="rollDamage" data-height="veryclose">
-            <span class="label">Very Close</span>
+            <span class="label">{{localize "DHQA.Falling.VeryClose"}}</span>
             <span class="formula">{{formulas.veryclose}}</span>
         </button>
 
         <button type="button" class="fall-btn" data-action="rollDamage" data-height="close">
-            <span class="label">Close</span>
+            <span class="label">{{localize "DHQA.Falling.Close"}}</span>
             <span class="formula">{{formulas.close}}</span>
         </button>
 
         <button type="button" class="fall-btn" data-action="rollDamage" data-height="far">
-            <span class="label">Far / Very Far</span>
+            <span class="label">{{localize "DHQA.Falling.FarVeryFar"}}</span>
             <span class="formula">{{formulas.far}}</span>
         </button>
 
         <button type="button" class="fall-btn" data-action="rollDamage" data-height="collision">
-            <span class="label">Collision</span>
+            <span class="label">{{localize "DHQA.Falling.Collision"}}</span>
             <span class="formula">{{formulas.collision}}</span>
         </button>
     </div>
     
     <div class="form-footer" style="margin-top: 15px;">
         <button type="button" data-action="cancel" class="dh-btn" style="width: 100%;">
-            <i class="fas fa-times"></i> Cancel
+            <i class="fas fa-times"></i> {{localize "DHQA.Falling.Cancel"}}
         </button>
     </div>
 </div>

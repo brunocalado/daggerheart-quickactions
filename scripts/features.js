@@ -12,6 +12,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
+import { tr } from "./i18n.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -21,27 +22,27 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export async function features(featureName, ...args) {
     if (!featureName) {
-        ui.notifications.warn("QuickActions.Features: No feature name provided.");
+        ui.notifications.warn(tr("Notify.FeatureNoName"));
         return;
     }
 
     switch (featureName) {
         case 'Chain Lightning':
             if (!canvas.tokens.controlled.length) {
-                ui.notifications.warn("Select the caster's token first!");
+                ui.notifications.warn(tr("Notify.SelectCasterToken"));
                 return;
             }
             new ChainLightningApp(canvas.tokens.controlled[0]).render(true);
             break;
         case 'Unleash Chaos':
             if (!canvas.tokens.controlled.length) {
-                ui.notifications.warn("Select a token first!");
+                ui.notifications.warn(tr("Notify.SelectToken"));
                 return;
             }
             await executeUnleashChaos(canvas.tokens.controlled[0]);
             break;
         default:
-            ui.notifications.warn(`QuickActions.Features: Feature '${featureName}' not found.`);
+            ui.notifications.warn(tr("Notify.FeatureNotFound", { name: featureName }));
     }
 }
 
@@ -64,7 +65,7 @@ async function executeUnleashChaos(token) {
     // Require a subclass with a spellcastingTrait to determine max charge
     const subclassItem = actor.items.find(i => i.type === "subclass");
     if (!subclassItem?.system?.spellcastingTrait) {
-        ui.notifications.warn("The actor has no subclass with a spellcastingTrait defined.");
+        ui.notifications.warn(tr("Notify.NoSpellcastingTrait"));
         return;
     }
 
@@ -75,34 +76,34 @@ async function executeUnleashChaos(token) {
 
     const targetItem = actor.items.find(i => i.name === "Unleash Chaos");
     if (!targetItem) {
-        ui.notifications.warn("Item 'Unleash Chaos' not found on this actor.");
+        ui.notifications.warn(tr("Notify.UnleashNotFound"));
         return;
     }
 
     const currentTokens = targetItem.system.resource?.value || 0;
     if (currentTokens >= maxTokens) {
-        ui.notifications.info(`Unleash Chaos is already at maximum charge (${maxTokens}).`);
+        ui.notifications.info(tr("Notify.UnleashFull", { max: maxTokens }));
         return;
     }
 
     // Ask which cost to pay. "Stress" is the default since it's the usual case;
     // "Nothing" covers the free recharge at the start of a session.
     const costType = await foundry.applications.api.DialogV2.wait({
-        window: { title: "Unleash Chaos — Recharge Cost" },
+        window: { title: tr("Unleash.DialogTitle") },
         content: `
-            <p>What cost do you want to pay to recharge <strong>Unleash Chaos</strong>?</p>
-            <p style="color: var(--color-text-secondary); font-size: 0.9em;">At the start of a session, you may recover it for free — choose "Nothing" in that case.</p>
+            <p>${tr("Unleash.Prompt")}</p>
+            <p style="color: var(--color-text-secondary); font-size: 0.9em;">${tr("Unleash.PromptHint")}</p>
         `,
         buttons: [
-            { action: "stress", label: "1 Stress", icon: "fas fa-brain", default: true },
-            { action: "hp", label: "1 HP", icon: "fas fa-heart" },
-            { action: "none", label: "Nothing", icon: "fas fa-hourglass-start" }
+            { action: "stress", label: tr("Unleash.CostStressShort"), icon: "fas fa-brain", default: true },
+            { action: "hp", label: tr("Unleash.CostHpShort"), icon: "fas fa-heart" },
+            { action: "none", label: tr("Unleash.CostNothing"), icon: "fas fa-hourglass-start" }
         ],
         rejectClose: false
     });
 
     if (!costType) {
-        ui.notifications.warn("Action cancelled.");
+        ui.notifications.warn(tr("Notify.ActionCancelled"));
         return;
     }
 
@@ -111,13 +112,13 @@ async function executeUnleashChaos(token) {
 
     if (costType === "stress") {
         if (stress.value >= stress.max) {
-            ui.notifications.error("Your Stress is already at maximum — you cannot pay this cost.");
+            ui.notifications.error(tr("Notify.StressFull"));
             return;
         }
         await actor.update({ "system.resources.stress.value": stress.value + 1 });
     } else if (costType === "hp") {
         if (hp.value >= hp.max) {
-            ui.notifications.error("Your Hit Points are already at maximum — you cannot pay this cost.");
+            ui.notifications.error(tr("Notify.HpFull"));
             return;
         }
         // In Daggerheart, marking HP means adding to the current value (damage track)
@@ -147,17 +148,17 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
     switch (costType) {
         case "stress":
             costColor = "#9d80ff";
-            costLabel = "1 Stress";
+            costLabel = tr("Unleash.CostStress");
             costIcon = "fas fa-brain";
             break;
         case "hp":
             costColor = "#ff6b6b";
-            costLabel = "1 Hit Point";
+            costLabel = tr("Unleash.CostHp");
             costIcon = "fas fa-heart";
             break;
         default:
             costColor = "#4a90e2";
-            costLabel = "Session Start Recovery";
+            costLabel = tr("Unleash.CostSession");
             costIcon = "fas fa-hourglass-start";
     }
 
@@ -165,7 +166,7 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
     <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
         <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
             <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                Unleash Chaos
+                ${tr("Unleash.Title")}
             </h3>
         </header>
         <div class="card-content" style="background: #141414; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
@@ -173,16 +174,16 @@ async function _createUnleashChaosChatMessage(token, costType, tokensGained, new
             <!-- Cost Row -->
             <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${costColor};">
                 <i class="${costIcon}" style="color: ${costColor}; width: 16px; text-align: center;"></i>
-                <span style="color: #ccc; font-size: 0.95em;">Cost paid:</span>
+                <span style="color: #ccc; font-size: 0.95em;">${tr("Unleash.CostPaid")}</span>
                 <strong style="color: ${costColor}; font-size: 1em;">${costLabel}</strong>
             </div>
 
             <!-- Restore Row -->
             <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.4); padding: 8px 10px; border-radius: 4px; border-left: 3px solid ${restoreColor};">
                 <i class="fas fa-bolt" style="color: ${restoreColor}; width: 16px; text-align: center;"></i>
-                <span style="color: #ccc; font-size: 0.95em;">Restored:</span>
-                <strong style="color: ${restoreColor}; font-size: 1em;">+${tokensGained} token${tokensGained !== 1 ? 's' : ''}</strong>
-                <span style="color: #777; font-size: 0.85em;">(now ${newTotal})</span>
+                <span style="color: #ccc; font-size: 0.95em;">${tr("Unleash.Restored")}</span>
+                <strong style="color: ${restoreColor}; font-size: 1em;">${tr("Unleash.Tokens", { n: tokensGained })}</strong>
+                <span style="color: #777; font-size: 0.85em;">${tr("Unleash.Now", { n: newTotal })}</span>
             </div>
 
         </div>
@@ -241,7 +242,7 @@ function activateResultsCard(message, html) {
         img.addEventListener("click", () => {
             const token = fromUuidSync(img.dataset.tokenUuid);
             if (!token?.object || token.parent !== canvas.scene) {
-                ui.notifications.warn("That token isn't on the scene you are viewing.");
+                ui.notifications.warn(tr("Notify.TokenNotOnScene"));
                 return;
             }
             canvas.animatePan(token.object.center);
@@ -272,7 +273,7 @@ async function undoChainLightningDamage(message, index) {
     if (!result || result.undone) return;
     const actor = fromUuidSync(result.tokenUuid)?.actor;
     if (!actor) {
-        ui.notifications.warn(`${result.name} is no longer on the scene; nothing to undo.`);
+        ui.notifications.warn(tr("Notify.NothingToUndo", { name: result.name }));
         return;
     }
 
@@ -602,28 +603,28 @@ function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTota
         const statusColor = r.undone ? '#777' : failed ? '#f44336' : r.hit ? '#4CAF50' : '#777';
 
         const chainedIndicator = r.chained
-            ? `<span style="color: #4a90e2; font-size: 0.85em; white-space: nowrap;"><i class="fas fa-bolt" style="margin-right: 4px;"></i>CHAINED</span>`
+            ? `<span style="color: #4a90e2; font-size: 0.85em; white-space: nowrap;"><i class="fas fa-bolt" style="margin-right: 4px;"></i>${tr("Chain.Chained")}</span>`
             : '<span></span>';
 
         // Undo sits on the name line; non-GMs have it removed on render.
         let undoControl = '';
         if (r.undone) {
-            undoControl = '<span style="color: #777; font-size: 0.8em; margin-left: auto;">Undone</span>';
+            undoControl = `<span style="color: #777; font-size: 0.8em; margin-left: auto;">${tr("Chain.Undone")}</span>`;
         } else if (r.updates.length) {
-            undoControl = `<button type="button" class="cl-undo" data-index="${index}" title="Undo damage" style="margin-left: auto; flex: 0 0 auto; width: 24px; height: 24px; padding: 0; line-height: 22px; font-size: 0.8em;"><i class="fas fa-undo"></i></button>`;
+            undoControl = `<button type="button" class="cl-undo" data-index="${index}" title="${tr("Chain.UndoDamage")}" style="margin-left: auto; flex: 0 0 auto; width: 24px; height: 24px; padding: 0; line-height: 22px; font-size: 0.8em;"><i class="fas fa-undo"></i></button>`;
         }
 
         let stats;
         if (r.defeated) {
-            stats = '<span style="color: #aaa; font-size: 0.9em;">Defeated</span>';
+            stats = `<span style="color: #aaa; font-size: 0.9em;">${tr("Chain.Defeated")}</span>`;
         } else if (!r.hit) {
-            stats = `<span style="color: #aaa; font-size: 0.9em;">Spellcast missed (Difficulty ${r.difficulty})</span>`;
+            stats = `<span style="color: #aaa; font-size: 0.9em;">${tr("Chain.Missed", { difficulty: r.difficulty })}</span>`;
         } else {
-            const critText = r.reaction.critical ? ' <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="Critical"></i>' : '';
+            const critText = r.reaction.critical ? ` <i class="fas fa-star" style="color: #FFD700; font-size: 0.8em;" title="${tr("Chain.Critical")}"></i>` : '';
             const outcome = failed
-                ? `<span style="color: #ff6b6b; font-weight: bold;${r.undone ? ' text-decoration: line-through;' : ''}">${r.hitPoints} HP</span>`
-                : '<span style="color: #aaa;">Resisted</span>';
-            stats = `<span style="color: #ccc; font-size: 0.9em;">Reaction: <span style="color: #4a90e2; font-weight: bold;">${r.reaction.total}</span>${critText}</span>
+                ? `<span style="color: #ff6b6b; font-weight: bold;${r.undone ? ' text-decoration: line-through;' : ''}">${tr("Chain.HpMarked", { n: r.hitPoints })}</span>`
+                : `<span style="color: #aaa;">${tr("Chain.Resisted")}</span>`;
+            stats = `<span style="color: #ccc; font-size: 0.9em;">${tr("Chain.Reaction")} <span style="color: #4a90e2; font-weight: bold;">${r.reaction.total}</span>${critText}</span>
                 <span style="color: #666;">|</span>
                 <span style="font-size: 0.9em;">${outcome}</span>`;
         }
@@ -633,7 +634,7 @@ function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTota
 
             <!-- Line 1: Token + Name + Undo -->
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
-                <img class="cl-pan" src="${r.img}" data-token-uuid="${r.tokenUuid}" title="Pan to ${r.name}" style="width: 28px; height: 28px; flex: 0 0 28px; border: none; object-fit: contain; cursor: pointer;">
+                <img class="cl-pan" src="${r.img}" data-token-uuid="${r.tokenUuid}" title="${tr("Chain.PanTo", { name: r.name })}" style="width: 28px; height: 28px; flex: 0 0 28px; border: none; object-fit: contain; cursor: pointer;">
                 <strong style="color: #e0e0e0; font-size: 1.05em;">${r.name}</strong>
                 ${undoControl}
             </div>
@@ -648,7 +649,7 @@ function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTota
     });
 
     if (!results.length) {
-        listItemsHtml = '<div style="color: #aaa; text-align: center;">No adversaries in range.</div>';
+        listItemsHtml = `<div style="color: #aaa; text-align: center;">${tr("Chain.NoAdversaries")}</div>`;
     }
 
     const damageText = damageTotal !== null ? `${damageTotal} <span style="color: #777;">(${damageFormula})</span>` : damageFormula;
@@ -657,16 +658,16 @@ function chainLightningCardHTML({ spellcast, critical, damageFormula, damageTota
     <div class="chat-card" style="border: 2px solid ${titleColor}; border-radius: 8px; overflow: hidden; font-family: 'Lato', sans-serif;">
         <header class="card-header flexrow" style="background: #191919 !important; padding: 8px; border-bottom: 2px solid ${titleColor};">
             <h3 class="noborder" style="margin: 0; font-weight: bold; color: ${titleColor} !important; font-family: 'Aleo', serif; text-align: center; text-transform: uppercase; letter-spacing: 1px; width: 100%;">
-                Chain Lightning
+                ${tr("Chain.Title")}
             </h3>
         </header>
 
         <div class="card-content" style="background: #141414; padding: 15px;">
 
             <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 10px; font-size: 0.9em; color: #aaa; border-bottom: 1px solid #444; padding-bottom: 5px;">
-                <span><strong>Spellcast:</strong> ${spellcast}${critical ? ' <i class="fas fa-star" style="color: #FFD700;" title="Critical"></i>' : ''}</span>
-                <span><strong>Dmg:</strong> ${damageText} magic</span>
-                <span><strong>Mode:</strong> ${applyDamage ? '<span style="color:#f44336">Damage</span>' : '<span style="color:#4a90e2">Info</span>'}</span>
+                <span><strong>${tr("Chain.Spellcast")}</strong> ${spellcast}${critical ? ` <i class="fas fa-star" style="color: #FFD700;" title="${tr("Chain.Critical")}"></i>` : ''}</span>
+                <span><strong>${tr("Chain.Damage")}</strong> ${damageText} ${tr("Chain.Magic")}</span>
+                <span><strong>${tr("Chain.Mode")}</strong> ${applyDamage ? `<span style="color:#f44336">${tr("Chain.ModeDamage")}</span>` : `<span style="color:#4a90e2">${tr("Chain.ModeInfo")}</span>`}</span>
             </div>
 
             <div style="padding-right: 5px;">
@@ -694,7 +695,7 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: "chain-lightning-app",
         classes: ["dh-qa-app", "chain-lightning-app"],
         window: {
-            title: CHAIN_LIGHTNING,
+            title: "DHQA.Chain.Title",
             icon: "fas fa-bolt",
             resizable: false,
             controls: []
@@ -743,17 +744,17 @@ class ChainLightningApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const { spellcast, critical, damage, applyDamage } = formData.object;
 
         if (!Number.isInteger(spellcast) || spellcast < 1) {
-            ui.notifications.error("Enter the result of the Spellcast Roll.");
+            ui.notifications.error(tr("Notify.EnterSpellcast"));
             return;
         }
         if (!damage || !Roll.validate(damage)) {
-            ui.notifications.error("Invalid damage formula!");
+            ui.notifications.error(tr("Notify.InvalidFormula"));
             return;
         }
         // Without an active GM a player's HP updates are relayed to nobody, and
         // the card would report damage that was never marked.
         if (applyDamage && !game.users.activeGM) {
-            ui.notifications.error("Chain Lightning needs a GM online to apply damage.");
+            ui.notifications.error(tr("Notify.ChainNeedsGM"));
             return;
         }
 

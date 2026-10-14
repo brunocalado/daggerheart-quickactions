@@ -25,7 +25,7 @@ class FallingDamageSettingsApp extends HandlebarsApplicationMixin(ApplicationV2)
         id: "dh-qa-falling-damage-settings-app",
         tag: "form",
         classes: ["falling-damage-settings"],
-        window: { title: "Falling Damage Configuration", icon: "fas fa-skull-crossbones", resizable: false },
+        window: { title: "DHQA.FallingSettings.Title", icon: "fas fa-skull-crossbones", resizable: false },
         position: { width: 460, height: "auto" }
     };
 
@@ -91,9 +91,9 @@ export function registerFallingDamageSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "fallingDamageSettingsMenu", {
-        name: "Falling Damage Configuration",
-        label: "Configure Falling Damage",
-        hint: "Customize the dice formulas for each fall height category.",
+        name: "DHQA.FallingSettings.Title",
+        label: "DHQA.FallingSettings.Label",
+        hint: "DHQA.FallingSettings.Hint",
         icon: "fas fa-skull-crossbones",
         type: FallingDamageSettingsApp,
         restricted: true

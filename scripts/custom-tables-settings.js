@@ -14,6 +14,7 @@
  */
 
 import { MODULE_ID, CUSTOM_TABLES } from "./constants.js";
+import { tr } from "./i18n.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -64,7 +65,7 @@ class CustomTablesSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) 
         id: "dh-qa-custom-tables-settings-app",
         tag: "form",
         classes: [MODULE_ID, "custom-tables-settings"],
-        window: { title: "Custom Tables Configuration", icon: "fas fa-dice-d20", resizable: true },
+        window: { title: "DHQA.CustomTablesSettings.Title", icon: "fas fa-dice-d20", resizable: true },
         position: { width: 520, height: "auto" },
         actions: {
             removeTable: CustomTablesSettingsApp.prototype._onRemoveTable,
@@ -133,19 +134,19 @@ class CustomTablesSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) 
     async _onDropTable(event) {
         const uuid = getDroppedTableUuid(event);
         if (!uuid) {
-            ui.notifications.warn("Quick Actions: only Rollable Tables can be dropped here.");
+            ui.notifications.warn(tr("Notify.OnlyTables"));
             return;
         }
 
         const table = await fromUuid(uuid);
         if (!table || table.documentName !== "RollTable") {
-            ui.notifications.warn("Quick Actions: that table could not be resolved.");
+            ui.notifications.warn(tr("Notify.TableUnresolved"));
             return;
         }
 
         const stored = getStoredTables();
         if (stored.some(entry => entry.uuid === uuid)) {
-            ui.notifications.info(`Quick Actions: "${table.name}" is already on the list.`);
+            ui.notifications.info(tr("Notify.TableAlreadyListed", { name: table.name }));
             return;
         }
 
@@ -193,9 +194,9 @@ export function registerCustomTablesSettings() {
     });
 
     game.settings.registerMenu(MODULE_ID, "customTablesSettingsMenu", {
-        name: "Custom Tables Configuration",
-        label: "Configure Custom Tables",
-        hint: "Pick the roll tables the Custom Tables roller draws from. Each table is rolled with its own formula.",
+        name: "DHQA.CustomTablesSettings.Title",
+        label: "DHQA.CustomTablesSettings.Label",
+        hint: "DHQA.CustomTablesSettings.Hint",
         icon: "fas fa-dice-d20",
         type: CustomTablesSettingsApp,
         restricted: true

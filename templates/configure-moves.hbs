@@ -1,18 +1,18 @@
 <div class="dui-cfg-container">
     {{!-- Tab Bar --}}
     <nav class="dui-cfg-tab-bar">
-        <button type="button" class="dui-cfg-tab active" data-tab="core">Core</button>
-        <button type="button" class="dui-cfg-tab" data-tab="craft">Craft</button>
-        <button type="button" class="dui-cfg-tab" data-tab="custom">Custom</button>
-        <button type="button" class="dui-cfg-tab" data-tab="itemmoves">Item Moves</button>
-        <button type="button" class="dui-cfg-tab" data-tab="users">Users</button>
+        <button type="button" class="dui-cfg-tab active" data-tab="core">{{localize "DHQA.ConfigureMoves.Core"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="craft">{{localize "DHQA.ConfigureMoves.Craft"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="custom">{{localize "DHQA.ConfigureMoves.Custom"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="itemmoves">{{localize "DHQA.ConfigureMoves.ItemMoves"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="users">{{localize "DHQA.ConfigureMoves.Users"}}</button>
     </nav>
 
     {{!-- Core Features Panel --}}
     <div class="dui-cfg-panel active" data-panel="core">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>These are the default core features used during downtime. You can replace the linked item if needed — the mechanical effect will remain the same, but the system will search for the move by the new item's name.</span>
+            <span>{{localize "DHQA.ConfigureMoves.TheseAreTheDefaultCore"}}</span>
         </div>
         <div class="dui-core-list" id="dui-core-list">
             {{#each coreFeatures}}
@@ -27,10 +27,10 @@
                 </div>
                 <div class="dui-core-drop {{#if this.itemName}}filled{{else}}empty{{/if}}" data-index="{{@index}}">
                     <i class="fas fa-star"></i>
-                    <span class="dui-core-item-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
+                    <span class="dui-core-item-name">{{#if this.itemName}}{{this.itemName}}{{else}}{{localize "DHQA.ConfigureMoves.DragItemHere"}}{{/if}}</span>
                 </div>
                 {{#if this.itemName}}
-                <button type="button" class="dui-craft-remove" data-action="removeCoreItem" data-index="{{@index}}" title="Remove item">
+                <button type="button" class="dui-craft-remove" data-action="removeCoreItem" data-index="{{@index}}" title="{{localize 'DHQA.ConfigureMoves.RemoveItem'}}">
                     <i class="fas fa-times"></i>
                 </button>
                 {{/if}}
@@ -46,7 +46,7 @@
     <div class="dui-cfg-panel" data-panel="craft">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>If an actor owns the recipe item (matched by name), the crafted item will be added to their sheet when the downtime move is executed. Items are matched by name.</span>
+            <span>{{localize "DHQA.ConfigureMoves.IfAnActorOwnsThe"}}</span>
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addCraftRow">
             <i class="fas fa-plus"></i>
@@ -56,14 +56,14 @@
             <div class="dui-craft-row" data-index="{{@index}}">
                 <div class="dui-craft-drop {{#if this.recipeName}}filled{{else}}empty{{/if}}" data-slot="recipe" data-index="{{@index}}">
                     <i class="fas fa-scroll"></i>
-                    <span class="dui-craft-name">{{#if this.recipeName}}{{this.recipeName}}{{else}}Drag Recipe Here{{/if}}</span>
+                    <span class="dui-craft-name">{{#if this.recipeName}}{{this.recipeName}}{{else}}{{localize "DHQA.ConfigureMoves.DragRecipeHere"}}{{/if}}</span>
                 </div>
                 <i class="fas fa-arrow-right dui-craft-arrow"></i>
                 <div class="dui-craft-drop {{#if this.craftName}}filled{{else}}empty{{/if}}" data-slot="craft" data-index="{{@index}}">
                     <i class="fas fa-flask"></i>
-                    <span class="dui-craft-name">{{#if this.craftName}}{{this.craftName}}{{else}}Drag Crafted Item Here{{/if}}</span>
+                    <span class="dui-craft-name">{{#if this.craftName}}{{this.craftName}}{{else}}{{localize "DHQA.ConfigureMoves.DragCraftedItemHere"}}{{/if}}</span>
                 </div>
-                <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="{{@index}}" title="Remove">
+                <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="{{@index}}" title="{{localize 'DHQA.ConfigureMoves.Remove'}}">
                     <i class="fas fa-times"></i>
                 </button>
                 <input type="hidden" name="craftRecipe_{{@index}}" value="{{this.recipeUuid}}">
@@ -77,7 +77,7 @@
     <div class="dui-cfg-panel" data-panel="custom">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>Add custom move names that will appear as selectable actions during downtime. These are freeform labels — no item link required. Use the rest type selector to restrict when each move is available.</span>
+            <span>{{localize "DHQA.ConfigureMoves.AddCustomMoveNamesThat"}}</span>
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addCustomRow">
             <i class="fas fa-plus"></i>
@@ -85,13 +85,13 @@
         <div class="dui-custom-list" id="dui-custom-list">
             {{#each customMoves}}
             <div class="dui-custom-row" data-index="{{@index}}">
-                <input type="text" class="dui-custom-input" name="customMove_{{@index}}" value="{{this.label}}" maxlength="27" placeholder="Move name...">
+                <input type="text" class="dui-custom-input" name="customMove_{{@index}}" value="{{this.label}}" maxlength="27" placeholder="{{localize 'DHQA.ConfigureMoves.MoveName'}}">
                 <select class="dui-rest-type-select">
-                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>Any</option>
-                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>Short</option>
-                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>Long</option>
+                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>{{localize "DHQA.ConfigureMoves.Any"}}</option>
+                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>{{localize "DHQA.ConfigureMoves.Short"}}</option>
+                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>{{localize "DHQA.ConfigureMoves.Long"}}</option>
                 </select>
-                <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="{{@index}}" title="Remove">
+                <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="{{@index}}" title="{{localize 'DHQA.ConfigureMoves.Remove'}}">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -103,7 +103,7 @@
     <div class="dui-cfg-panel" data-panel="itemmoves">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>Drag items here to create moves linked to specific items. The move will only appear for actors who own the item (matched by name). Use the rest type selector to restrict when each move is available.</span>
+            <span>{{localize "DHQA.ConfigureMoves.DragItemsHereToCreate"}}</span>
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addItemMoveRow">
             <i class="fas fa-plus"></i>
@@ -113,14 +113,14 @@
             <div class="dui-itemmove-row" data-index="{{@index}}">
                 <div class="dui-itemmove-drop {{#if this.itemName}}filled{{else}}empty{{/if}}" data-index="{{@index}}">
                     <i class="fas fa-box-open"></i>
-                    <span class="dui-itemmove-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
+                    <span class="dui-itemmove-name">{{#if this.itemName}}{{this.itemName}}{{else}}{{localize "DHQA.ConfigureMoves.DragItemHere"}}{{/if}}</span>
                 </div>
                 <select class="dui-rest-type-select">
-                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>Any</option>
-                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>Short</option>
-                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>Long</option>
+                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>{{localize "DHQA.ConfigureMoves.Any"}}</option>
+                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>{{localize "DHQA.ConfigureMoves.Short"}}</option>
+                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>{{localize "DHQA.ConfigureMoves.Long"}}</option>
                 </select>
-                <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="{{@index}}" title="Remove">
+                <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="{{@index}}" title="{{localize 'DHQA.ConfigureMoves.Remove'}}">
                     <i class="fas fa-times"></i>
                 </button>
                 <input type="hidden" name="itemMove_{{@index}}" value="{{this.itemUuid}}">
@@ -133,19 +133,19 @@
     <div class="dui-cfg-panel" data-panel="users">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>Switch off any user who should never take part in downtime. A disabled user is hidden from the Downtime window even while connected, and is skipped when the downtime effects are applied.</span>
+            <span>{{localize "DHQA.ConfigureMoves.SwitchOffAnyUserWho"}}</span>
         </div>
         <div class="dui-user-list" id="dui-user-list">
             {{#each users}}
             <div class="dui-user-row {{#unless this.active}}dui-user-row--offline{{/unless}}" data-user-id="{{this.id}}">
-                <button type="button" class="dui-user-toggle {{#if this.enabled}}checked{{/if}}" data-action="toggleDowntimeUser" title="Take part in Downtime">
+                <button type="button" class="dui-user-toggle {{#if this.enabled}}checked{{/if}}" data-action="toggleDowntimeUser" title="{{localize 'DHQA.ConfigureMoves.TakePartInDowntime'}}">
                     <span class="dui-user-toggle-slider"></span>
                 </button>
                 <span class="dui-user-row-name">{{this.name}}</span>
-                <span class="dui-user-row-char">{{#if this.characterName}}{{this.characterName}}{{else}}No character assigned{{/if}}</span>
+                <span class="dui-user-row-char">{{#if this.characterName}}{{this.characterName}}{{else}}{{localize "DHQA.ConfigureMoves.NoCharacter"}}{{/if}}</span>
             </div>
             {{else}}
-            <div class="dui-user-empty">No players found.</div>
+            <div class="dui-user-empty">{{localize "DHQA.ConfigureMoves.NoPlayersFound"}}</div>
             {{/each}}
         </div>
     </div>
@@ -153,7 +153,7 @@
     {{!-- Footer --}}
     <div class="dui-cfg-footer">
         <button type="button" class="dui-cfg-save-btn" data-action="saveMovesConfig">
-            <i class="fas fa-save"></i> Save
+            <i class="fas fa-save"></i> {{localize "DHQA.ConfigureMoves.Save"}}
         </button>
     </div>
 

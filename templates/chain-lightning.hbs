@@ -1,34 +1,34 @@
 <div class="chain-lightning-container">
 
     <p class="notes">
-        Caster: <strong>{{casterName}}</strong><br>
-        {{#if foundCast}}Spellcast Roll read from the last Chain Lightning cast in chat.{{else}}Enter the result of the caster's Spellcast Roll.{{/if}}
+        {{localize "DHQA.ChainLightning.Caster"}} <strong>{{casterName}}</strong><br>
+        {{#if foundCast}}{{localize "DHQA.ChainLightning.FoundCast"}}{{else}}{{localize "DHQA.ChainLightning.EnterCast"}}{{/if}}
     </p>
 
     <!-- The two numbers the caster may need to change share a line. Damage takes a formula or a total
          the player already rolled. -->
     <div class="field-row">
         <div class="field-group">
-            <label for="dh-qa-cl-spellcast">Spellcast</label>
+            <label for="dh-qa-cl-spellcast">{{localize "DHQA.ChainLightning.Spellcast"}}</label>
             <input type="number" id="dh-qa-cl-spellcast" class="field-input" name="spellcast"
                 value="{{spellcast}}" min="1" required>
         </div>
         <div class="field-group">
-            <label for="dh-qa-cl-damage">Damage</label>
+            <label for="dh-qa-cl-damage">{{localize "DHQA.ChainLightning.Damage"}}</label>
             <input type="text" id="dh-qa-cl-damage" class="field-input" name="damage"
-                value="2d8+4" placeholder="2d8+4 or a total" autocomplete="off">
+                value="2d8+4" placeholder="{{localize 'DHQA.ChainLightning.2d84OrATotal'}}" autocomplete="off">
         </div>
     </div>
 
     <!-- The switch skin lives in styles/app-base.css (.dh-toggle); each option is its own chip. -->
     <div class="toggle-grid">
-        <label class="toggle-chip">Critical Success <input type="checkbox" class="dh-toggle" name="critical" {{#if critical}}checked{{/if}}></label>
-        <label class="toggle-chip">Apply Damage <input type="checkbox" class="dh-toggle" name="applyDamage" checked></label>
+        <label class="toggle-chip">{{localize "DHQA.ChainLightning.CriticalSuccess"}} <input type="checkbox" class="dh-toggle" name="critical" {{#if critical}}checked{{/if}}></label>
+        <label class="toggle-chip">{{localize "DHQA.ChainLightning.ApplyDamage"}} <input type="checkbox" class="dh-toggle" name="applyDamage" checked></label>
     </div>
 
     <div class="footer-row">
         <button type="submit" class="main-roll-btn">
-            <i class="fas fa-bolt"></i> Cast Chain Lightning
+            <i class="fas fa-bolt"></i> {{localize "DHQA.ChainLightning.CastChainLightning"}}
         </button>
     </div>
 

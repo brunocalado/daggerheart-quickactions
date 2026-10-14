@@ -6,24 +6,8 @@
 
 import { MODULE_ID } from "./constants.js";
 import { buildChatCard } from "./helpers.js";
-
-/** Fallback HP labels used when settings are unavailable. */
-const DEFAULT_HP_LABELS = [
-    { min: 100, label: "Imposing; their form is pristine, radiating an aura of untouched power." },
-    { min: 75,  label: "Weathered; minor injuries or disruptions mark their form, but their stance remains firm." },
-    { min: 50,  label: "Battered; visible wounds or flickering essence betray the toll of battle, slowing them down." },
-    { min: 25,  label: "Broken; they stagger with ragged desperation, their existence hanging by a thread." },
-    { min: 0,   label: "Fallen; the vessel has succumbed, collapsing into stillness or dissipation." },
-];
-
-/** Fallback Stress labels used when settings are unavailable. */
-const DEFAULT_STRESS_LABELS = [
-    { min: 100, label: "Unshakeable; their mind is a fortress, operating with absolute, terrifying clarity." },
-    { min: 70,  label: "Guarded; a subtle tension tightens their movements, the weight of the moment setting in." },
-    { min: 50,  label: "Rattled; hesitation fractures their focus, erratic energy revealing their inner turmoil." },
-    { min: 25,  label: "Overwhelmed; panic or instability has taken hold, leaving them erratic and unpredictable." },
-    { min: 0,   label: "Shattered; their mental defenses have crumbled, leaving them utterly exposed and vulnerable to any threat." },
-];
+import { tr } from "./i18n.js";
+import { getDefaultScanLabels, getDefaultScanTitle } from "./scan-defaults.js";
 
 /**
  * Reads the configured scan labels from world settings, falling back to defaults.
@@ -32,12 +16,11 @@ const DEFAULT_STRESS_LABELS = [
  */
 function getScanLabels(type) {
     const key = type === "hp" ? "scanHpLabels" : "scanStressLabels";
-    const fallback = type === "hp" ? DEFAULT_HP_LABELS : DEFAULT_STRESS_LABELS;
     try {
-        return JSON.parse(game.settings.get(MODULE_ID, key));
-    } catch {
-        return fallback;
-    }
+        const parsed = JSON.parse(game.settings.get(MODULE_ID, key));
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+    } catch { /* unset or malformed: use the localized defaults */ }
+    return getDefaultScanLabels(type);
 }
 
 /**
@@ -47,11 +30,10 @@ function getScanLabels(type) {
  */
 function getScanTitle(type) {
     const key = type === "hp" ? "scanHpTitle" : "scanStressTitle";
-    const fallback = type === "hp" ? "Physical State" : "Mental State";
     try {
-        return game.settings.get(MODULE_ID, key) || fallback;
+        return game.settings.get(MODULE_ID, key) || getDefaultScanTitle(type);
     } catch {
-        return fallback;
+        return getDefaultScanTitle(type);
     }
 }
 
@@ -76,22 +58,22 @@ function getLabel(pct, labels) {
 export async function scan() {
     // Check if the feature is enabled by the GM
     if (!game.settings.get(MODULE_ID, "enableScan")) {
-        return ui.notifications.warn("The Scan action is currently disabled by the GM.");
+        return ui.notifications.warn(tr("Notify.ScanDisabled"));
     }
 
     const targets = game.user.targets;
     if (targets.size === 0) {
-        return ui.notifications.warn("Please target a token to scan.");
+        return ui.notifications.warn(tr("Notify.ScanNoTarget"));
     }
     const target = targets.first();
 
     const actor = target.actor;
     if (!actor) {
-        return ui.notifications.warn("The targeted token has no actor.");
+        return ui.notifications.warn(tr("Notify.ScanNoActor"));
     }
     const validTypes = ["character", "adversary", "companion"];
     if (!validTypes.includes(actor.type)) {
-        return ui.notifications.warn(`Can only scan Characters, Adversaries, or Companions. Targeted a ${actor.type}.`);
+        return ui.notifications.warn(tr("Notify.ScanInvalidType", { type: actor.type }));
     }
 
     const hp = actor.system.resources?.hitPoints;
@@ -127,7 +109,7 @@ export async function scan() {
                         <div style="color: #ffffff; font-size: 1.2em; font-family: 'Aleo', serif; text-shadow: 1px 1px 2px #000;">${stressLabel.charAt(0).toUpperCase() + stressLabel.slice(1)}</div>
                     </div>` : ''}
                 </div>`;
-    const content = buildChatCard(`Scan: ${target.name}`, bodyHtml);
+    const content = buildChatCard(tr("Scan.Title", { name: target.name }), bodyHtml);
 
     await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor }),

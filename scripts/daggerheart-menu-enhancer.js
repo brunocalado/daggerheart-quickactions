@@ -18,6 +18,7 @@
  */
 
 import { MODULE_ID, MENU_COLLAPSED_SECTIONS, MENU_ENHANCEMENTS_ENABLED } from "./constants.js";
+import { tr } from "./i18n.js";
 
 /** Legend text of the system's own built-in section, always pinned first. */
 const PINNED_LEGEND = "Refresh Features";
@@ -266,7 +267,7 @@ function ensureToolbar(container, element, fieldsets) {
     const toolbar = document.createElement("div");
     toolbar.classList.add("dqa-menu-toolbar");
     toolbar.innerHTML = `
-        <input type="search" class="dqa-menu-search" placeholder="Search...">
+        <input type="search" class="dqa-menu-search" placeholder="${tr("Menu.SearchPlaceholder")}">
         <button type="button" class="dqa-menu-collapse-all"><i class="fas fa-compress"></i></button>
         <button type="button" class="dqa-menu-expand-all"><i class="fas fa-expand"></i></button>
     `;

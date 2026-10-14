@@ -1,64 +1,59 @@
 <div class="dqa-ui-wrapper">
 
     <p class="dqa-ui-intro">
-        World-wide interface changes made by this module, collected here. Each switch applies
-        immediately — there is nothing to save.
+        {{localize "DHQA.UiSettings.WorldWideInterfaceChangesMade"}}
     </p>
 
     <fieldset class="dqa-ui-section">
-        <legend><i class="fas fa-skull"></i> Daggerheart Sidebar Menu</legend>
+        <legend><i class="fas fa-skull"></i> {{localize "DHQA.UiSettings.DaggerheartSidebarMenu"}}</legend>
 
         <div class="dqa-ui-row">
-            <label for="dqa-menu-enhancements">Menu Enhancements</label>
+            <label for="dqa-menu-enhancements">{{localize "DHQA.UiSettings.MenuEnhancements"}}</label>
             <input type="checkbox" id="dqa-menu-enhancements" class="dh-toggle" name="menuEnhancements"
                    {{#if menuEnhancements}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Turns off everything this module changes in the system's own sidebar menu: the purple
-            skull tab icon, the search bar, the alphabetical section ordering, the collapsible
-            sections and the two-column button grid. The module's own <strong>Quick Actions</strong>
-            section stays in the menu either way — only its layout falls back to the system default.
+            {{localize "DHQA.UiSettings.TurnsOffEverythingThisModule"}} <strong>{{localize "DHQA.UiSettings.QuickActions"}}</strong>
+            {{localize "DHQA.UiSettings.SectionStaysInTheMenu"}}
         </p>
     </fieldset>
 
     <fieldset class="dqa-ui-section">
-        <legend><i class="fas fa-chess-pawn"></i> Tokens</legend>
+        <legend><i class="fas fa-chess-pawn"></i> {{localize "DHQA.UiSettings.Tokens"}}</legend>
 
         <div class="dqa-ui-row">
-            <label for="dqa-token-tooltip">Token Hover Tooltip</label>
+            <label for="dqa-token-tooltip">{{localize "DHQA.UiSettings.TokenHoverTooltip"}}</label>
             <input type="checkbox" id="dqa-token-tooltip" class="dh-toggle" name="tokenTooltip"
                    {{#if tokenTooltip}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Shows a stat summary tooltip when hovering over character tokens on the canvas. Each
-            player picks its size with <strong>Token Tooltip Size</strong> in the module settings list.
+            {{localize "DHQA.UiSettings.ShowsAStatSummaryTooltip"}} <strong>{{localize "DHQA.UiSettings.TokenTooltipSize"}}</strong> {{localize "DHQA.UiSettings.InTheModuleSettingsList"}}
         </p>
 
         <div class="dqa-ui-row">
-            <label for="dqa-hope-bar">Token Hope Bar</label>
+            <label for="dqa-hope-bar">{{localize "DHQA.UiSettings.TokenHopeBar"}}</label>
             <input type="checkbox" id="dqa-hope-bar" class="dh-toggle" name="hopeBar"
                    {{#if hopeBar}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Draws a row of Hope diamonds above character tokens, following each token's own Display
-            Bars setting. Turn this off when another module already renders Hope on tokens.
+            {{localize "DHQA.UiSettings.DrawsARowOfHope"}}
         </p>
     </fieldset>
 
     <fieldset class="dqa-ui-section">
-        <legend><i class="fas fa-address-card"></i> Character Sheet</legend>
+        <legend><i class="fas fa-address-card"></i> {{localize "DHQA.UiSettings.CharacterSheet"}}</legend>
 
         <div class="dqa-ui-row">
-            <label for="dqa-hide-biography">Hide Biography Tab</label>
+            <label for="dqa-hide-biography">{{localize "DHQA.UiSettings.HideBiographyTab"}}</label>
             <input type="checkbox" id="dqa-hide-biography" class="dh-toggle" name="hideBiography"
                    {{#if hideBiography}}checked{{/if}}>
         </div>
 
         <p class="dqa-ui-hint">
-            Hides the Biography tab on character sheets for everyone. Off, the tab is shown as usual.
+            {{localize "DHQA.UiSettings.HidesTheBiographyTabOn"}}
         </p>
     </fieldset>
 
