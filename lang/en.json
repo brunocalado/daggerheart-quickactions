@@ -8,6 +8,11 @@
       "resetToDefaults": "Reset to Defaults",
       "saveConfiguration": "Save Configuration"
     },
+    "NOTIFY": {
+      "selectToken": "Select a token first!",
+      "noHope": "No Hope resource!",
+      "rollError": "Error rolling the die!"
+    },
     "SETTINGS": {
       "downtimePCs": {
         "name": "Downtime PCs"
@@ -203,11 +208,83 @@
         "clearAllTooltip": "Blank every case — Cinematic Mode falls back to plain chat messages"
       }
     },
+    "REQUEST_ROLL": {
+      "title": "Roll Configuration",
+      "dcPlaceholder": "DC",
+      "clearDifficulty": "Clear Difficulty",
+      "grantResources": "Grant Resources",
+      "labelPlaceholder": "Optional description...",
+      "suggestedLabels": "Suggested labels",
+      "sendTo": "Send To",
+      "allPlayers": "All Players",
+      "send": "Send Roll",
+      "cardTitle": "Roll Request",
+      "defaultLabel": "GM Requests a Roll",
+      "promptTitle": "Action Required",
+      "suggestions": {
+        "sprint": { "label": "Sprint / Maneuver", "hint": "Run at high speed or dodge dynamic obstacles." },
+        "leap": { "label": "Leap", "hint": "Jump across gaps, crevices, or reach elevations." },
+        "dodge": { "label": "Dodge / Evade", "hint": "Duck away from immediate danger (falling rocks, traps)." },
+        "acrobatics": { "label": "Acrobatics / Balance", "hint": "Cross unstable surfaces, tightropes, or narrow spaces." },
+        "scale": { "label": "Scale", "hint": "Quickly climb walls or trees using agility, not just strength." },
+        "catch": { "label": "Catch", "hint": "Grab falling objects or people mid-air." },
+        "lift": { "label": "Lift / Push / Pull", "hint": "Hoist, move, or drag massive and heavy objects." },
+        "smash": { "label": "Smash / Break / Wreck", "hint": "Destroy the environment, bash down doors, or break chains." },
+        "grapple": { "label": "Grapple", "hint": "Physically grab and restrain a creature." },
+        "endure": { "label": "Endure", "hint": "Withstand physical exhaustion, hold your breath, resist continuous pain." },
+        "intimidatePhysical": { "label": "Intimidate (Physical)", "hint": "Coerce through a display of brute force (e.g., breaking something in front of the target)." },
+        "control": { "label": "Control / Manipulate", "hint": "Handle delicate objects with extreme fine motor coordination." },
+        "hide": { "label": "Hide / Sneak / Prowl", "hint": "Conceal yourself and move in absolute silence to avoid detection." },
+        "tinker": { "label": "Tinker / Disable / Pick Lock", "hint": "Create and fix mechanisms, disarm traps, or pick complex locks." },
+        "pickpocket": { "label": "Pickpocket / Sleight of Hand", "hint": "Steal small objects or hide items without being noticed." },
+        "aim": { "label": "Aim", "hint": "Make extremely precise shots or throws outside the pace of combat." },
+        "perceive": { "label": "Perceive / Sense", "hint": "Notice unobvious details, feel changes in the environment, hidden dangers, or intentions." },
+        "navigate": { "label": "Navigate", "hint": "Orient yourself in unknown terrain, find the way." },
+        "track": { "label": "Track", "hint": "Follow physical trails or identify natural disturbances left by creatures." },
+        "forage": { "label": "Forage / Survive", "hint": "Find food, drinkable water, and safe shelters in hostile environments." },
+        "anticipate": { "label": "Anticipate / React", "hint": "Act in a split second when faced with surprises or imminent ambushes." },
+        "handleAnimal": { "label": "Handle Animal", "hint": "Calm wild beasts or control unruly mounts." },
+        "charm": { "label": "Charm / Persuade / Convince", "hint": "Change someone's mind through dialogue, empathy, or magnetism." },
+        "perform": { "label": "Perform", "hint": "Entertain, draw attention, or convey emotions through acting or art." },
+        "deceive": { "label": "Deceive", "hint": "Lie, cheat, or omit information while maintaining a convincing posture." },
+        "intimidateSocial": { "label": "Intimidate (Verbal/Social)", "hint": "Impose authority, threaten verbally, or use status to generate fear." },
+        "command": { "label": "Command / Inspire", "hint": "Motivate allies to endure, organize panicking people, or lead." },
+        "distract": { "label": "Distract", "hint": "Calculatedly become the center of attention to provide cover for allies." },
+        "recall": { "label": "Recall", "hint": "Accurately remember facts, history, legends, or academic information." },
+        "analyse": { "label": "Analyse / Investigate", "hint": "Systematically search for clues and deduce events from a scene." },
+        "comprehend": { "label": "Comprehend / Decipher", "hint": "Understand theoretical mechanics, break codes, translate languages." },
+        "strategize": { "label": "Strategize", "hint": "Formulate action or battle plans based on maps, geography, or military theory." },
+        "treat": { "label": "Treat / Medic", "hint": "Identify properties of plants and poisons, or systematically apply medical first aid." }
+      }
+    },
+    "ROLLER": {
+      "addToRoll": "Add to Roll",
+      "toMyself": "To Myself",
+      "toParty": "To Party",
+      "keepTooltip": "Keep the results on your own sheet",
+      "partyTooltip": "Send the results to {name}",
+      "roll": "ROLL",
+      "nothingFound": "Nothing found",
+      "sentTo": "Sent to {name}",
+      "sentToParty": "Sent to {name} (party stash)"
+    },
     "CUSTOM_TABLES": {
+      "title": "Custom Tables",
+      "table": "Table",
+      "drawFewer": "One draw fewer",
+      "drawMore": "One draw more",
+      "drawCount": "<span class=\"draws-count\">{count}</span>&times; draw",
+      "stackDraw": "Stack this draw and set up another",
+      "queueEntry": "{label} — {draws}×",
+      "rowMeta": "{label} &middot; {formula} &rarr; {total}",
+      "empty": "No custom tables configured yet.",
+      "emptyHint": "A GM can add them in <strong>Configure Settings &rarr; Daggerheart: Quick Actions &rarr; Custom Tables Configuration</strong>.",
       "notify": {
         "onlyTables": "Quick Actions: only Rollable Tables can be dropped here.",
         "unresolved": "Quick Actions: that table could not be resolved.",
-        "duplicate": "Quick Actions: \"{name}\" is already on the list."
+        "duplicate": "Quick Actions: \"{name}\" is already on the list.",
+        "noTable": "Custom Tables: no table is configured.",
+        "notFound": "Custom Tables: \"{label}\" could not be found. Check that the table still exists and that players can see it."
       },
       "settings": {
         "title": "Custom Tables Configuration",
@@ -223,7 +300,23 @@
         "noteIndependent": "<strong>Every draw is independent.</strong> A table set to draw without replacement still repeats, because the roller never writes back to your table."
       }
     },
+    "REST": {
+      "title": "Choose Rest Type",
+      "question": "What type of rest would you like to take?",
+      "pcs": "PCs:",
+      "gmEarnsFear": "The GM earns Fear",
+      "calcShort": "(1d4) {roll}",
+      "calcLong": "(1d4 + {pcs} PCs) {roll} + {pcs}",
+      "currentTotal": "Current Total: {total}"
+    },
     "FALLING": {
+      "title": "Falling & Collision Damage",
+      "prompt": "Select the fall height to roll damage instantly:",
+      "farVeryFar": "Far / Very Far",
+      "physical": "Physical Damage",
+      "directPhysical": "Direct Physical Damage",
+      "flavor": "{height} — {damage} ({formula})",
+      "error": "Error calculating falling damage.",
       "settings": {
         "title": "Falling Damage Configuration",
         "heading": "Falling Damage Formulas",
@@ -239,6 +332,37 @@
       }
     },
     "LOOT": {
+      "title": "Loot & Consumables",
+      "type": {
+        "loot": "Loot",
+        "consumable": "Consumable"
+      },
+      "rollTitle": "{type} Roll",
+      "searchLoot": "Search Loot Tables",
+      "searchConsumable": "Search Consumable Tables",
+      "rollCoins": "Roll Coins by Tier",
+      "lootIcon": "Loot Icon",
+      "consumableIcon": "Consumable Icon",
+      "coinsIcon": "Coins Icon",
+      "removeDie": "Remove a d12",
+      "addDie": "Add a d12 (max {max}d12)",
+      "mod": "Mod",
+      "stackRoll": "Stack this roll and set up another",
+      "reach": "Reaches {min}–{max} · {count} items in reach",
+      "reachOne": "Reaches {min}–{max} · 1 item in reach",
+      "unrollable": "That formula cannot be rolled.",
+      "queueCoins": "Coins — Tier {tier}",
+      "queueDraw": "{type} — {formula}",
+      "rowCoinsMeta": "Coins &middot; Tier {tier}",
+      "rowCoinsAmount": "{amount} Coins",
+      "rowDrawMeta": "{type} &middot; {formula} &rarr; {total}",
+      "rowDrawMetaTable": "{type} &middot; {formula} &rarr; {total} &middot; {table}",
+      "notify": {
+        "invalidFormula": "\"{value}\" is not a valid roll formula.",
+        "unknownType": "Unknown loot type '{type}'.",
+        "tablesMissing": "Daggerheart loot/consumable roll table not found — is the system installed?",
+        "coinTierMissing": "Coin tier {tier} is not configured."
+      },
       "source": {
         "core": "Core Set only",
         "hopeAndFear": "Hope & Fear only",
@@ -259,7 +383,10 @@
     "MACROS": {
       "buttonLabel": "Quick Actions",
       "noneDefined": "No macros defined.",
+      "showTitle": "Macros",
       "notify": {
+        "notFound": "Macro '{name}' not found.",
+        "noValid": "QuickActions: No valid macros provided.",
         "none": "Quick Actions: no macros configured. A GM can add them in the module settings.",
         "noneFound": "Quick Actions: none of the configured macros could be found.",
         "onlyMacros": "Quick Actions: only Macros can be dropped here.",
@@ -285,6 +412,55 @@
         "confirmClear": "Remove every macro from the Quick Actions list?",
         "confirmReset": "Replace the current list with the module's default macros?"
       }
+    },
+    "LEVEL_UP": {
+      "title": "Level Up Players",
+      "levelUpAll": "Level Up All Players",
+      "noCharacter": "No Character",
+      "pending": "LV {current} ➔ {changed} (PENDING)",
+      "lv": "LV",
+      "noPlayers": "No players found.",
+      "notify": {
+        "leveledAll": "Leveled up: {names}",
+        "leveledOne": "{name} leveled up to {level}!",
+        "actorNotFound": "Actor not found.",
+        "gmOnly": "Only the GM can use Level Up."
+      }
+    },
+    "HELP_ALLY": {
+      "title": "Help an Ally",
+      "noHope": "No Hope remaining!",
+      "hopeUsed": "Hope used: {from} → {to}"
+    },
+    "SCAR_CHECK": {
+      "title": "Scar Check",
+      "levelVsRoll": "Level: {level} vs Roll:",
+      "scar": "YOU TAKE A SCAR",
+      "safe": "SAFE",
+      "scarDesc": "Mark a Scar manually on your sheet.",
+      "safeDesc": "No scar taken.",
+      "notify": {
+        "noToken": "Select a token with an actor!",
+        "noLevel": "Could not find level data!"
+      }
+    },
+    "SPOTLIGHT": {
+      "noCombat": "No active combat found!",
+      "selectCombatant": "Select a combatant token!",
+      "notInCombat": "Token not found in combat."
+    },
+    "FATE": {
+      "title": "Select Fate Die",
+      "chooseDie": "Rolling <strong>{type}</strong>. Choose die:",
+      "cardTitle": "{type} Roll",
+      "result": "Result"
+    },
+    "HOPE_SPENDER": {
+      "title": "Spend Hope",
+      "heading": "Select Hope to Spend",
+      "notEnough": "Not enough Hope!",
+      "cardTitle": "Hope Spent",
+      "remaining": "Hope Remaining: {from} → {to}"
     },
     "WHISPER": {
       "title": "Whisper",

@@ -118,56 +118,56 @@
     <!-- LEFT COLUMN -->
     <div class="dh-left-col">
         <div class="dh-rr-row">
-            <label class="dh-rr-label">Difficulty</label>
+            <label class="dh-rr-label">{{localize "DAGGERHEART.GENERAL.difficulty"}}</label>
             <div class="dh-dc-wrapper">
                 <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-5">-5</button>
                 <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-2">-2</button>
                 <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="-1">-1</button>
-                <input type="number" name="difficulty" value="{{difficulty}}" class="dh-rr-input" placeholder="DC" style="width: 70px; flex: 0 0 70px;">
+                <input type="number" name="difficulty" value="{{difficulty}}" class="dh-rr-input" placeholder="{{localize 'DH_QUICKACTIONS.REQUEST_ROLL.dcPlaceholder'}}" style="width: 70px; flex: 0 0 70px;">
                 <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="1">+1</button>
                 <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="2">+2</button>
                 <button type="button" class="dh-sq-btn" data-action="mod-dc" data-value="5">+5</button>
-                <button type="button" class="dh-sq-btn" data-action="clear-dc" title="Clear Difficulty" style="margin-left: 5px; color: #ff6b6b; border-color: #ff6b6b;">
+                <button type="button" class="dh-sq-btn" data-action="clear-dc" title="{{localize 'DH_QUICKACTIONS.REQUEST_ROLL.clearDifficulty'}}" style="margin-left: 5px; color: #ff6b6b; border-color: #ff6b6b;">
                     <i class="fas fa-eraser"></i>
                 </button>
             </div>
         </div>
         
         <div>
-            <label class="dh-rr-label" style="text-align: left; display:block;">Trait</label>
+            <label class="dh-rr-label" style="text-align: left; display:block;">{{localize "DAGGERHEART.GENERAL.Trait.single"}}</label>
             <input type="hidden" name="trait" value="">
             <input type="hidden" name="specialRoll" value="">
             
             <div class="dh-trait-grid">
                 <div style="grid-column: 1 / -1; display: flex; gap: 10px; margin-bottom: 2px;">
-                    <button type="button" class="dh-trait-btn active" data-trait="" style="flex:1;">None</button>
-                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="hope" style="flex:1;">HOPE</button>
-                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="fear" style="flex:1;">FEAR</button>
-                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="loot" style="flex:1;">LOOT</button>
+                    <button type="button" class="dh-trait-btn active" data-trait="" style="flex:1;">{{localize "DAGGERHEART.GENERAL.none"}}</button>
+                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="hope" style="flex:1;">{{localize "DAGGERHEART.GENERAL.hope"}}</button>
+                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="fear" style="flex:1;">{{localize "DAGGERHEART.GENERAL.fear"}}</button>
+                    <button type="button" class="dh-trait-btn dh-special-btn" data-special="loot" style="flex:1;">{{localize "DH_QUICKACTIONS.LOOT.type.loot"}}</button>
                 </div>
-                <button type="button" class="dh-trait-btn" data-trait="agility">Agility</button>
-                <button type="button" class="dh-trait-btn" data-trait="strength">Strength</button>
-                <button type="button" class="dh-trait-btn" data-trait="finesse">Finesse</button>
-                <button type="button" class="dh-trait-btn" data-trait="instinct">Instinct</button>
-                <button type="button" class="dh-trait-btn" data-trait="presence">Presence</button>
-                <button type="button" class="dh-trait-btn" data-trait="knowledge">Knowledge</button>
+                <button type="button" class="dh-trait-btn" data-trait="agility">{{localize "DAGGERHEART.CONFIG.Traits.agility.name"}}</button>
+                <button type="button" class="dh-trait-btn" data-trait="strength">{{localize "DAGGERHEART.CONFIG.Traits.strength.name"}}</button>
+                <button type="button" class="dh-trait-btn" data-trait="finesse">{{localize "DAGGERHEART.CONFIG.Traits.finesse.name"}}</button>
+                <button type="button" class="dh-trait-btn" data-trait="instinct">{{localize "DAGGERHEART.CONFIG.Traits.instinct.name"}}</button>
+                <button type="button" class="dh-trait-btn" data-trait="presence">{{localize "DAGGERHEART.CONFIG.Traits.presence.name"}}</button>
+                <button type="button" class="dh-trait-btn" data-trait="knowledge">{{localize "DAGGERHEART.CONFIG.Traits.knowledge.name"}}</button>
             </div>
         </div>
 
         <div class="dh-cb-row">
-            <label class="dh-cb-label">Advantage <input type="checkbox" class="dh-toggle" name="advantage"></label>
-            <label class="dh-cb-label">Disadvantage <input type="checkbox" class="dh-toggle" name="disadvantage"></label>
+            <label class="dh-cb-label">{{localize "DAGGERHEART.GENERAL.Advantage.full"}} <input type="checkbox" class="dh-toggle" name="advantage"></label>
+            <label class="dh-cb-label">{{localize "DAGGERHEART.GENERAL.Disadvantage.full"}} <input type="checkbox" class="dh-toggle" name="disadvantage"></label>
         </div>
         <div class="dh-cb-row">
-            <label class="dh-cb-label">Reaction <input type="checkbox" class="dh-toggle" name="reaction"></label>
-            <label class="dh-cb-label">Grant Resources <input type="checkbox" class="dh-toggle" name="grantResources" checked></label>
+            <label class="dh-cb-label">{{localize "DAGGERHEART.CONFIG.RollTypes.reaction.name"}} <input type="checkbox" class="dh-toggle" name="reaction"></label>
+            <label class="dh-cb-label">{{localize "DH_QUICKACTIONS.REQUEST_ROLL.grantResources"}} <input type="checkbox" class="dh-toggle" name="grantResources" checked></label>
         </div>
 
         <div class="dh-rr-row">
-            <label class="dh-rr-label">Label</label>
-            <input type="text" name="label" class="dh-rr-input" placeholder="Optional description...">
+            <label class="dh-rr-label">{{localize "DAGGERHEART.GENERAL.label"}}</label>
+            <input type="text" name="label" class="dh-rr-input" placeholder="{{localize 'DH_QUICKACTIONS.REQUEST_ROLL.labelPlaceholder'}}">
             <button type="button" class="dh-sq-btn" data-action="toggleSuggestions" aria-expanded="false"
-                    title="Suggested labels" aria-label="Suggested labels">
+                    title="{{localize 'DH_QUICKACTIONS.REQUEST_ROLL.suggestedLabels'}}" aria-label="{{localize 'DH_QUICKACTIONS.REQUEST_ROLL.suggestedLabels'}}">
                 <i class="fas fa-lightbulb"></i>
             </button>
         </div>
@@ -190,15 +190,15 @@
 
     <!-- RIGHT COLUMN -->
     <div class="dh-right-col">
-        <div style="font-weight: bold; color: #C9A060; text-align: center; margin-bottom: 5px; text-transform: uppercase; font-size: 0.9em;">Send To</div>
+        <div style="font-weight: bold; color: #C9A060; text-align: center; margin-bottom: 5px; text-transform: uppercase; font-size: 0.9em;">{{localize "DH_QUICKACTIONS.REQUEST_ROLL.sendTo"}}</div>
         <div class="dh-user-list">
-            <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="all">All Players</button>
+            <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="all">{{localize "DH_QUICKACTIONS.REQUEST_ROLL.allPlayers"}}</button>
             {{#each connectedUsers}}
             <button type="button" class="dh-user-btn" data-action="toggleUser" data-target="{{this.id}}" style="--user-color: {{this.color}}; color: {{this.color}}" title="{{this.fullLabel}}">{{this.label}}</button>
             {{/each}}
         </div>
         <button type="button" class="dh-send-btn" data-action="roll" disabled>
-            <i class="fas fa-paper-plane"></i> Send Roll
+            <i class="fas fa-paper-plane"></i> {{localize "DH_QUICKACTIONS.REQUEST_ROLL.send"}}
         </button>
     </div>
 </div>
