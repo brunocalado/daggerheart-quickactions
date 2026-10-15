@@ -14,7 +14,7 @@ Daggerheart: Quick Actions gathers the table chores of a Daggerheart session int
 
 ### Downtime
 
-The Downtime UI is a full-screen manager for downtime moves. Players pick their moves (Tend to Wounds, Prepare, Work a Trade, and more, including any homebrew moves the GM adds), the same move can be chosen more than once when the rules allow it, and the GM resolves everything with one click: resource costs, Fear gained and rest results. It also handles the features and items that hook into downtime: Efficient, Forager, Recovery, Armorer, Celestial Trance, Premium Bedroll, Eloquent, Soothing Speech, the Warlock's Favor, the Shapeshifter's Change Shape and Only Skin Deep, Duneborne's Oasis reroll, Timekeeper's Pendant, Pipeweed, and Self-Healing armour.
+The Downtime UI is a full-screen manager for downtime moves. Players pick their moves (Tend to Wounds, Prepare, Work a Trade, and more, including any homebrew moves the GM adds), the same move can be chosen more than once when the rules allow it, and the GM resolves everything with one click: resource costs, Fear gained and rest results. It also handles the features and items that hook into downtime: Efficient, Forager, Recovery, Armorer, Beastbound (the companion clears as much Stress as its character), Celestial Trance, Premium Bedroll, Eloquent, Soothing Speech, the Warlock's Favor, the Shapeshifter's Change Shape and Only Skin Deep, Duneborne's Oasis reroll, Timekeeper's Pendant, Pipeweed, and Self-Healing armour.
 
 - The GM can pick moves, targets and feature options on any player's row. That covers a player who is absent: switch their row on with its **Include** toggle (offline players start excluded) and choose their moves for them. Players still edit only their own row. If the GM and that player change the same row at the same moment, the last click wins.
 - The gear button in the toolbar opens the Downtime Config window. Its **Core** tab points each supported feature at homebrew or renamed items. **Craft** pairs a recipe item with what it crafts, so an actor holding the recipe gets the item on their sheet. **Custom** adds freeform moves, and **Item Moves** adds moves that only appear for actors who own a given item. **Users** excludes table members who should never take part in a rest, such as spectators or a second screen.
@@ -75,6 +75,7 @@ With Daggerheart Distances active, Close range is measured the way its rings sho
 
 - The Daggerheart System Menu in the sidebar ("GM Tools") gets a Quick Actions section, a compact grid of 2×2 buttons for Downtime, Fall Damage, Request Roll and Level Up.
 - With several modules installed, that shared menu can grow into a long list of sections that is hard to scan. This module adds a search bar, sections that collapse (remembered per user), and a fixed order (the system's own "Refresh Features" always first, everything else in alphabetical order) to the whole menu, including the sections other modules add.
+- The system's own Falling and Collision Damage button and its Downtime Fear section are removed from that menu, since Fall Damage and the Downtime UI cover them.
 - On the party sheet, the built-in Short Rest and Long Rest buttons are replaced by a single **Downtime** button (GM only) that opens the full Downtime UI.
 - Every character sheet gets a **Quick Actions** button in its header, next to the controls (three dots) button. It opens a palette with the macros the GM picked in the settings, the same window `QuickActions.ShowMacros()` produces, one click away for every player. The GM can turn the button off entirely.
 - You can build your own palette of buttons for any macro with `QuickActions.ShowMacros()`.
@@ -105,28 +106,7 @@ Most of the module works out of the box. A few things can be tuned in **Configur
 
 ## How to use it
 
-### From the sidebar
-
-Open the Daggerheart menu in the sidebar (also called "GM Tools"). The Quick Actions section has buttons for:
-
-- Downtime
-- Fall Damage
-- Request Roll
-- Level Up
-
-The whole menu also gets a search bar and sections in alphabetical order that collapse, which helps once several modules add to it. Click a section's title to collapse or expand it (remembered per user), or type in the search box to jump straight to what you need.
-
-### From the party sheet
-
-GMs find a **Downtime** button on the party sheet's action bar, in place of the default Short Rest and Long Rest buttons. It opens the full Downtime UI for the whole party.
-
-### From a character sheet
-
-Every character sheet has a **Quick Actions** button in its header. It opens a palette with the macros set in **Configure Settings** → **Daggerheart: Quick Actions** → **Quick Actions Macros**, ready to run. The list starts with the module's own macros. The GM can drag in any world or compendium macro, or turn the button off.
-
-### From macros
-
-Every function can be called from a Foundry macro or from code, through the global `QuickActions` object:
+The buttons in the sidebar, on the party sheet and on character sheets are described in [Where it shows up in the interface](#where-it-shows-up-in-the-interface). Every function can also be called from a Foundry macro or from code, through the global `QuickActions` object:
 
 ```javascript
 // Opens the full Downtime UI
@@ -210,15 +190,15 @@ QuickActions.Fate("hope");
 
 ```javascript
 // Runs one of the built-in class feature macros (e.g. subclass abilities)
-// See "Class Feature Macros" above for the available names.
+// See "Class feature macros" above for the available names.
 QuickActions.Features("Unleash Chaos");
 QuickActions.Features("Chain Lightning");
 ```
 
 ```javascript
-// Opens a dialog with buttons for specific macros by name
-// To use the macro name it requires the macros to exist in the 'daggerheart-quickactions.macros' compendium. You can use the UUID to add any macro from world or any compendium.
-// 
+// Opens a dialog with a button for each macro given.
+// A name is looked up in this module's Macros compendium first, then among the world's macros.
+// A UUID works for any macro, from the world or from any compendium.
 QuickActions.ShowMacros("Macro Name 1", "Macro Name 2", "Macro.CDcmq4UiZMqs6pbs", "Compendium.daggerheart-quickactions.macros.Macro.5SyMBdCHM5TZXqGz");
 ```
 
@@ -233,7 +213,7 @@ QuickActions.QuickActionsMenu();
 This allows the player to obtain information about a targeted adversary token. 
 They will be informed about the HP and Stress status without revealing numerical values. 
 During the game, it is common for players to ask: "I look at the goblin, how does it look?" 
-The GM usually responds: "He looks quite wounded and exhausted." 
+The GM usually responds: "It looks quite wounded and exhausted." 
 This macro aims to give players the autonomy to do this themselves. 
 Example output: 
 Physical State: Injured 
@@ -251,7 +231,7 @@ The module ships in English. To translate it, open an [issue](https://github.com
 
 Install it from the Foundry VTT module browser, or use this manifest link:
 
-```javascript
+```text
 https://github.com/brunocalado/daggerheart-quickactions/releases/latest/download/module.json
 ```
 
