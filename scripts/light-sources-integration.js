@@ -19,7 +19,8 @@ const LIGHT_SOURCES_MODULE_ID = "light-sources";
  * translated. Lit lights, lights on the ground, the GM's edits and `activate(..., { pattern })`
  * all refer to a pattern by it, so it must never change once released — renaming one strands
  * lights already lit from the old id. Light Sources rejects any entry with a pattern missing an
- * id. The `name` is only the Token HUD label, shown when an entry has more than one pattern.
+ * id. The `name` is the translation key of the Token HUD label, shown when an entry has more than
+ * one pattern; each client registers it already localized, which Light Sources expects of a label.
  *
  * `consume` is `"copy"` only for items that are single-use/expendable by nature (Candle, Torch,
  * Matches, Glowstick, Emergency Flare): each is a stack counted by `system.quantity`, and
@@ -57,7 +58,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "standard",
-                name: "Standard",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.standard",
                 light: { dim: 10, bright: 5, angle: 360, color: "#ffaa55", alpha: 0.11, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
             }
         ],
@@ -70,12 +71,12 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "open",
-                name: "Open",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.open",
                 light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
             },
             {
                 id: "shuttered",
-                name: "Shuttered",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.shuttered",
                 light: { dim: 5, bright: 0, angle: 360, color: "#ffcc44", alpha: 0.1, animation: { type: "torch", speed: 2, intensity: 1, reverse: false } }
             }
         ],
@@ -88,7 +89,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "forward-beam",
-                name: "Forward Beam",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.forwardBeam",
                 light: { dim: 60, bright: 30, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
@@ -101,7 +102,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "directional-beam",
-                name: "Directional Beam",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.directionalBeam",
                 light: { dim: 120, bright: 60, angle: 60, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 4, intensity: 4, reverse: false } }
             }
         ],
@@ -114,12 +115,12 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "high-beam",
-                name: "High Beam",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.highBeam",
                 light: { dim: 120, bright: 60, angle: 30, color: "#ffffff", alpha: 0.17, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             },
             {
                 id: "strobe",
-                name: "Strobe",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.strobe",
                 light: { dim: 60, bright: 30, angle: 30, color: "#ffffff", alpha: 0.2, animation: { type: "pulse", speed: 10, intensity: 10, reverse: false } }
             }
         ],
@@ -132,7 +133,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "camera-flash",
-                name: "Camera Flash",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.cameraFlash",
                 light: { dim: 30, bright: 15, angle: 90, color: "#ddddff", alpha: 0.13, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             }
         ],
@@ -145,7 +146,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "lit",
-                name: "Lit",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.lit",
                 light: { dim: 40, bright: 20, angle: 360, color: "#ffaa55", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
@@ -158,7 +159,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "standard",
-                name: "Standard",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.standard",
                 light: { dim: 60, bright: 30, angle: 360, color: "#ffcc44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
@@ -171,7 +172,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "spark",
-                name: "Spark",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.spark",
                 light: { dim: 10, bright: 5, angle: 360, color: "#ffdd44", alpha: 0.11, animation: { type: "pulse", speed: 8, intensity: 2, reverse: false } }
             }
         ],
@@ -184,7 +185,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "neon-green",
-                name: "Neon Green",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.neonGreen",
                 light: { dim: 20, bright: 10, angle: 360, color: "#00ff00", alpha: 0.14, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             }
         ],
@@ -197,7 +198,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "standard",
-                name: "Standard",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.standard",
                 light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
             }
         ],
@@ -210,7 +211,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "sputtering-red",
-                name: "Sputtering Red",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.sputteringRed",
                 light: { dim: 100, bright: 50, angle: 360, color: "#ff2200", alpha: 0.17, animation: { type: "flame", speed: 7, intensity: 8, reverse: false } }
             }
         ],
@@ -223,7 +224,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "standard",
-                name: "Standard",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.standard",
                 light: { dim: 30, bright: 15, angle: 360, color: "#ffbb44", alpha: 0.14, animation: { type: "torch", speed: 3, intensity: 3, reverse: false } }
             }
         ],
@@ -236,7 +237,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "blinding-light",
-                name: "Blinding Light",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.blindingLight",
                 light: { dim: 240, bright: 120, angle: 360, color: "#eebbff", alpha: 0.17, animation: { type: "ghost", speed: 3, intensity: 4, reverse: false } }
             }
         ],
@@ -249,7 +250,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "standard",
-                name: "Standard",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.standard",
                 light: { dim: 40, bright: 20, angle: 360, color: "#ff8800", alpha: 0.16, animation: { type: "torch", speed: 6, intensity: 6, reverse: false } }
             }
         ],
@@ -262,7 +263,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "halo",
-                name: "Halo",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.halo",
                 light: { dim: 30, bright: 15, angle: 360, color: "#ffdd88", alpha: 0.12, animation: { type: "torch", speed: 2, intensity: 2, reverse: false } }
             }
         ],
@@ -275,7 +276,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "blue-glow",
-                name: "Blue Glow",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.blueGlow",
                 light: { dim: 20, bright: 10, angle: 360, color: "#3399ff", alpha: 0.13, animation: { type: "", speed: 1, intensity: 1, reverse: false } }
             }
         ],
@@ -288,7 +289,7 @@ const LIGHT_SOURCE_ENTRIES = Object.freeze([
         patterns: [
             {
                 id: "daylight",
-                name: "Daylight",
+                name: "DH_QUICKACTIONS.LIGHT_SOURCES.daylight",
                 light: { dim: 120, bright: 90, angle: 360, color: "#fff4d6", alpha: 0.2, animation: { type: "sunburst", speed: 1, intensity: 2, reverse: false } }
             }
         ],
@@ -340,6 +341,12 @@ export async function registerLightSources() {
     // Sources module's docs/register-sources-api.md.
     await api.registerCompatibility?.({ itemTypes: ["loot", "consumable"], actorTypes: ["character"] });
 
-    await api.registerSources(LIGHT_SOURCE_ENTRIES, { managedBy: MODULE_ID });
+    // Registration is per client and runs after translations load, so each client's Token HUD
+    // shows the pattern names in its own language.
+    const entries = LIGHT_SOURCE_ENTRIES.map(entry => ({
+        ...entry,
+        patterns: entry.patterns.map(pattern => ({ ...pattern, name: game.i18n.localize(pattern.name) }))
+    }));
+    await api.registerSources(entries, { managedBy: MODULE_ID });
     console.log("Daggerheart Quick Actions | Registered light sources with the Light Sources module");
 }

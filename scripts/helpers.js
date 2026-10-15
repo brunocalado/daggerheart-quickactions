@@ -15,6 +15,10 @@
  * Finds the actor's copy of a compendium item, independent of the table's language.
  * Matches the copy's compendium origin first; falls back to the name the source item has
  * in this world, which covers hand-made copies and items replaced in Configure Moves.
+ * The origin comes first because a name is not an identity: the system run in another language,
+ * a Babele-translated compendium or a renamed copy all change it, while `_stats.compendiumSource`
+ * keeps the compendium UUID. A table of each language's item names would have to list every
+ * language; the origin needs none.
  * @param {Actor} actor
  * @param {string} sourceUuid
  * @returns {Item|undefined}

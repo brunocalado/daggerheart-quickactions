@@ -630,6 +630,24 @@
         "notMember": "{actor} is not a member of {party}"
       }
     },
+    "LIGHT_SOURCES": {
+      "standard": "Standard",
+      "open": "Open",
+      "shuttered": "Shuttered",
+      "forwardBeam": "Forward Beam",
+      "directionalBeam": "Directional Beam",
+      "highBeam": "High Beam",
+      "strobe": "Strobe",
+      "cameraFlash": "Camera Flash",
+      "lit": "Lit",
+      "spark": "Spark",
+      "neonGreen": "Neon Green",
+      "sputteringRed": "Sputtering Red",
+      "blindingLight": "Blinding Light",
+      "halo": "Halo",
+      "blueGlow": "Blue Glow",
+      "daylight": "Daylight"
+    },
     "FALLING": {
       "title": "Falling & Collision Damage",
       "prompt": "Select the fall height to roll damage instantly:",

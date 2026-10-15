@@ -243,6 +243,10 @@ Mental State: Completely overwhelmed, paralyzed by panic and unable to think cle
 QuickActions.Scan();
 ```
 
+## Translations
+
+The module ships in English. To translate it, open an [issue](https://github.com/brunocalado/daggerheart-quickactions/issues) and attach a translated copy of [lang/en.json](lang/en.json), with the code of your language (for example `fr`, `de` or `pt-BR`). I add the file to the module in the next update. To update a translation later, do the same with the new file.
+
 ## Installation
 
 Install it from the Foundry VTT module browser, or use this manifest link:

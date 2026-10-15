@@ -170,7 +170,8 @@ export const CHAIN_LIGHTNING_UUID = "Compendium.daggerheart.domains.Item.0kAVO6r
 /**
  * Default Scan chat card titles, as translation keys. The `scanHpTitle` / `scanStressTitle`
  * settings default to "" and fall back to these when read, because settings register in `init`,
- * before translations load.
+ * before translations load: localizing a default there would store the raw key. Resolving on read
+ * also keeps the default following each client's language until a GM types their own text.
  * @type {Readonly<{hp: string, stress: string}>}
  */
 export const SCAN_DEFAULT_TITLES = Object.freeze({

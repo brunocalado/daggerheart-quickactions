@@ -63,7 +63,8 @@ jobs:
           mv module.json.tmp module.json
           # Files go at the zip root, with no wrapper folder: hosts with their own
           # extractor (such as Sqyre) don't search subfolders for module.json the
-          # way Foundry's installer does.
+          # way Foundry's installer does. The list is explicit, so lang has to be
+          # in it: a release without lang/en.json shows raw translation keys everywhere.
           zip -r module.zip module.json LICENSE lang scripts styles templates assets packs -x "packs/_source/*"
 
       - name: Create GitHub release
