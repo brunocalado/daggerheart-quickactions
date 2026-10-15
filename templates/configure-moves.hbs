@@ -1,36 +1,36 @@
 <div class="dui-cfg-container">
     {{!-- Tab Bar --}}
     <nav class="dui-cfg-tab-bar">
-        <button type="button" class="dui-cfg-tab active" data-tab="core">Core</button>
-        <button type="button" class="dui-cfg-tab" data-tab="craft">Craft</button>
-        <button type="button" class="dui-cfg-tab" data-tab="custom">Custom</button>
-        <button type="button" class="dui-cfg-tab" data-tab="itemmoves">Item Moves</button>
-        <button type="button" class="dui-cfg-tab" data-tab="users">Users</button>
+        <button type="button" class="dui-cfg-tab active" data-tab="core">{{localize "DH_QUICKACTIONS.DOWNTIME.config.tabs.core"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="craft">{{localize "DH_QUICKACTIONS.DOWNTIME.config.tabs.craft"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="custom">{{localize "DH_QUICKACTIONS.DOWNTIME.config.tabs.custom"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="itemmoves">{{localize "DH_QUICKACTIONS.DOWNTIME.config.tabs.itemMoves"}}</button>
+        <button type="button" class="dui-cfg-tab" data-tab="users">{{localize "DH_QUICKACTIONS.DOWNTIME.config.tabs.users"}}</button>
     </nav>
 
     {{!-- Core Features Panel --}}
     <div class="dui-cfg-panel active" data-panel="core">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>These are the default core features used during downtime. You can replace the linked item if needed — the mechanical effect will remain the same, but the system will search for the move by the new item's name.</span>
+            <span>{{localize "DH_QUICKACTIONS.DOWNTIME.config.coreInfo"}}</span>
         </div>
         <div class="dui-core-list" id="dui-core-list">
             {{#each coreFeatures}}
             <div class="dui-core-row" data-index="{{@index}}" data-key="{{this.key}}">
                 <div class="dui-core-label-group">
-                    <span class="dui-core-label">{{this.label}}</span>
+                    <span class="dui-core-label">{{localize this.label}}</span>
                     {{#if this.description}}
-                    <span class="dui-core-help" data-tip="{{this.description}}">
+                    <span class="dui-core-help" data-tip="{{localize this.description}}">
                         <i class="fas fa-question-circle"></i>
                     </span>
                     {{/if}}
                 </div>
                 <div class="dui-core-drop {{#if this.itemName}}filled{{else}}empty{{/if}}" data-index="{{@index}}">
                     <i class="fas fa-star"></i>
-                    <span class="dui-core-item-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
+                    <span class="dui-core-item-name">{{#if this.itemName}}{{this.itemName}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.dragItem"}}{{/if}}</span>
                 </div>
                 {{#if this.itemName}}
-                <button type="button" class="dui-craft-remove" data-action="removeCoreItem" data-index="{{@index}}" title="Remove item">
+                <button type="button" class="dui-craft-remove" data-action="removeCoreItem" data-index="{{@index}}" title="{{localize "DH_QUICKACTIONS.DOWNTIME.config.removeItem"}}">
                     <i class="fas fa-times"></i>
                 </button>
                 {{/if}}
@@ -45,7 +45,7 @@
     <div class="dui-cfg-panel" data-panel="craft">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>If an actor owns the recipe item (matched by name), the crafted item will be added to their sheet when the downtime move is executed. Items are matched by name.</span>
+            <span>{{localize "DH_QUICKACTIONS.DOWNTIME.config.craftInfo"}}</span>
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addCraftRow">
             <i class="fas fa-plus"></i>
@@ -55,14 +55,14 @@
             <div class="dui-craft-row" data-index="{{@index}}">
                 <div class="dui-craft-drop {{#if this.recipeName}}filled{{else}}empty{{/if}}" data-slot="recipe" data-index="{{@index}}">
                     <i class="fas fa-scroll"></i>
-                    <span class="dui-craft-name">{{#if this.recipeName}}{{this.recipeName}}{{else}}Drag Recipe Here{{/if}}</span>
+                    <span class="dui-craft-name">{{#if this.recipeName}}{{this.recipeName}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.config.dragRecipe"}}{{/if}}</span>
                 </div>
                 <i class="fas fa-arrow-right dui-craft-arrow"></i>
                 <div class="dui-craft-drop {{#if this.craftName}}filled{{else}}empty{{/if}}" data-slot="craft" data-index="{{@index}}">
                     <i class="fas fa-flask"></i>
-                    <span class="dui-craft-name">{{#if this.craftName}}{{this.craftName}}{{else}}Drag Crafted Item Here{{/if}}</span>
+                    <span class="dui-craft-name">{{#if this.craftName}}{{this.craftName}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.config.dragCrafted"}}{{/if}}</span>
                 </div>
-                <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="{{@index}}" title="Remove">
+                <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="{{@index}}" title="{{localize "DH_QUICKACTIONS.COMMON.remove"}}">
                     <i class="fas fa-times"></i>
                 </button>
                 <input type="hidden" name="craftRecipe_{{@index}}" value="{{this.recipeUuid}}">
@@ -76,7 +76,7 @@
     <div class="dui-cfg-panel" data-panel="custom">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>Add custom move names that will appear as selectable actions during downtime. These are freeform labels — no item link required. Use the rest type selector to restrict when each move is available.</span>
+            <span>{{localize "DH_QUICKACTIONS.DOWNTIME.config.customInfo"}}</span>
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addCustomRow">
             <i class="fas fa-plus"></i>
@@ -84,13 +84,13 @@
         <div class="dui-custom-list" id="dui-custom-list">
             {{#each customMoves}}
             <div class="dui-custom-row" data-index="{{@index}}">
-                <input type="text" class="dui-custom-input" name="customMove_{{@index}}" value="{{this.label}}" maxlength="27" placeholder="Move name...">
+                <input type="text" class="dui-custom-input" name="customMove_{{@index}}" value="{{this.label}}" maxlength="27" placeholder="{{localize "DH_QUICKACTIONS.DOWNTIME.config.moveNamePlaceholder"}}">
                 <select class="dui-rest-type-select">
-                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>Any</option>
-                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>Short</option>
-                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>Long</option>
+                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>{{localize "DH_QUICKACTIONS.DOWNTIME.restType.any"}}</option>
+                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>{{localize "DH_QUICKACTIONS.DOWNTIME.restType.short"}}</option>
+                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>{{localize "DH_QUICKACTIONS.DOWNTIME.restType.long"}}</option>
                 </select>
-                <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="{{@index}}" title="Remove">
+                <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="{{@index}}" title="{{localize "DH_QUICKACTIONS.COMMON.remove"}}">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -102,7 +102,7 @@
     <div class="dui-cfg-panel" data-panel="itemmoves">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>Drag items here to create moves linked to specific items. The move will only appear for actors who own the item (matched by name). Use the rest type selector to restrict when each move is available.</span>
+            <span>{{localize "DH_QUICKACTIONS.DOWNTIME.config.itemMovesInfo"}}</span>
         </div>
         <button type="button" class="dui-craft-add-btn" data-action="addItemMoveRow">
             <i class="fas fa-plus"></i>
@@ -112,14 +112,14 @@
             <div class="dui-itemmove-row" data-index="{{@index}}">
                 <div class="dui-itemmove-drop {{#if this.itemName}}filled{{else}}empty{{/if}}" data-index="{{@index}}">
                     <i class="fas fa-box-open"></i>
-                    <span class="dui-itemmove-name">{{#if this.itemName}}{{this.itemName}}{{else}}Drag Item Here{{/if}}</span>
+                    <span class="dui-itemmove-name">{{#if this.itemName}}{{this.itemName}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.dragItem"}}{{/if}}</span>
                 </div>
                 <select class="dui-rest-type-select">
-                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>Any</option>
-                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>Short</option>
-                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>Long</option>
+                    <option value="any" {{#if (eq this.restType "any")}}selected{{/if}}>{{localize "DH_QUICKACTIONS.DOWNTIME.restType.any"}}</option>
+                    <option value="short" {{#if (eq this.restType "short")}}selected{{/if}}>{{localize "DH_QUICKACTIONS.DOWNTIME.restType.short"}}</option>
+                    <option value="long" {{#if (eq this.restType "long")}}selected{{/if}}>{{localize "DH_QUICKACTIONS.DOWNTIME.restType.long"}}</option>
                 </select>
-                <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="{{@index}}" title="Remove">
+                <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="{{@index}}" title="{{localize "DH_QUICKACTIONS.COMMON.remove"}}">
                     <i class="fas fa-times"></i>
                 </button>
                 <input type="hidden" name="itemMove_{{@index}}" value="{{this.itemUuid}}">
@@ -132,19 +132,19 @@
     <div class="dui-cfg-panel" data-panel="users">
         <div class="dui-core-info">
             <i class="fas fa-info-circle"></i>
-            <span>Switch off any user who should never take part in downtime. A disabled user is hidden from the Downtime window even while connected, and is skipped when the downtime effects are applied.</span>
+            <span>{{localize "DH_QUICKACTIONS.DOWNTIME.config.usersInfo"}}</span>
         </div>
         <div class="dui-user-list" id="dui-user-list">
             {{#each users}}
             <div class="dui-user-row {{#unless this.active}}dui-user-row--offline{{/unless}}" data-user-id="{{this.id}}">
-                <button type="button" class="dui-user-toggle {{#if this.enabled}}checked{{/if}}" data-action="toggleDowntimeUser" title="Take part in Downtime">
+                <button type="button" class="dui-user-toggle {{#if this.enabled}}checked{{/if}}" data-action="toggleDowntimeUser" title="{{localize "DH_QUICKACTIONS.DOWNTIME.config.takePart"}}">
                     <span class="dui-user-toggle-slider"></span>
                 </button>
                 <span class="dui-user-row-name">{{this.name}}</span>
-                <span class="dui-user-row-char">{{#if this.characterName}}{{this.characterName}}{{else}}No character assigned{{/if}}</span>
+                <span class="dui-user-row-char">{{#if this.characterName}}{{this.characterName}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.config.noCharacter"}}{{/if}}</span>
             </div>
             {{else}}
-            <div class="dui-user-empty">No players found.</div>
+            <div class="dui-user-empty">{{localize "DH_QUICKACTIONS.COMMON.noPlayers"}}</div>
             {{/each}}
         </div>
     </div>
@@ -152,7 +152,7 @@
     {{!-- Footer --}}
     <div class="dui-cfg-footer">
         <button type="button" class="dui-cfg-save-btn" data-action="saveMovesConfig">
-            <i class="fas fa-save"></i> Save
+            <i class="fas fa-save"></i> {{localize "DH_QUICKACTIONS.DOWNTIME.save"}}
         </button>
     </div>
 

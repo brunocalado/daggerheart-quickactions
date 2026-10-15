@@ -326,7 +326,7 @@ Hooks.on("renderPartySheet", (app, html) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.classList.add("dqa-downtime-party-btn");
-    btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>Downtime</span>`;
+    btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>${game.i18n.localize("DAGGERHEART.GENERAL.downtime")}</span>`;
 
     btn.addEventListener("click", (e) => {
         e.preventDefault();

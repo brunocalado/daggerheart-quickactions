@@ -3,24 +3,24 @@
     <div class="dui-toolbar">
         <div class="dui-toggle-type">
             <button type="button" class="dui-rest-btn {{#if isShort}}active{{/if}}" data-action="setRestType" data-rest-type="short">
-                <i class="fas fa-campground"></i> Short
+                <i class="fas fa-campground"></i> {{localize "DH_QUICKACTIONS.DOWNTIME.restType.short"}}
             </button>
             <button type="button" class="dui-rest-btn {{#if isLong}}active{{/if}}" data-action="setRestType" data-rest-type="long">
-                <i class="fas fa-bed"></i> Long
+                <i class="fas fa-bed"></i> {{localize "DH_QUICKACTIONS.DOWNTIME.restType.long"}}
             </button>
         </div>
-        <div class="dui-short-rest-counter" title="Consecutive short rests taken (resets on Long Rest)">
+        <div class="dui-short-rest-counter" title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.restCounter"}}">
             {{#each shortRestPips}}
-            <button type="button" class="dui-rest-pip{{#if this.filled}} dui-rest-pip--filled{{/if}}{{#if this.warn}} dui-rest-pip--warn{{/if}}" data-action="setShortRestCount" data-count="{{this.value}}" title="Set the counter to {{this.value}} — click the last filled pip to lower it"></button>
+            <button type="button" class="dui-rest-pip{{#if this.filled}} dui-rest-pip--filled{{/if}}{{#if this.warn}} dui-rest-pip--warn{{/if}}" data-action="setShortRestCount" data-count="{{this.value}}" title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.restPip" count=this.value}}"></button>
             {{/each}}
         </div>
         <button type="button" class="dui-moves-btn" data-action="openMovesConfig">
-            <i class="fas fa-cog"></i> Config
+            <i class="fas fa-cog"></i> {{localize "DH_QUICKACTIONS.DOWNTIME.ui.config"}}
         </button>
         <button type="button" class="dui-start-btn" data-action="startDowntime">
-            <i class="fas fa-play" style="font-size: 10px;"></i> Start Downtime
+            <i class="fas fa-play" style="font-size: 10px;"></i> {{localize "DH_QUICKACTIONS.DOWNTIME.ui.start"}}
         </button>
-        <button type="button" class="dui-resend-btn" data-action="resendDowntime" title="Re-open Downtime UI for all players">
+        <button type="button" class="dui-resend-btn" data-action="resendDowntime" title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.resend"}}">
             <i class="fas fa-share-square"></i>
         </button>
     </div>
@@ -28,7 +28,7 @@
 
     <!-- Header visible only to players -->
     {{#unless isGM}}
-    <div class="dui-rest-header">{{restLabel}}</div>
+    <div class="dui-rest-header">{{localize restLabel}}</div>
     {{/unless}}
 
     <div class="dui-player-list">
@@ -39,10 +39,10 @@
             <!-- This column exists only for the GM -->
             {{#if this.isGM}}
             <div class="dui-controls-col">
-                <button type="button" class="dui-toggle-switch {{#if this.included}}checked{{/if}}" data-action="toggleIncluded" data-actor-id="{{this.actorId}}" title="Include in Downtime">
+                <button type="button" class="dui-toggle-switch {{#if this.included}}checked{{/if}}" data-action="toggleIncluded" data-actor-id="{{this.actorId}}" title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.include"}}">
                     <span class="dui-toggle-slider"></span>
                 </button>
-                <button type="button" class="dui-config-btn" data-action="configMaxChoices" data-actor-id="{{this.actorId}}" title="Configure">
+                <button type="button" class="dui-config-btn" data-action="configMaxChoices" data-actor-id="{{this.actorId}}" title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.configure"}}">
                     <i class="fas fa-cog"></i>
                 </button>
             </div>
@@ -62,13 +62,13 @@
                 <div class="dui-domain-card-badge {{this.domainCardStatus.type}}">
                     <span class="dui-domain-card-label">{{this.domainCardStatus.count}}</span>
                     <i class="fas fa-clone"></i>
-                    <span class="dui-domain-card-tooltip">{{this.domainCardStatus.message}}</span>
+                    <span class="dui-domain-card-tooltip">{{localize this.domainCardStatus.message}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.refreshFeatures.length}}
                 <div class="dui-refresh-badge">
-                    <span class="dui-refresh-label">Refreshing Resources</span>
+                    <span class="dui-refresh-label">{{localize "DAGGERHEART.APPLICATIONS.Downtime.refreshable.title"}}</span>
                     <i class="fas fa-sync-alt"></i>
                     <span class="dui-refresh-tooltip">
                         {{#each this.refreshFeatures}}
@@ -82,28 +82,28 @@
             <!-- Resource stats row -->
             <div class="dui-stats-row">
                 <div class="dui-stat-item">
-                    <span class="dui-stat-label"><i class="fas fa-heart"></i> HP</span>
+                    <span class="dui-stat-label"><i class="fas fa-heart"></i> {{localize "DAGGERHEART.GENERAL.HitPoints.short"}}</span>
                     <div class="dui-stat-bar-wrap">
                         <div class="dui-stat-bar dui-stat-bar--hp" style="--progress: {{this.hpPct}}%"></div>
                     </div>
                     <span class="dui-stat-value">{{this.hp.value}}/{{this.hp.max}}</span>
                 </div>
                 <div class="dui-stat-item">
-                    <span class="dui-stat-label"><i class="fas fa-bolt"></i> Stress</span>
+                    <span class="dui-stat-label"><i class="fas fa-bolt"></i> {{localize "DAGGERHEART.GENERAL.stress"}}</span>
                     <div class="dui-stat-bar-wrap">
                         <div class="dui-stat-bar dui-stat-bar--stress" style="--progress: {{this.stressPct}}%"></div>
                     </div>
                     <span class="dui-stat-value">{{this.stress.value}}/{{this.stress.max}}</span>
                 </div>
                 <div class="dui-stat-item">
-                    <span class="dui-stat-label"><i class="fas fa-shield-alt"></i> Armor</span>
+                    <span class="dui-stat-label"><i class="fas fa-shield-alt"></i> {{localize "DAGGERHEART.GENERAL.armor"}}</span>
                     <div class="dui-stat-bar-wrap">
                         <div class="dui-stat-bar dui-stat-bar--armor" style="--progress: {{this.armorPct}}%"></div>
                     </div>
                     <span class="dui-stat-value">{{this.armor.value}}/{{this.armor.max}}</span>
                 </div>
                 <div class="dui-stat-item">
-                    <span class="dui-stat-label"><i class="fas fa-sun"></i> Hope</span>
+                    <span class="dui-stat-label"><i class="fas fa-sun"></i> {{localize "DAGGERHEART.GENERAL.hope"}}</span>
                     <div class="dui-stat-bar-wrap">
                         <div class="dui-stat-bar dui-stat-bar--hope" style="--progress: {{this.hopePct}}%"></div>
                     </div>
@@ -117,12 +117,12 @@
                     {{#each this.actions}}
                         <div class="dui-action-group {{#if this.isBonusMove}}dui-bonus-move{{/if}} {{#if this.selected}}active{{/if}}">
                             <div class="dui-action-head">
-                                <button type="button" class="dui-action-btn dui-action-add" data-action="addAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="Add {{this.label}}">
+                                <button type="button" class="dui-action-btn dui-action-add" data-action="addAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.addMove" name=this.label}}">
                                     {{#if this.isBonusMove}}<i class="fas fa-leaf"></i> {{/if}}{{this.label}}
                                 </button>
                                 {{#if this.count}}
                                 <span class="dui-action-count">×{{this.count}}</span>
-                                <button type="button" class="dui-action-remove" data-action="removeAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="Remove one {{this.label}}">−</button>
+                                <button type="button" class="dui-action-remove" data-action="removeAction" data-actor-id="{{../actorId}}" data-action-key="{{this.key}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.removeMove" name=this.label}}">−</button>
                                 {{/if}}
                             </div>
 
@@ -135,27 +135,27 @@
                                         {{/each}}
                                     </select>
                                     {{#if this.canBeEfficientSlot}}
-                                    <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
+                                    <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.efficientSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.efficientSlotOn"}}{{/if}}">
                                         <i class="fas fa-star"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeRecoverySlot}}
-                                    <button type="button" class="dui-recovery-badge {{#if this.isRecoverySlot}}active{{/if}}" data-action="toggleRecoverySlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoverySlot}}Remove Recovery Slot{{else}}Use as Recovery Slot (Long Rest effect){{/if}}">
+                                    <button type="button" class="dui-recovery-badge {{#if this.isRecoverySlot}}active{{/if}}" data-action="toggleRecoverySlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoverySlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoverySlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoverySlotOn"}}{{/if}}">
                                         <i class="fas fa-redo"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeRecoveryGrantedSlot}}
-                                    <button type="button" class="dui-recovery-granted-badge {{#if this.isRecoveryGrantedSlot}}active{{/if}}" data-action="toggleRecoveryGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoveryGrantedSlot}}Remove Recovery Grant Slot{{else}}Use as Recovery Grant Slot (Long Rest effect, ally's Hope){{/if}}">
+                                    <button type="button" class="dui-recovery-granted-badge {{#if this.isRecoveryGrantedSlot}}active{{/if}}" data-action="toggleRecoveryGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoveryGrantedSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantSlotOn"}}{{/if}}">
                                         <i class="fas fa-heart"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeOasisSlot}}
-                                    <button type="button" class="dui-oasis-badge {{#if this.isOasisSlot}}active{{/if}}" data-action="toggleOasisSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisSlot}}Remove Oasis reroll{{else}}Use the Oasis reroll here (reroll the die, keep the higher){{/if}}">
+                                    <button type="button" class="dui-oasis-badge {{#if this.isOasisSlot}}active{{/if}}" data-action="toggleOasisSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisSlotOn"}}{{/if}}">
                                         <i class="fas fa-tint"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeOasisGrantedSlot}}
-                                    <button type="button" class="dui-oasis-granted-badge {{#if this.isOasisGrantedSlot}}active{{/if}}" data-action="toggleOasisGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisGrantedSlot}}Remove ally's Oasis reroll{{else}}Use the ally's Oasis reroll here{{/if}}">
+                                    <button type="button" class="dui-oasis-granted-badge {{#if this.isOasisGrantedSlot}}active{{/if}}" data-action="toggleOasisGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisGrantedSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisGrantSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisGrantSlotOn"}}{{/if}}">
                                         <i class="fas fa-hand-holding-water"></i>
                                     </button>
                                     {{/if}}
@@ -163,9 +163,9 @@
                                 {{/each}}
                             {{else if this.isForagerMove}}
                                 {{#if this.count}}
-                                <select class="dui-forager-select" data-actor-id="{{../actorId}}" {{#unless ../canInteract}}disabled{{/unless}} title="Your choice if you roll a 6">
+                                <select class="dui-forager-select" data-actor-id="{{../actorId}}" {{#unless ../canInteract}}disabled{{/unless}} title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.foragerChoice"}}">
                                     {{#each ../../foragerOptions}}
-                                    <option value="{{this.value}}" {{#if (eq this.value ../../foragerChoice)}}selected{{/if}}>{{this.label}}</option>
+                                    <option value="{{this.value}}" {{#if (eq this.value ../../foragerChoice)}}selected{{/if}}>{{localize this.label}}</option>
                                     {{/each}}
                                 </select>
                                 {{/if}}
@@ -173,27 +173,27 @@
                                 {{#each this.instances}}
                                 <div class="dui-action-instance {{#if this.isEfficientSlot}}efficient{{/if}} {{#if this.isRecoverySlot}}recovery{{/if}} {{#if this.isRecoveryGrantedSlot}}recovery-granted{{/if}}">
                                     {{#if this.canBeEfficientSlot}}
-                                    <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}Remove Efficient Slot{{else}}Use as Efficient Slot (Long Rest effect){{/if}}">
+                                    <button type="button" class="dui-efficient-badge {{#if this.isEfficientSlot}}active{{/if}}" data-action="toggleEfficientSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isEfficientSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.efficientSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.efficientSlotOn"}}{{/if}}">
                                         <i class="fas fa-star"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeRecoverySlot}}
-                                    <button type="button" class="dui-recovery-badge {{#if this.isRecoverySlot}}active{{/if}}" data-action="toggleRecoverySlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoverySlot}}Remove Recovery Slot{{else}}Use as Recovery Slot (Long Rest effect){{/if}}">
+                                    <button type="button" class="dui-recovery-badge {{#if this.isRecoverySlot}}active{{/if}}" data-action="toggleRecoverySlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoverySlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoverySlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoverySlotOn"}}{{/if}}">
                                         <i class="fas fa-redo"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeRecoveryGrantedSlot}}
-                                    <button type="button" class="dui-recovery-granted-badge {{#if this.isRecoveryGrantedSlot}}active{{/if}}" data-action="toggleRecoveryGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoveryGrantedSlot}}Remove Recovery Grant Slot{{else}}Use as Recovery Grant Slot (Long Rest effect, ally's Hope){{/if}}">
+                                    <button type="button" class="dui-recovery-granted-badge {{#if this.isRecoveryGrantedSlot}}active{{/if}}" data-action="toggleRecoveryGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isRecoveryGrantedSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantSlotOn"}}{{/if}}">
                                         <i class="fas fa-heart"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeOasisSlot}}
-                                    <button type="button" class="dui-oasis-badge {{#if this.isOasisSlot}}active{{/if}}" data-action="toggleOasisSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisSlot}}Remove Oasis reroll{{else}}Use the Oasis reroll here (reroll the die, keep the higher){{/if}}">
+                                    <button type="button" class="dui-oasis-badge {{#if this.isOasisSlot}}active{{/if}}" data-action="toggleOasisSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisSlotOn"}}{{/if}}">
                                         <i class="fas fa-tint"></i>
                                     </button>
                                     {{/if}}
                                     {{#if this.canBeOasisGrantedSlot}}
-                                    <button type="button" class="dui-oasis-granted-badge {{#if this.isOasisGrantedSlot}}active{{/if}}" data-action="toggleOasisGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisGrantedSlot}}Remove ally's Oasis reroll{{else}}Use the ally's Oasis reroll here{{/if}}">
+                                    <button type="button" class="dui-oasis-granted-badge {{#if this.isOasisGrantedSlot}}active{{/if}}" data-action="toggleOasisGrantedSlot" data-actor-id="{{../../actorId}}" data-instance-id="{{this.id}}" {{#unless ../../canInteract}}disabled{{/unless}} title="{{#if this.isOasisGrantedSlot}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisGrantSlotOff"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisGrantSlotOn"}}{{/if}}">
                                         <i class="fas fa-hand-holding-water"></i>
                                     </button>
                                     {{/if}}
@@ -210,9 +210,9 @@
             <div class="dui-features-row">
                 {{#if this.hasEloquent}}
                 <div class="dui-eloquent-selector-below">
-                    <span class="dui-eloquent-label">Eloquent:</span>
-                    <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Eloquent: Grant bonus move to a companion">
-                        <option value="">Choose a friend...</option>
+                    <span class="dui-eloquent-label">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.eloquentLabel"}}</span>
+                    <select class="dui-eloquent-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.eloquentTitle"}}">
+                        <option value="">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.eloquentChoose"}}</option>
                         {{#each this.eloquentOptions}}
                         {{#if this.id}}
                         <option value="{{this.id}}" {{#if (eq this.id ../eloquentBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
@@ -225,8 +225,8 @@
                 {{#if this.hasEfficient}}{{#if ../isShort}}
                 <div class="dui-efficient-indicator">
                     <i class="fas fa-star"></i>
-                    <span class="dui-efficient-text">Efficient</span>
-                    <span class="dui-efficient-tooltip">Can upgrade one action to Long Rest quality</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.efficient.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.upgradeTip"}}</span>
                 </div>
                 {{/if}}{{/if}}
 
@@ -234,18 +234,18 @@
                 <div class="dui-recovery-selector">
                     <div class="dui-efficient-indicator dui-recovery-indicator">
                         <i class="fas fa-redo"></i>
-                        <span class="dui-efficient-text">Recovery</span>
-                        <span class="dui-efficient-tooltip">Can upgrade one action to Long Rest quality</span>
+                        <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.recovery.name"}}</span>
+                        <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.upgradeTip"}}</span>
                     </div>
                     {{#if this.canSelectRecoveryAlly}}
-                    <select class="dui-recovery-beneficiary-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Spend 1 Hope to grant an ally a Long Rest upgrade">
-                        <option value="">Grant ally (costs 1 Hope)...</option>
+                    <select class="dui-recovery-beneficiary-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantTitle"}}">
+                        <option value="">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantChoose"}}</option>
                         {{#each this.recoveryAllyOptions}}
                         <option value="{{this.id}}" {{#if (eq this.id ../recoveryBeneficiary)}}selected{{/if}}>→ {{this.name}}</option>
                         {{/each}}
                     </select>
                     {{else}}
-                    <span class="dui-recovery-no-hope" title="Need at least 1 Hope to grant Recovery to an ally">(No Hope to grant)</span>
+                    <span class="dui-recovery-no-hope" title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryNoHopeTitle"}}">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryNoHope"}}</span>
                     {{/if}}
                 </div>
                 {{/if}}{{/if}}
@@ -254,11 +254,11 @@
                 <div class="dui-recovery-selector">
                     <div class="dui-efficient-indicator dui-oasis-indicator">
                         <i class="fas fa-tint"></i>
-                        <span class="dui-efficient-text">Oasis</span>
-                        <span class="dui-efficient-tooltip">Reroll one downtime move die and keep the higher result</span>
+                        <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.oasis.name"}}</span>
+                        <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisTip"}}</span>
                     </div>
-                    <select class="dui-oasis-beneficiary-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="Give your Oasis reroll to an ally instead of using it yourself">
-                        <option value="">Keep the reroll...</option>
+                    <select class="dui-oasis-beneficiary-select" data-actor-id="{{this.actorId}}" {{#unless this.canInteract}}disabled{{/unless}} title="{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisGiveTitle"}}">
+                        <option value="">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisKeep"}}</option>
                         {{#each this.oasisAllyOptions}}
                         <option value="{{this.id}}" {{#if (eq this.id ../oasisBeneficiary)}}selected{{/if}}>&rarr; {{this.name}}</option>
                         {{/each}}
@@ -269,80 +269,80 @@
                 {{#if this.hasOasisGrant}}{{#if ../isShort}}
                 <div class="dui-efficient-indicator dui-oasis-grant-indicator">
                     <i class="fas fa-hand-holding-water"></i>
-                    <span class="dui-efficient-text">Oasis Granted</span>
-                    <span class="dui-efficient-tooltip">An ally gave you their Oasis reroll — mark the move that should use it</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisGranted"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.oasisGrantedTip"}}</span>
                 </div>
                 {{/if}}{{/if}}
 
                 {{#if this.hasTimekeepersPendant}}
                 <div class="dui-efficient-indicator dui-timekeeper-indicator">
                     <i class="fas fa-hourglass-half"></i>
-                    <span class="dui-efficient-text">Timekeeper's Pendant</span>
-                    <span class="dui-efficient-tooltip">+1 downtime move each rest</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.timekeepersPendant.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.timekeeperTip"}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.hasPipeweed}}
                 <div class="dui-efficient-indicator dui-pipeweed-indicator">
                     <i class="fas fa-cannabis"></i>
-                    <span class="dui-efficient-text">Pipeweed</span>
-                    <span class="dui-efficient-tooltip">Smoke it alongside Clear Stress to clear +1 Stress for every PC who chose Clear Stress</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.pipeweed.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.pipeweedTip"}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.hasRecoveryGrant}}{{#if ../isShort}}
                 <div class="dui-efficient-indicator dui-recovery-grant-indicator">
                     <i class="fas fa-heart"></i>
-                    <span class="dui-efficient-text">Recovery (granted)</span>
-                    <span class="dui-efficient-tooltip">An ally spent 1 Hope to grant you a Long Rest upgrade{{#unless this.grantorHasHope}} — but they no longer have Hope{{/unless}}</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGranted"}}</span>
+                    <span class="dui-efficient-tooltip">{{#if this.grantorHasHope}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantedTip"}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.recoveryGrantedTipNoHope"}}{{/if}}</span>
                 </div>
                 {{/if}}{{/if}}
 
                 {{#if this.hasSoothingSpeech}}
                 <div class="dui-efficient-indicator">
                     <i class="fas fa-comment-medical"></i>
-                    <span class="dui-efficient-text">Soothing Speech</span>
-                    <span class="dui-efficient-tooltip">Tend to Wounds on another: +1 HP on target, +2 HP on yourself</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.soothingSpeech.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.soothingTip"}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.hasArmorer}}
                 <div class="dui-efficient-indicator">
                     <i class="fas fa-shield-alt"></i>
-                    <span class="dui-efficient-text">Armorer</span>
-                    <span class="dui-efficient-tooltip">When you Repair Armor, all allies also clear an Armor Slot</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.armorer.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.armorerTip"}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.hasSelfHealingArmor}}
                 <div class="dui-efficient-indicator dui-selfhealing-indicator">
                     <i class="fas fa-shield-heart"></i>
-                    <span class="dui-efficient-text">Self-Healing</span>
-                    <span class="dui-efficient-tooltip">Worn armour clears 1 Armor Slot on every rest</span>
+                    <span class="dui-efficient-text">{{localize "DAGGERHEART.CONFIG.ArmorFeature.selfHealing.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.selfHealingTip"}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.hasPremiumBedroll}}
                 <div class="dui-efficient-indicator">
                     <i class="fas fa-bed"></i>
-                    <span class="dui-efficient-text">Premium Bedroll</span>
-                    <span class="dui-efficient-tooltip">During downtime, automatically clear 1 Stress</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.premiumBedroll.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.bedrollTip"}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.hasCelestialTrance}}
                 <div class="dui-efficient-indicator">
                     <i class="fas fa-moon"></i>
-                    <span class="dui-efficient-text">Celestial Trance</span>
-                    <span class="dui-efficient-tooltip">Grants +1 extra move during downtime</span>
+                    <span class="dui-efficient-text">{{localize "DH_QUICKACTIONS.DOWNTIME.coreFeatures.celestialTrance.name"}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.celestialTip"}}</span>
                 </div>
                 {{/if}}
 
                 {{#if this.hasBeastbound}}
                 <div class="dui-efficient-indicator">
                     <i class="fas fa-paw"></i>
-                    <span class="dui-efficient-text">Beastbound {{#if this.beastboundInfo}}({{#if this.beastboundInfo.found}}{{this.beastboundInfo.name}}{{else}}Not Found{{/if}}){{/if}}</span>
-                    <span class="dui-efficient-tooltip">If you choose a downtime move that clears your Stress, your companion clears an equal amount</span>
+                    <span class="dui-efficient-text">{{#if this.beastboundInfo.found}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.beastboundCompanion" name=this.beastboundInfo.name}}{{else}}{{localize "DH_QUICKACTIONS.DOWNTIME.ui.beastboundNotFound"}}{{/if}}</span>
+                    <span class="dui-efficient-tooltip">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.beastboundTip"}}</span>
                 </div>
                 {{/if}}
             </div>
@@ -350,7 +350,7 @@
 
             <!-- Counter Column -->
             <div class="dui-counter">
-                <span class="dui-count-label">Moves</span>
+                <span class="dui-count-label">{{localize "DH_QUICKACTIONS.DOWNTIME.ui.movesCounter"}}</span>
                 <span class="dui-count-val" {{#if this.isOverLimit}}style="color: #ff6b6b;"{{/if}}>{{this.selectedCount}}/{{this.maxChoices}}</span>
             </div>
 
@@ -358,7 +358,7 @@
         {{else}}
         <div class="dui-empty">
             <i class="fas fa-users-slash"></i>
-            <p>No players found.</p>
+            <p>{{localize "DH_QUICKACTIONS.COMMON.noPlayers"}}</p>
         </div>
         {{/each}}
     </div>

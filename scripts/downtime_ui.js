@@ -31,12 +31,13 @@ const DEFAULT_ITEM_MOVE_ENTRIES = [
     { itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2" }
 ];
 
+// `label` and `effect` are translation keys, resolved by whichever client renders them.
 const FORAGER_OPTIONS = [
-    { value: 1, label: "A unique food", effect: "Clear 2 Stress", itemUuid: `Compendium.${MODULE_ID}.items.Item.1tnzi64VuC8kTQKn` },
-    { value: 2, label: "A beautiful relic", effect: "Gain 2 Hope", itemUuid: `Compendium.${MODULE_ID}.items.Item.q1VJh3YHE1peFgpP` },
-    { value: 3, label: "An arcane rune", effect: "+2 to a Spellcast Roll", itemUuid: `Compendium.${MODULE_ID}.items.Item.vPGhnT1C84fwNiYf` },
-    { value: 4, label: "A healing vial", effect: "Clear 2 Hit Points", itemUuid: `Compendium.${MODULE_ID}.items.Item.C1lOuQ5TGYVCIOqB` },
-    { value: 5, label: "A luck charm", effect: "Reroll any die", itemUuid: `Compendium.${MODULE_ID}.items.Item.Fm6XzoBkT7G4a9La` }
+    { value: 1, label: "DH_QUICKACTIONS.DOWNTIME.forager.food.label", effect: "DH_QUICKACTIONS.DOWNTIME.forager.food.effect", itemUuid: `Compendium.${MODULE_ID}.items.Item.1tnzi64VuC8kTQKn` },
+    { value: 2, label: "DH_QUICKACTIONS.DOWNTIME.forager.relic.label", effect: "DH_QUICKACTIONS.DOWNTIME.forager.relic.effect", itemUuid: `Compendium.${MODULE_ID}.items.Item.q1VJh3YHE1peFgpP` },
+    { value: 3, label: "DH_QUICKACTIONS.DOWNTIME.forager.rune.label", effect: "DH_QUICKACTIONS.DOWNTIME.forager.rune.effect", itemUuid: `Compendium.${MODULE_ID}.items.Item.vPGhnT1C84fwNiYf` },
+    { value: 4, label: "DH_QUICKACTIONS.DOWNTIME.forager.vial.label", effect: "DH_QUICKACTIONS.DOWNTIME.forager.vial.effect", itemUuid: `Compendium.${MODULE_ID}.items.Item.C1lOuQ5TGYVCIOqB` },
+    { value: 5, label: "DH_QUICKACTIONS.DOWNTIME.forager.charm.label", effect: "DH_QUICKACTIONS.DOWNTIME.forager.charm.effect", itemUuid: `Compendium.${MODULE_ID}.items.Item.Fm6XzoBkT7G4a9La` }
 ];
 
 /**
@@ -59,27 +60,46 @@ const NO_UPGRADE_MOVES = new Set([
 const BONUS_MOVES = new Set(["core_forager", "core_pipeweed"]);
 
 /**
- * The stock item behind each core downtime feature, with the label and help text shown in the
- * Downtime configuration's Core tab. The GM can point any key at another item there; the saved
- * `downtimeCoreFeatures` entry then overrides `itemUuid`. Detection goes by UUID, never by label.
+ * Translation keys of the built-in moves' names, by move key. The rest moves reuse the system's
+ * own strings; the feature-granted moves are this module's.
+ * @type {Readonly<Record<string, string>>}
+ */
+const MOVE_LABELS = Object.freeze({
+    tendWounds: "DAGGERHEART.APPLICATIONS.Downtime.shortRest.tendToWounds.name",
+    clearStress: "DAGGERHEART.APPLICATIONS.Downtime.shortRest.clearStress.name",
+    repairArmor: "DAGGERHEART.APPLICATIONS.Downtime.shortRest.repairArmor.name",
+    prepare: "DAGGERHEART.APPLICATIONS.Downtime.shortRest.prepare.name",
+    workOnProject: "DAGGERHEART.APPLICATIONS.Downtime.longRest.workOnAProject.name",
+    core_favor: "DH_QUICKACTIONS.DOWNTIME.moves.showTribute",
+    core_changeShape: "DH_QUICKACTIONS.DOWNTIME.moves.changeShape",
+    core_onlySkinDeep: "DH_QUICKACTIONS.DOWNTIME.moves.onlySkinDeep",
+    core_forager: "DH_QUICKACTIONS.DOWNTIME.moves.forage",
+    core_pipeweed: "DH_QUICKACTIONS.DOWNTIME.moves.smokePipeweed"
+});
+
+/**
+ * The stock item behind each core downtime feature, with the translation keys of the label and
+ * help text shown in the Downtime configuration's Core tab. The GM can point any key at another
+ * item there; the saved `downtimeCoreFeatures` entry then overrides `itemUuid`. Detection goes by
+ * UUID, never by label.
  * @type {Array<{key: string, label: string, itemUuid: string, description: string}>}
  */
 const DEFAULT_CORE_FEATURES = [
-    { key: "efficient", label: "Efficient", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t", description: "During Short Rest, one selected action can be upgraded to Long Rest quality." },
-    { key: "forager", label: "Forager", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl", description: "Grants a bonus Forage action that does not count towards the move limit." },
-    { key: "premiumBedroll", label: "Premium Bedroll", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "During downtime, you automatically clear 1 Stress." },
-    { key: "celestialTrance", label: "Celestial Trance", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "Grants +1 extra move during downtime." },
-    { key: "eloquent", label: "Eloquent", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "Allows granting a bonus move to another party member." },
-    { key: "soothingSpeech", label: "Soothing Speech", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "When using Tend to Wounds on another character during Short Rest, clear an additional HP on the target. You also clear 2 HP on yourself." },
-    { key: "armorer", label: "Armorer", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "When you choose Repair Armor as a downtime move, all allies also clear an Armor Slot." },
-    { key: "beastbound", label: "Beastbound", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "If you choose a downtime move that clears your Stress, your companion clears an equal amount." },
-    { key: "recovery", label: "Recovery", itemUuid: "Compendium.daggerheart.domains.Item.gsiQFT6q3WOgqerJ", description: "During a short rest, you can choose a long rest downtime move instead. You can spend 1 Hope to let an ally do the same." },
-    { key: "favor", label: "Favor", itemUuid: "Compendium.daggerheart.classes.Item.OGPn7DUJoJwAXh8o", description: "Adds the \"Show Tribute\" downtime move: describe how you honour your patron and gain Favor equal to your Spellcast trait. Spends one move; the Favor itself is applied by the player." },
-    { key: "changeShape", label: "Change Shape", itemUuid: "Compendium.daggerheart.transformations.Item.P1sdtkECFSdLz02W", description: "Shapeshifter. Adds the \"Change Shape\" downtime move: swap your current ancestry for another and describe how your appearance changes. Spends one move; the swap itself is applied by the player." },
-    { key: "onlySkinDeep", label: "Only Skin Deep", itemUuid: "Compendium.daggerheart.transformations.Item.qXA130mgMnvPZfNF", description: "Shapeshifter. Adds the \"Only Skin Deep\" downtime move: choose a different feature from your current ancestry. Spends one move; the swap itself is applied by the player." },
-    { key: "oasis", label: "Oasis", itemUuid: "Compendium.daggerheart.communities.Item.DOrvaVrES1HYhG2u", description: "Duneborne. During a short rest, reroll one die used for a downtime move and keep the higher result. Mark the move with the water badge, or hand the reroll to an ally." },
-    { key: "timekeepersPendant", label: "Timekeeper's Pendant", itemUuid: "Compendium.daggerheart.loot.Item.4qUp8YWnsgi7ws8Q", description: "Grants one additional downtime move each rest." },
-    { key: "pipeweed", label: "Pipeweed", itemUuid: "Compendium.daggerheart.consumables.Item.eBQAxdk4y85I7xQe", description: "Adds the free \"Smoke Pipeweed\" move during a short rest. Smoking one clears an additional Stress for every PC who chose Clear Stress, and spends one Pipeweed." }
+    { key: "efficient", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.efficient.name", itemUuid: "Compendium.daggerheart.ancestries.Item.2xlqKOkDxWHbuj4t", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.efficient.description" },
+    { key: "forager", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.forager.name", itemUuid: "Compendium.daggerheart.domains.Item.06UapZuaA5S6fAKl", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.forager.description" },
+    { key: "premiumBedroll", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.premiumBedroll.name", itemUuid: "Compendium.daggerheart.loot.Item.QGYPNBIufpBguwjC", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.premiumBedroll.description" },
+    { key: "celestialTrance", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.celestialTrance.name", itemUuid: "Compendium.daggerheart.ancestries.Item.TfolXWFG2W2hx6sK", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.celestialTrance.description" },
+    { key: "eloquent", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.eloquent.name", itemUuid: "Compendium.daggerheart.subclasses.Item.5bmB1YcxiJVNVXDM", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.eloquent.description" },
+    { key: "soothingSpeech", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.soothingSpeech.name", itemUuid: "Compendium.daggerheart.domains.Item.QED2PDYePOSTbLtC", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.soothingSpeech.description" },
+    { key: "armorer", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.armorer.name", itemUuid: "Compendium.daggerheart.domains.Item.cy8GjBPGc9w9RaGO", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.armorer.description" },
+    { key: "beastbound", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.beastbound.name", itemUuid: "Compendium.daggerheart.subclasses.Item.TIUsIlTS1WkK5vr2", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.beastbound.description" },
+    { key: "recovery", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.recovery.name", itemUuid: "Compendium.daggerheart.domains.Item.gsiQFT6q3WOgqerJ", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.recovery.description" },
+    { key: "favor", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.favor.name", itemUuid: "Compendium.daggerheart.classes.Item.OGPn7DUJoJwAXh8o", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.favor.description" },
+    { key: "changeShape", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.changeShape.name", itemUuid: "Compendium.daggerheart.transformations.Item.P1sdtkECFSdLz02W", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.changeShape.description" },
+    { key: "onlySkinDeep", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.onlySkinDeep.name", itemUuid: "Compendium.daggerheart.transformations.Item.qXA130mgMnvPZfNF", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.onlySkinDeep.description" },
+    { key: "oasis", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.oasis.name", itemUuid: "Compendium.daggerheart.communities.Item.DOrvaVrES1HYhG2u", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.oasis.description" },
+    { key: "timekeepersPendant", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.timekeepersPendant.name", itemUuid: "Compendium.daggerheart.loot.Item.4qUp8YWnsgi7ws8Q", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.timekeepersPendant.description" },
+    { key: "pipeweed", label: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.pipeweed.name", itemUuid: "Compendium.daggerheart.consumables.Item.eBQAxdk4y85I7xQe", description: "DH_QUICKACTIONS.DOWNTIME.coreFeatures.pipeweed.description" }
 ];
 
 /**
@@ -327,7 +347,10 @@ async function _rollDowntimeDie(formula, useOasis) {
     await reroll.evaluate();
     if (game.dice3d) await game.dice3d.showForRoll(reroll, game.user, true);
     const best = Math.max(roll.total, reroll.total);
-    return { total: best, text: `${roll.total}→${reroll.total} Oasis, kept ${best}` };
+    return {
+        total: best,
+        text: game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.oasisRoll", { first: roll.total, second: reroll.total, best })
+    };
 }
 
 /**
@@ -417,7 +440,7 @@ async function _applyDowntimeEffects() {
     }
 
     if (includedActors.length === 0) {
-        ui.notifications.warn("No actors selected for downtime.");
+        ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.noActors"));
         return;
     }
 
@@ -426,10 +449,10 @@ async function _applyDowntimeEffects() {
     if (fearRoll === null) return;
 
     let addedFear = fearRoll;
-    let calculationText = `(1d4) ${fearRoll}`;
+    let calculationText = game.i18n.localize("DH_QUICKACTIONS.REST.calcShort", { roll: fearRoll });
     if (isLong) {
         addedFear += includedActors.length;
-        calculationText = `(1d4 + ${includedActors.length} PCs) ${fearRoll} + ${includedActors.length}`;
+        calculationText = game.i18n.localize("DH_QUICKACTIONS.REST.calcLong", { roll: fearRoll, pcs: includedActors.length });
     }
     const currentFear = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Resources.Fear);
     const newFear = Math.min(currentFear + addedFear, 12);
@@ -517,37 +540,45 @@ async function _applyDowntimeEffects() {
                 // Soothing Speech: +1 HP on target when tending another character
                 const hasSoothing = _hasSoothingSpeechFeature(actor);
                 const soothingBonus = (hasSoothing && !isSelf) ? 1 : 0;
+                const move = game.i18n.localize(MOVE_LABELS.tendWounds);
+                const name = foundry.utils.escapeHTML(targetActor.name);
                 if (effectiveLong) {
                     await targetActor.update({ "system.resources.hitPoints.value": 0 });
-                    const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    actorEvents.push(`Tend to Wounds${target} (Recover All HP)`);
+                    actorEvents.push(isSelf
+                        ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.tendWoundsAll", { move })
+                        : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.tendWoundsAllAlly", { move, name }));
                 } else {
                     const roll = await _rollDowntimeDie("1d4", useOasis);
                     const recovery = roll.total + tier + targetHpMod + soothingBonus;
                     const currentHP = targetActor.system.resources?.hitPoints?.value ?? 0;
                     const newHP = Math.max(0, currentHP - recovery);
                     await targetActor.update({ "system.resources.hitPoints.value": newHP });
-                    const modText = targetHpMod > 0 ? ` +${targetHpMod} mod` : "";
-                    const soothText = soothingBonus > 0 ? " +1 Soothing Speech" : "";
-                    const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    actorEvents.push(`Tend to Wounds${target} (Recover ${recovery} HP [Roll: ${roll.text}${modText}${soothText}])`);
+                    // The roll breakdown is a sum rather than a sentence, so its terms are joined
+                    // with spaces; the sentence around it is one key.
+                    const breakdown = [roll.text];
+                    if (targetHpMod > 0) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.mod", { value: targetHpMod }));
+                    if (soothingBonus > 0) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.soothingSpeech"));
+                    const data = { move, name, amount: recovery, breakdown: breakdown.join(" ") };
+                    actorEvents.push(isSelf
+                        ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.tendWoundsRoll", data)
+                        : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.tendWoundsRollAlly", data));
                 }
                 // Soothing Speech self-heal: clear 2 HP on the caster when tending another
                 if (hasSoothing && !isSelf) {
                     const selfHP = actor.system.resources?.hitPoints?.value ?? 0;
                     const newSelfHP = Math.max(0, selfHP - 2);
                     await actor.update({ "system.resources.hitPoints.value": newSelfHP });
-                    actorEvents.push(`Soothing Speech (Self-heal 2 HP)`);
+                    actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.soothingSelfHeal"));
                 }
             }
 
             if (action === "clearStress") {
-                let companionStressCleared = 0;
+                let companionStressCleared = null;
                 const hasBedroll = _hasPremiumBedrollFeature(actor);
+                const move = game.i18n.localize(MOVE_LABELS.clearStress);
 
                 if (effectiveLong) {
                     await actor.update({ "system.resources.stress.value": 0 });
-                    let eventText = `Clear Stress (Recover All Stress)`;
 
                     // Beastbound: clear companion stress if Beastbound feature present
                     if (_hasBeastboundFeature(actor)) {
@@ -556,11 +587,12 @@ async function _applyDowntimeEffects() {
                             const companionStress = companion.system.resources?.stress?.value ?? 0;
                             companionStressCleared = companionStress;
                             await companion.update({ "system.resources.stress.value": 0 });
-                            eventText += ` → Companion clears ${companionStressCleared} Stress`;
                         }
                     }
 
-                    actorEvents.push(eventText);
+                    actorEvents.push(companionStressCleared === null
+                        ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.clearStressAll", { move })
+                        : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.clearStressAllCompanion", { move, companion: companionStressCleared }));
                 } else {
                     const roll = await _rollDowntimeDie("1d4", useOasis);
                     const bedrollBonus = hasBedroll ? 1 : 0;
@@ -568,10 +600,10 @@ async function _applyDowntimeEffects() {
                     const currentStress = actor.system.resources?.stress?.value ?? 0;
                     const newStress = Math.max(0, currentStress - recovery);
                     await actor.update({ "system.resources.stress.value": newStress });
-                    const modText = stressModifier > 0 ? ` +${stressModifier} mod` : "";
-                    const bedrollText = hasBedroll ? " +1 Bedroll" : "";
-                    const pipeweedText = pipeweedBonus > 0 ? ` +${pipeweedBonus} Pipeweed` : "";
-                    let eventText = `Clear Stress (Recover ${recovery} Stress [Roll: ${roll.text} +${tier} Tier${modText}${bedrollText}${pipeweedText}])`;
+                    const breakdown = [roll.text, game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.tier", { value: tier })];
+                    if (stressModifier > 0) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.mod", { value: stressModifier }));
+                    if (hasBedroll) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.bedroll"));
+                    if (pipeweedBonus > 0) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.pipeweed", { value: pipeweedBonus }));
 
                     // Beastbound: clear companion stress if Beastbound feature present
                     if (_hasBeastboundFeature(actor)) {
@@ -581,27 +613,35 @@ async function _applyDowntimeEffects() {
                             companionStressCleared = Math.min(recovery, companionStress);
                             const newCompanionStress = Math.max(0, companionStress - recovery);
                             await companion.update({ "system.resources.stress.value": newCompanionStress });
-                            eventText += ` → Companion clears ${companionStressCleared} Stress`;
                         }
                     }
 
-                    actorEvents.push(eventText);
+                    const data = { move, amount: recovery, breakdown: breakdown.join(" "), companion: companionStressCleared };
+                    actorEvents.push(companionStressCleared === null
+                        ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.clearStressRoll", data)
+                        : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.clearStressRollCompanion", data));
                 }
             }
 
             if (action === "repairArmor") {
                 const targetArmorMod = isSelf ? armorSlotModifier : (state.actors?.[targetActor.id]?.armorSlotModifier ?? 0);
+                const move = game.i18n.localize(MOVE_LABELS.repairArmor);
+                const name = foundry.utils.escapeHTML(targetActor.name);
                 if (effectiveLong) {
                     await _clearAllArmorMarks(targetActor);
-                    const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    actorEvents.push(`Repair Armor${target} (Recover All Armor Slots)`);
+                    actorEvents.push(isSelf
+                        ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.repairArmorAll", { move })
+                        : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.repairArmorAllAlly", { move, name }));
                 } else {
                     const roll = await _rollDowntimeDie("1d4", useOasis);
                     const reduction = roll.total + tier + targetArmorMod;
                     await _reduceArmorMarks(targetActor, reduction);
-                    const modText = targetArmorMod > 0 ? ` +${targetArmorMod} mod` : "";
-                    const target = isSelf ? "" : ` of ${targetActor.name}`;
-                    actorEvents.push(`Repair Armor${target} (Recover ${reduction} Armor Slots [Roll: ${roll.text}${modText}])`);
+                    const breakdown = [roll.text];
+                    if (targetArmorMod > 0) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.mod", { value: targetArmorMod }));
+                    const data = { move, name, amount: reduction, breakdown: breakdown.join(" ") };
+                    actorEvents.push(isSelf
+                        ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.repairArmorRoll", data)
+                        : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.repairArmorRollAlly", data));
                 }
             }
 
@@ -612,23 +652,30 @@ async function _applyDowntimeEffects() {
                 const newHope = Math.min(currentHope + totalGain, maxHope);
                 const actualGain = newHope - currentHope;
                 await actor.update({ "system.resources.hope.value": newHope });
-                const modText = hopeModifier > 0 ? ` +${hopeModifier} mod` : "";
-                const cappedText = actualGain < totalGain ? " [capped]" : "";
-                actorEvents.push(`Prepare (+${actualGain} Hope${prepareBonus === 2 ? ", paired" : ""}${modText}${cappedText})`);
+                const breakdown = [prepareBonus === 2
+                    ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.prepareHopePaired", { amount: actualGain })
+                    : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.prepareHope", { amount: actualGain })];
+                if (hopeModifier > 0) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bonus.mod", { value: hopeModifier }));
+                if (actualGain < totalGain) breakdown.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.capped"));
+                actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.prepare", {
+                    move: game.i18n.localize(MOVE_LABELS.prepare),
+                    breakdown: breakdown.join(" ")
+                }));
             }
 
             // Custom move actions
             if (action.startsWith("custom_")) {
                 const moveLabel = action.slice("custom_".length);
-                actorEvents.push(`${moveLabel}`);
+                actorEvents.push(foundry.utils.escapeHTML(moveLabel));
             }
 
             // Item move actions
             if (action.startsWith("itemmove_")) {
                 const itemUuid = action.slice("itemmove_".length);
                 const moveItem = await fromUuid(itemUuid);
-                const itemName = moveItem?.name ?? "Unknown Item";
-                actorEvents.push(`${itemName}`);
+                actorEvents.push(moveItem
+                    ? foundry.utils.escapeHTML(moveItem.name)
+                    : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.unknownItem"));
             }
 
             // Feature-driven moves that resolve entirely in the fiction — the player narrates the
@@ -636,15 +683,15 @@ async function _applyDowntimeEffects() {
             // sheet needs themselves. The summary only records that the move was spent, which is
             // what the table needs to see; nothing is written to the actor.
             if (action === "core_favor") {
-                actorEvents.push("Show Tribute (Favor — gain Favor equal to your Spellcast trait)");
+                actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.favor", { move: game.i18n.localize(MOVE_LABELS.core_favor) }));
             }
 
             if (action === "core_changeShape") {
-                actorEvents.push("Change Shape (Shapeshifter — swapped ancestry)");
+                actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.changeShape", { move: game.i18n.localize(MOVE_LABELS.core_changeShape) }));
             }
 
             if (action === "core_onlySkinDeep") {
-                actorEvents.push("Only Skin Deep (Shapeshifter — swapped ancestry feature)");
+                actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.onlySkinDeep", { move: game.i18n.localize(MOVE_LABELS.core_onlySkinDeep) }));
             }
 
             // Pipeweed: the +1 Stress it grants is already folded into every Clear Stress above
@@ -652,11 +699,12 @@ async function _applyDowntimeEffects() {
             // anyone resolved. All that is left here is spending the consumable.
             if (action === "core_pipeweed") {
                 const leaf = findSourcedItem(actor, _coreFeatureUuid("pipeweed"));
+                const move = game.i18n.localize(MOVE_LABELS.core_pipeweed);
                 if (leaf) {
                     await _consumeOne(actor, leaf);
-                    actorEvents.push("Smoke Pipeweed (−1 Pipeweed → +1 Stress cleared for everyone on Clear Stress)");
+                    actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.pipeweedSmoked", { move }));
                 } else {
-                    actorEvents.push("Smoke Pipeweed (no Pipeweed left to smoke)");
+                    actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.pipeweedNone", { move }));
                 }
             }
 
@@ -673,8 +721,15 @@ async function _applyDowntimeEffects() {
                         const choice = actorState.foragerChoice ?? 1;
                         resultOption = FORAGER_OPTIONS[choice - 1] ?? FORAGER_OPTIONS[0];
                     }
-                    const chosenText = foragerRoll === 6 ? " (Chose)" : "";
-                    actorEvents.push(`Forage [Roll: ${foragerDie.text}${chosenText}] — ${resultOption.label} (${resultOption.effect})`);
+                    const data = {
+                        move: game.i18n.localize(MOVE_LABELS.core_forager),
+                        roll: foragerDie.text,
+                        result: game.i18n.localize(resultOption.label),
+                        effect: game.i18n.localize(resultOption.effect)
+                    };
+                    actorEvents.push(foragerRoll === 6
+                        ? game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.forageChosen", data)
+                        : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.forage", data));
 
                     // Grant the foraged item to the actor's inventory
                     if (resultOption.itemUuid) {
@@ -685,7 +740,7 @@ async function _applyDowntimeEffects() {
                                 await actor.createEmbeddedDocuments("Item", [itemData]);
                             }
                         } catch (err) {
-                            console.error(`daggerheart-quickactions | Failed to grant foraged item "${resultOption.label}":`, err);
+                            console.error(`daggerheart-quickactions | Failed to grant foraged item ${resultOption.itemUuid}:`, err);
                         }
                     }
                 }
@@ -695,8 +750,10 @@ async function _applyDowntimeEffects() {
             if (action.startsWith("craft_")) {
                 const recipeUuid = action.slice("craft_".length);
                 const recipeItem = await fromUuid(recipeUuid);
-                const recipeName = recipeItem?.name ?? "Unknown Recipe";
-                actorEvents.push(`Used ${recipeName}`);
+                const recipeName = recipeItem
+                    ? foundry.utils.escapeHTML(recipeItem.name)
+                    : game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.unknownRecipe");
+                actorEvents.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.craftUsed", { name: recipeName }));
 
                 // Find matching craft entry to grant the crafted item
                 const savedCraft = game.settings.get(MODULE_ID, "downtimeCraftEntries") ?? [];
@@ -708,11 +765,14 @@ async function _applyDowntimeEffects() {
                         if (craftItem) {
                             const itemData = craftItem.toObject();
                             await actor.createEmbeddedDocuments("Item", [itemData]);
+                            // The item's highlight is markup, so it wraps the escaped name here
+                            // and stays out of en.json.
+                            const craftedItem = `<strong style="color:#C9A060;">${foundry.utils.escapeHTML(craftItem.name)}</strong>`;
                             const craftMsg = `
                             <div class="chat-card" style="border: 2px solid #C9A060; border-radius: 8px; overflow: hidden; font-family: 'Aleo', serif;">
                                 <div class="card-content" style="background: #191919; padding: 12px; text-align: center;">
-                                    <div style="color: #C9A060; font-weight: bold; font-size: 1.1em; margin-bottom: 6px;">Item Crafted</div>
-                                    <div style="color: #e0e0e0;">${actor.name} crafted <strong style="color:#C9A060;">${craftItem.name}</strong> and it was added to their inventory.</div>
+                                    <div style="color: #C9A060; font-weight: bold; font-size: 1.1em; margin-bottom: 6px;">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.craftedTitle")}</div>
+                                    <div style="color: #e0e0e0;">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.craftedBody", { actor: foundry.utils.escapeHTML(actor.name), item: craftedItem })}</div>
                                 </div>
                             </div>`;
                             await ChatMessage.create({ user: game.user.id, style: CONST.CHAT_MESSAGE_STYLES.OTHER, content: craftMsg });
@@ -735,7 +795,7 @@ async function _applyDowntimeEffects() {
         const newStress = Math.max(0, currentStress - 1);
         await actor.update({ "system.resources.stress.value": newStress });
         if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
-        resultsByActor.get(actor.id).events.push(`Premium Bedroll (Automatically clear 1 Stress)`);
+        resultsByActor.get(actor.id).events.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.bedroll"));
     }
 
     // Self-Healing armour: "When you take a rest, clear an Armor Slot." Unconditional on any rest,
@@ -747,7 +807,7 @@ async function _applyDowntimeEffects() {
         if (marks <= 0) continue;
         await _reduceArmorMarks(actor, 1);
         if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
-        resultsByActor.get(actor.id).events.push(`Self-Healing (Automatically clear 1 Armor Slot)`);
+        resultsByActor.get(actor.id).events.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.selfHealing"));
     }
 
     // Armorer bonus: when an actor with Armorer uses Repair Armor, all other included actors clear 1 Armor Slot
@@ -758,7 +818,7 @@ async function _applyDowntimeEffects() {
             if (ally.id === actor.id) continue;
             await _reduceArmorMarks(ally, 1);
             if (!resultsByActor.has(ally.id)) resultsByActor.set(ally.id, { name: ally.name, events: [] });
-            resultsByActor.get(ally.id).events.push(`Armorer (${actor.name} cleared 1 Armor Slot)`);
+            resultsByActor.get(ally.id).events.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.armorer", { name: foundry.utils.escapeHTML(actor.name) }));
         }
     }
 
@@ -774,7 +834,7 @@ async function _applyDowntimeEffects() {
         if (currentHope < 1) continue;
         await actor.update({ "system.resources.hope.value": currentHope - 1 });
         if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
-        resultsByActor.get(actor.id).events.push(`Recovery (Spent 1 Hope — ${beneficiaryEntry.actor.name} upgraded a move)`);
+        resultsByActor.get(actor.id).events.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.recovery", { name: foundry.utils.escapeHTML(beneficiaryEntry.actor.name) }));
     }
 
     // Feature refresh (uses recovery + resource recovery)
@@ -820,20 +880,25 @@ async function _applyDowntimeEffects() {
         }
         if (refreshedNames.length > 0) {
             if (!resultsByActor.has(actor.id)) resultsByActor.set(actor.id, { name: actor.name, events: [] });
-            resultsByActor.get(actor.id).events.push(`Refreshed: ${refreshedNames.join(", ")}`);
+            // A short unit list keeps the plain comma list ("A, B, C") with no "and" before the last.
+            const names = game.i18n.getListFormatter({ style: "short", type: "unit" })
+                .format(refreshedNames.map(n => foundry.utils.escapeHTML(n)));
+            resultsByActor.get(actor.id).events.push(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.summary.refreshed", { names }));
         }
     }
 
     // Chat card
-    const restLabel = isLong ? "Long Rest" : "Short Rest";
-    
+    const restLabel = isLong
+        ? game.i18n.localize("DAGGERHEART.APPLICATIONS.Downtime.longRest.title")
+        : game.i18n.localize("DAGGERHEART.APPLICATIONS.Downtime.shortRest.title");
+
     let eventsHtml = "";
     for (const [actorId, data] of resultsByActor) {
         if (data.events.length === 0) continue;
         eventsHtml += `
         <div style="margin-bottom: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; padding: 6px;">
             <div style="font-weight: bold; color: #C9A060; border-bottom: 1px solid rgba(201,160,96,0.3); margin-bottom: 4px; padding-bottom: 2px; font-size: 1.05em;">
-                ${data.name}
+                ${foundry.utils.escapeHTML(data.name)}
             </div>
             <div style="padding-left: 4px; font-size: 0.9em; color: #e0e0e0; line-height: 1.4;">
                 ${data.events.map(e => `<div style="margin-bottom: 2px;">• ${e}</div>`).join("")}
@@ -847,10 +912,10 @@ async function _applyDowntimeEffects() {
             ${restLabel}
         </header>
         <div class="card-content" style="background: #191919; padding: 15px;">
-            <div style="text-align: center; font-weight: bold; color: #C9A060; font-size: 1.1em; margin-bottom: 8px;">The GM earns Fear</div>
+            <div style="text-align: center; font-weight: bold; color: #C9A060; font-size: 1.1em; margin-bottom: 8px;">${game.i18n.localize("DH_QUICKACTIONS.REST.gmEarnsFear")}</div>
             <div style="text-align: center; font-size: 2.5em; font-weight: bold; color: #ffffff; text-shadow: 0 0 10px #C9A060;">+${addedFear}</div>
             <div style="text-align: center; color: #ccc; font-size: 0.9em; margin-top: 4px;">${calculationText}</div>
-            <div style="text-align: center; color: #C9A060; font-size: 1em; margin-top: 8px;">Current Total: ${newFear}</div>
+            <div style="text-align: center; color: #C9A060; font-size: 1em; margin-top: 8px;">${game.i18n.localize("DH_QUICKACTIONS.REST.currentTotal", { total: newFear })}</div>
             <hr style="border: 1px solid rgba(201,160,96,0.3); margin: 12px 0;">
             <div style="color: #e0e0e0; font-size: 0.9em; line-height: 1.6;">
                 ${eventsHtml}
@@ -885,7 +950,7 @@ class ConfigureActorApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         id: "daggerheart-configure-actor",
         classes: ["dh-configure-actor"],
-        window: { title: "Configure Actor", resizable: true },
+        window: { title: "DH_QUICKACTIONS.DOWNTIME.configureActor.title", resizable: true },
         position: { width: 480, height: 320 },
         actions: {
             saveConfig: ConfigureActorApp.prototype._onSaveConfig
@@ -951,7 +1016,7 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         id: "daggerheart-configure-moves",
         classes: ["dh-configure-actor"],
-        window: { title: "Downtime Config", resizable: true },
+        window: { title: "DH_QUICKACTIONS.DOWNTIME.config.title", resizable: true },
         position: { width: 480, height: 500 },
         actions: {
             saveMovesConfig: ConfigureMovesApp.prototype._onSaveMovesConfig,
@@ -1099,17 +1164,17 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
             let data;
             try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
             if (data.type !== 'Item') {
-                ui.notifications.warn("Only items can be dropped here.");
+                ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.onlyItems"));
                 return;
             }
 
             const item = await fromUuid(data.uuid);
             if (!item) {
-                ui.notifications.warn("Could not resolve item.");
+                ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.unresolved"));
                 return;
             }
             if (!ALLOWED_CRAFT_TYPES.includes(item.type)) {
-                ui.notifications.warn(`Only loot, consumable, weapon, or armor items are allowed. Got: ${item.type}`);
+                ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.craftType", { type: item.type }));
                 return;
             }
 
@@ -1152,13 +1217,13 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 let data;
                 try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
                 if (data.type !== 'Item') {
-                    ui.notifications.warn("Only items can be dropped here.");
+                    ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.onlyItems"));
                     return;
                 }
 
                 const item = await fromUuid(data.uuid);
                 if (!item) {
-                    ui.notifications.warn("Could not resolve item.");
+                    ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.unresolved"));
                     return;
                 }
 
@@ -1199,13 +1264,13 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 let data;
                 try { data = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
                 if (data.type !== 'Item') {
-                    ui.notifications.warn("Only items can be dropped here.");
+                    ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.onlyItems"));
                     return;
                 }
 
                 const item = await fromUuid(data.uuid);
                 if (!item) {
-                    ui.notifications.warn("Could not resolve item.");
+                    ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.unresolved"));
                     return;
                 }
 
@@ -1227,17 +1292,18 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const newRow = document.createElement('div');
         newRow.className = 'dui-craft-row';
         newRow.dataset.index = String(nextIndex);
+        const remove = foundry.utils.escapeHTML(game.i18n.localize("DH_QUICKACTIONS.COMMON.remove"));
         newRow.innerHTML = `
             <div class="dui-craft-drop empty" data-slot="recipe" data-index="${nextIndex}">
                 <i class="fas fa-scroll"></i>
-                <span class="dui-craft-name">Drag Recipe Here</span>
+                <span class="dui-craft-name">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.config.dragRecipe")}</span>
             </div>
             <i class="fas fa-arrow-right dui-craft-arrow"></i>
             <div class="dui-craft-drop empty" data-slot="craft" data-index="${nextIndex}">
                 <i class="fas fa-flask"></i>
-                <span class="dui-craft-name">Drag Crafted Item Here</span>
+                <span class="dui-craft-name">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.config.dragCrafted")}</span>
             </div>
-            <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="${nextIndex}" title="Remove">
+            <button type="button" class="dui-craft-remove" data-action="removeCraftRow" data-index="${nextIndex}" title="${remove}">
                 <i class="fas fa-times"></i>
             </button>
             <input type="hidden" name="craftRecipe_${nextIndex}" value="">
@@ -1255,14 +1321,16 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const newRow = document.createElement('div');
         newRow.className = 'dui-custom-row';
         newRow.dataset.index = String(nextIndex);
+        const placeholder = foundry.utils.escapeHTML(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.config.moveNamePlaceholder"));
+        const remove = foundry.utils.escapeHTML(game.i18n.localize("DH_QUICKACTIONS.COMMON.remove"));
         newRow.innerHTML = `
-            <input type="text" class="dui-custom-input" name="customMove_${nextIndex}" value="" maxlength="27" placeholder="Move name...">
+            <input type="text" class="dui-custom-input" name="customMove_${nextIndex}" value="" maxlength="27" placeholder="${placeholder}">
             <select class="dui-rest-type-select">
-                <option value="any" selected>Any</option>
-                <option value="short">Short</option>
-                <option value="long">Long</option>
+                <option value="any" selected>${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.restType.any")}</option>
+                <option value="short">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.restType.short")}</option>
+                <option value="long">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.restType.long")}</option>
             </select>
-            <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="${nextIndex}" title="Remove">
+            <button type="button" class="dui-craft-remove" data-action="removeCustomRow" data-index="${nextIndex}" title="${remove}">
                 <i class="fas fa-times"></i>
             </button>`;
         customList.appendChild(newRow);
@@ -1278,17 +1346,18 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const newRow = document.createElement('div');
         newRow.className = 'dui-itemmove-row';
         newRow.dataset.index = String(nextIndex);
+        const remove = foundry.utils.escapeHTML(game.i18n.localize("DH_QUICKACTIONS.COMMON.remove"));
         newRow.innerHTML = `
             <div class="dui-itemmove-drop empty" data-index="${nextIndex}">
                 <i class="fas fa-box-open"></i>
-                <span class="dui-itemmove-name">Drag Item Here</span>
+                <span class="dui-itemmove-name">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.dragItem")}</span>
             </div>
             <select class="dui-rest-type-select">
-                <option value="any" selected>Any</option>
-                <option value="short">Short</option>
-                <option value="long">Long</option>
+                <option value="any" selected>${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.restType.any")}</option>
+                <option value="short">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.restType.short")}</option>
+                <option value="long">${game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.restType.long")}</option>
             </select>
-            <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="${nextIndex}" title="Remove">
+            <button type="button" class="dui-craft-remove" data-action="removeItemMoveRow" data-index="${nextIndex}" title="${remove}">
                 <i class="fas fa-times"></i>
             </button>
             <input type="hidden" name="itemMove_${nextIndex}" value="">`;
@@ -1321,7 +1390,7 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         if (dropZone) {
             dropZone.classList.remove('filled');
             dropZone.classList.add('empty');
-            dropZone.querySelector('.dui-core-item-name').textContent = "Drag Item Here";
+            dropZone.querySelector('.dui-core-item-name').textContent = game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.dragItem");
         }
         // Hide the remove button
         target.style.display = "none";
@@ -1386,7 +1455,7 @@ class ConfigureMovesApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await game.settings.set(MODULE_ID, "downtimeItemMoveEntries", itemMoveEntries);
         await game.settings.set(MODULE_ID, "downtimeCoreFeatures", coreFeatures);
         await game.settings.set(MODULE_ID, DOWNTIME_DISABLED_USERS, disabledUsers);
-        ui.notifications.info("Downtime configuration saved.");
+        ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.saved"));
         this.close();
     }
 
@@ -1406,7 +1475,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     static DEFAULT_OPTIONS = {
         id: "daggerheart-downtime-ui",
         classes: ["dh-downtime-ui"],
-        window: { title: "Downtime", icon: "fas fa-moon", resizable: true, controls: [] },
+        window: { title: "DAGGERHEART.GENERAL.downtime", icon: "fas fa-moon", resizable: true, controls: [] },
         position: { width: 720, height: "auto" },
         actions: {
             startDowntime: DowntimeUIApp.prototype._onStartDowntime,
@@ -1437,14 +1506,14 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const isLong = globalRestType === "long";
 
         const shortActions = [
-            { key: "tendWounds", label: "Tend to Wounds", hasTarget: true },
-            { key: "clearStress", label: "Clear Stress", hasTarget: false },
-            { key: "repairArmor", label: "Repair Armor", hasTarget: true },
-            { key: "prepare", label: "Prepare", hasTarget: false }
+            { key: "tendWounds", label: game.i18n.localize(MOVE_LABELS.tendWounds), hasTarget: true },
+            { key: "clearStress", label: game.i18n.localize(MOVE_LABELS.clearStress), hasTarget: false },
+            { key: "repairArmor", label: game.i18n.localize(MOVE_LABELS.repairArmor), hasTarget: true },
+            { key: "prepare", label: game.i18n.localize(MOVE_LABELS.prepare), hasTarget: false }
         ];
         const longActions = [
             ...shortActions,
-            { key: "workOnProject", label: "Work on a Project", hasTarget: false }
+            { key: "workOnProject", label: game.i18n.localize(MOVE_LABELS.workOnProject), hasTarget: false }
         ];
         const availableActions = isLong ? longActions : shortActions;
 
@@ -1589,22 +1658,22 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             // bonus below. All are offered on both rest types, since none of the features draw a
             // short/long distinction.
             if (_hasFavorFeature(actor)) {
-                allActions.push({ key: "core_favor", label: "Show Tribute", hasTarget: false });
+                allActions.push({ key: "core_favor", label: game.i18n.localize(MOVE_LABELS.core_favor), hasTarget: false });
             }
             if (_hasChangeShapeFeature(actor)) {
-                allActions.push({ key: "core_changeShape", label: "Change Shape", hasTarget: false });
+                allActions.push({ key: "core_changeShape", label: game.i18n.localize(MOVE_LABELS.core_changeShape), hasTarget: false });
             }
             if (_hasOnlySkinDeepFeature(actor)) {
-                allActions.push({ key: "core_onlySkinDeep", label: "Only Skin Deep", hasTarget: false });
+                allActions.push({ key: "core_onlySkinDeep", label: game.i18n.localize(MOVE_LABELS.core_onlySkinDeep), hasTarget: false });
             }
             // Add Forager as a bonus action if the actor has it
             if (hasForager) {
-                allActions.push({ key: "core_forager", label: "Forage", hasTarget: false, isBonusMove: true, isForagerMove: true });
+                allActions.push({ key: "core_forager", label: game.i18n.localize(MOVE_LABELS.core_forager), hasTarget: false, isBonusMove: true, isForagerMove: true });
             }
             // Pipeweed is opt-in: owning the leaf offers the move, choosing it smokes one. Short
             // rest only, and free — it is the consumable that is spent, not a downtime move.
             if (!isLong && _hasPipeweed(actor)) {
-                allActions.push({ key: "core_pipeweed", label: "Smoke Pipeweed", hasTarget: false, isBonusMove: true });
+                allActions.push({ key: "core_pipeweed", label: game.i18n.localize(MOVE_LABELS.core_pipeweed), hasTarget: false, isBonusMove: true });
             }
 
             // Each available move carries the list of its selected instances so the
@@ -1646,7 +1715,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             });
 
             // Target options: "Yourself" + all other actors
-            const targetOptions = [{ id: "", name: "Yourself" }];
+            const targetOptions = [{ id: "", name: game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.ui.yourself") }];
             for (const other of allActors) {
                 if (other.id === actorId) continue;
                 targetOptions.push({ id: other.id, name: other.name });
@@ -1672,7 +1741,6 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             const hasEloquent = _hasEloquentFeature(actor);
             const eloquentOptions = [];
             if (hasEloquent) {
-                eloquentOptions.push({ id: "", name: "Choose beneficiary..." });
                 for (const other of allActors) {
                     if (other.id === actorId) continue;
                     eloquentOptions.push({ id: other.id, name: other.name });
@@ -1713,13 +1781,13 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (domainLoadout < 5 && domainVault > 0) {
                 domainCardStatus = {
                     type: "warning",
-                    message: "Move cards from vault to loadout",
+                    message: "DH_QUICKACTIONS.DOWNTIME.ui.vaultToLoadout",
                     count: `${domainLoadout}/5`
                 };
             } else if (domainLoadout >= 5 && domainVault > 0) {
                 domainCardStatus = {
                     type: "info",
-                    message: "You can swap cards between vault and loadout",
+                    message: "DH_QUICKACTIONS.DOWNTIME.ui.swapCards",
                     count: `${domainLoadout}/5`
                 };
             }
@@ -1796,7 +1864,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             rows, isGM, hasAnyActor: rows.length > 0,
             restType: globalRestType, isLong, isShort: !isLong,
-            restLabel: isLong ? "Long Rest" : "Short Rest",
+            restLabel: isLong ? "DAGGERHEART.APPLICATIONS.Downtime.longRest.title" : "DAGGERHEART.APPLICATIONS.Downtime.shortRest.title",
             foragerOptions: FORAGER_OPTIONS,
             shortRestCount, shortRestPips
         };
@@ -1931,7 +1999,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
     async _onResendDowntime() {
         if (!game.user.isGM) return;
         await game.settings.set(MODULE_ID, "downtimeUIOpen", { timestamp: Date.now() });
-        ui.notifications.info("Downtime UI re-sent to all players.");
+        ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.resent"));
     }
 
     async _onSetRestType(event, target) {
@@ -2210,7 +2278,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
 export async function activateDowntimeUI() {
     if (!game.user.isGM) {
-        ui.notifications.warn("Only the GM can open the Downtime UI.");
+        ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.DOWNTIME.notify.gmOnly"));
         return;
     }
     if (DowntimeUIApp._instance?.rendered) {
