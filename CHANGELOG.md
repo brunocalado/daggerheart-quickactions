@@ -1,3 +1,14 @@
+# 0.7.11
+
+- [Added] The module can be translated. Every window, chat card, notification and setting reads its text from `lang/en.json`, and each client shows it in its own language, including shared windows such as Downtime and Barter. Move names, stat labels and rest titles reuse the Daggerheart system's own translations. The README's new Translations section explains how to send a translated copy.
+- [Fixed] Features and items the module looks for (Efficient, Forager, Celestial Trance, Premium Bedroll, Timekeeper's Pendant, Unleash Chaos and the rest) are recognised by the compendium they were copied from instead of by their English name. A renamed copy, or a table running the system in another language, no longer loses them. Hand-made items with the same name as the configured one still count.
+- [Fixed] Downtime Craft recognises a recipe the same way, so a renamed copy of a compendium recipe is offered as a Craft move.
+- [Changed] Barter's chat receipt writes the currency with the system's label, "3 Coins" instead of "3 coins".
+- [Changed] The Light Sources pattern names shown in the Token HUD are translated. Their ids are unchanged, so customized sources keep their settings.
+- [Fixed] Character, item and target names placed in the Downtime, Barter and Chain Lightning chat cards are escaped, so a name with HTML in it shows as text.
+- [Changed] The README lists Beastbound among the Downtime features and mentions the system menu sections the module removes.
+- Checked in a disposable Foundry 14.369 / Daggerheart 2.10.12 world with a GM and two player clients, one of them in French: the Downtime UI and its summary, Barter between players and with the party stash, Chain Lightning, Unleash Chaos, roll requests, loot, custom tables, falling damage, level up and the settings windows, before and after each change with fixed dice. A Craft move was offered and resolved for a renamed compendium recipe and for a hand-made world recipe. Nothing went to the error log. How the translated windows look in languages with longer words was not checked.
+
 # 0.7.10
 
 - [Changed] The Biography tab is now one GM switch, **Hide Biography Tab**, in the Interface Settings window. On, the tab is hidden on character sheets for everyone; off (the default), it is shown. It replaces **Biography Tab Visibility** and its three choices. A world that had the tab forced hidden starts with it visible again.
