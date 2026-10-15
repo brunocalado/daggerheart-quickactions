@@ -411,7 +411,7 @@
           "users": "Users"
         },
         "coreInfo": "These are the default core features used during downtime. You can replace the linked item if needed — the mechanical effect stays the same, and a character has the feature when they own a copy of the new item or an item with the same name.",
-        "craftInfo": "If an actor owns the recipe item (matched by name), the crafted item will be added to their sheet when the downtime move is executed. Items are matched by name.",
+        "craftInfo": "If an actor owns a copy of the recipe item, or an item with the same name, the crafted item will be added to their sheet when the downtime move is executed.",
         "customInfo": "Add custom move names that will appear as selectable actions during downtime. These are freeform labels — no item link required. Use the rest type selector to restrict when each move is available.",
         "itemMovesInfo": "Drag items here to create moves linked to specific items. The move will only appear for actors who own a copy of the item, or an item with the same name. Use the rest type selector to restrict when each move is available.",
         "usersInfo": "Switch off any user who should never take part in downtime. A disabled user is hidden from the Downtime window even while connected, and is skipped when the downtime effects are applied.",

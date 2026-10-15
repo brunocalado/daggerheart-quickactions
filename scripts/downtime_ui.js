@@ -1559,7 +1559,7 @@ class DowntimeUIApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (!entry.recipeUuid) continue;
                 const recipeItem = await fromUuid(entry.recipeUuid);
                 if (!recipeItem) continue;
-                const owned = actor.items.find(i => i.name === recipeItem.name);
+                const owned = findSourcedItem(actor, entry.recipeUuid);
                 if (owned) {
                     extraActions.push({ key: `craft_${entry.recipeUuid}`, label: recipeItem.name, hasTarget: false, isExtra: true });
                 }
