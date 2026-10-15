@@ -57,10 +57,10 @@ const GOLD_KEYS = ["coins", "handfuls", "bags", "chests"];
 
 /** Fallback currency labels/icons used when the system's homebrew setting cannot be read. */
 const GOLD_FALLBACK = Object.freeze({
-    coins: { label: "Coins", icon: "fa-solid fa-coin-front" },
-    handfuls: { label: "Handfuls", icon: "fa-solid fa-coins" },
-    bags: { label: "Bags", icon: "fa-solid fa-sack" },
-    chests: { label: "Chests", icon: "fa-solid fa-treasure-chest" }
+    coins: { label: "DAGGERHEART.CONFIG.Gold.coins", icon: "fa-solid fa-coin-front" },
+    handfuls: { label: "DAGGERHEART.CONFIG.Gold.handfuls", icon: "fa-solid fa-coins" },
+    bags: { label: "DAGGERHEART.CONFIG.Gold.bags", icon: "fa-solid fa-sack" },
+    chests: { label: "DAGGERHEART.CONFIG.Gold.chests", icon: "fa-solid fa-treasure-chest" }
 });
 
 /** Discriminator that separates Barter traffic from any other module socket traffic. */
@@ -84,6 +84,50 @@ const MESSAGES = Object.freeze({
     /** Initiator → recipient: the GM settled the trade. */
     COMPLETE: "complete"
 });
+
+/**
+ * Why a peer refused an invite or left a trade. The packet carries the code and each client words
+ * it in its own language. The code comes from another client, so it is read with `Object.hasOwn`.
+ */
+const DECLINE_REASONS = Object.freeze({
+    noCharacter: "DH_QUICKACTIONS.BARTER.declineReason.noCharacter",
+    busy: "DH_QUICKACTIONS.BARTER.declineReason.busy"
+});
+const CANCEL_REASONS = Object.freeze({
+    closed: "DH_QUICKACTIONS.BARTER.cancelReason.closed",
+    gone: "DH_QUICKACTIONS.BARTER.cancelReason.gone"
+});
+
+/**
+ * A trade refused by validation. It carries a translation key and its data rather than a sentence:
+ * the GM's client settles a peer trade while the player who asked reads the refusal, and a query
+ * rejection reaches the requester as a message already worded in the GM's language.
+ */
+class BarterError extends Error {
+    /**
+     * @param {string} key - Translation key from the Barter error group of en.json.
+     * @param {object} [data={}] - Values for the key's placeholders.
+     */
+    constructor(key, data = {}) {
+        super(key);
+        this.key = key;
+        this.data = data;
+    }
+}
+
+/**
+ * Words a failed settlement for this client. The names in a refusal's data are escaped, since the
+ * text ends up in a notification.
+ * @param {Error} error - A {@link BarterError}, or any other failure (a query timeout, a refused
+ *   database write), which is shown as Foundry worded it.
+ * @returns {string} The reason, ready for a notification.
+ */
+function describeBarterError(error) {
+    if (!(error instanceof BarterError)) return error.message;
+    const data = Object.fromEntries(Object.entries(error.data ?? {})
+        .map(([key, value]) => [key, foundry.utils.escapeHTML(String(value))]));
+    return game.i18n.localize(error.key, data);
+}
 
 /**
  * The single Barter window open on this client. Barter is inherently one-at-a-time: a second
@@ -189,7 +233,8 @@ function getCurrencies() {
         if (entry && entry.enabled === false) return null;
         return {
             key,
-            label: entry?.label || GOLD_FALLBACK[key].label,
+            // The system stores its default labels as English text; localize() passes those through.
+            label: game.i18n.localize(entry?.label || GOLD_FALLBACK[key].label),
             icon: entry?.icon || GOLD_FALLBACK[key].icon
         };
     }).filter(Boolean);
@@ -292,7 +337,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         tag: "div",
         id: "dh-qa-barter-app",
         classes: ["dh-qa-app", MODULE_ID, "dqa-barter"],
-        window: { title: "Barter", icon: "fas fa-right-left", resizable: true, controls: [] },
+        window: { title: "DH_QUICKACTIONS.BARTER.title", icon: "fas fa-right-left", resizable: true, controls: [] },
         position: { width: 900, height: 660 },
         actions: {
             selectTab: BarterApp.prototype._onSelectTab,
@@ -464,7 +509,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             isParty,
             isInitiator: this.isInitiator,
 
-            mineTitle: isParty ? "You Give" : "Your Offer",
+            mineTitle: isParty ? "DH_QUICKACTIONS.BARTER.youGive" : "DH_QUICKACTIONS.BARTER.yourOffer",
             actorName: this.actor.name,
             actorImg: this.actor.img,
             tabs: this._buildTabs(this.actor, "mine"),
@@ -473,6 +518,10 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             myOfferCount: this.mine.items.length,
 
             peerName: peerUser?.name ?? "",
+            // The name sits inside markup the key carries, so it is escaped before it goes in.
+            waitingAccept: game.i18n.localize("DH_QUICKACTIONS.BARTER.waitingAccept", {
+                name: foundry.utils.escapeHTML(peerUser?.name ?? "")
+            }),
             peerActorName: peerActor?.name ?? "",
             peerActorImg: peerActor?.img ?? "icons/svg/mystery-man.svg",
             peerItems: this.theirs.items,
@@ -719,15 +768,14 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             : this._sideActor(tile.dataset.side ?? "mine")?.items.get(tile.dataset.itemId);
 
         if (!item) {
-            ui.notifications.warn("Barter: that item is no longer available to inspect.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.inspectGone"));
             return;
         }
         // Foundry refuses to render a sheet the user cannot see, so the check happens here in order
         // to say why. Named with the masked alias — a permission refusal must not be the thing that
         // gives an unidentified item away.
         if (!item.testUserPermission(game.user, "LIMITED")) {
-            ui.notifications.warn(`Barter: ${itemDisplay(item).name} belongs to an actor you have no`
-                + " permission on — the Gamemaster has to grant at least Limited ownership to open it.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.inspectDenied", { name: itemDisplay(item).name }));
             return;
         }
 
@@ -916,7 +964,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const user = game.users.get(this._selectedTarget.id);
         if (!user?.active || user.character?.type !== "character") {
-            ui.notifications.warn("Barter: that user is no longer available to trade.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.userGone"));
             this._selectedTarget = null;
             this.render();
             return;
@@ -931,7 +979,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
         invite.initiator.items = this._offerForAudience(!!user.isGM);
         emitBarter(MESSAGES.INVITE, [user.id], { session: invite });
 
-        ui.notifications.info(`Barter: trade request sent to ${user.name}.`);
+        ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.requestSent", { name: user.name }));
         this.render();
     }
 
@@ -944,7 +992,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
     _startPartyTrade() {
         const party = foundry.utils.fromUuidSync(this._selectedTarget.id);
         if (!party || party.type !== PARTY_TYPE || !party.isOwner || !partyIncludesActor(party, this.actor)) {
-            ui.notifications.warn("Barter: that party stash is no longer available.");
+            ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.partyGone"));
             this._selectedTarget = null;
             this.render();
             return;
@@ -986,19 +1034,20 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             if (game.user.isGM) await settleBarter(this.session, game.user);
             else {
                 const gm = game.users.activeGM;
-                if (!gm) throw new Error("a Gamemaster must be connected to settle a trade");
-                await gm.query(COMMIT_QUERY, { session: this.session }, { timeout: 30000 });
+                if (!gm) throw new BarterError("DH_QUICKACTIONS.BARTER.error.noGM");
+                const reply = await gm.query(COMMIT_QUERY, { session: this.session }, { timeout: 30000 });
+                if (reply?.ok === false) throw new BarterError(String(reply.error), reply.data);
             }
         } catch (error) {
             if (button) button.disabled = false;
-            ui.notifications.error(`Barter: trade failed — ${error.message}`);
+            ui.notifications.error(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.failed", { reason: describeBarterError(error) }));
             console.error(`${MODULE_ID} | Barter settlement failed`, error);
             return;
         }
 
         this.session.status = "completed";
         emitBarter(MESSAGES.COMPLETE, [this.theirs.userId], { sessionId: this.session.id });
-        ui.notifications.info("Barter: trade completed.");
+        ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.completed"));
         this._closingQuietly = true;
         this.close();
     }
@@ -1019,13 +1068,13 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
             await settlePartyTrade(this.session, this.actor);
         } catch (error) {
             if (button) button.disabled = false;
-            ui.notifications.error(`Barter: transfer failed — ${error.message}`);
+            ui.notifications.error(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.transferFailed", { reason: describeBarterError(error) }));
             console.error(`${MODULE_ID} | Barter party transfer failed`, error);
             return;
         }
 
         this.session.status = "completed";
-        ui.notifications.info("Barter: party stash updated.");
+        ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.partyUpdated"));
         this._closingQuietly = true;
         this.close();
     }
@@ -1049,6 +1098,9 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
      * @returns {void}
      */
     _onPeerMessage(data) {
+        // Names are looked up on this client rather than read from the packet.
+        const sender = game.users.get(data.senderId)?.name ?? game.i18n.localize("DH_QUICKACTIONS.BARTER.otherTrader");
+
         switch (data.message) {
             // Only the initiator ever awaits an answer to an invite; ignoring these elsewhere
             // keeps a stray packet from overwriting a side that is not the sender's to touch.
@@ -1056,19 +1108,23 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (!this.isInitiator) return;
                 this.session.recipient = emptySide(data.senderId, data.actorUuid);
                 this.session.status = "active";
-                ui.notifications.info(`Barter: ${game.users.get(data.senderId)?.name ?? "The other trader"} joined the trade.`);
+                ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.joined", { name: sender }));
                 // The recipient only has the offer as it stood when the invite was sent; anything
                 // adjusted while waiting has to be replayed now that syncing is live.
                 this._pushOffer(false);
                 break;
 
-            case MESSAGES.DECLINE:
+            case MESSAGES.DECLINE: {
                 if (!this.isInitiator) return;
                 this.session.recipient = emptySide();
                 this.session.status = "draft";
                 this._selectedTarget = null;
-                ui.notifications.warn(`Barter: ${game.users.get(data.senderId)?.name ?? "The other trader"} declined${data.reason ? ` — ${data.reason}` : ""}.`);
+                const reason = Object.hasOwn(DECLINE_REASONS, data.reason) ? DECLINE_REASONS[data.reason] : null;
+                ui.notifications.warn(reason
+                    ? game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.declinedReason", { name: sender, reason: game.i18n.localize(reason) })
+                    : game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.declined", { name: sender }));
                 break;
+            }
 
             case MESSAGES.UPDATE:
                 Object.assign(this.theirs, {
@@ -1079,15 +1135,19 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
                 if (data.clearPeerLock) this.mine.locked = false;
                 break;
 
-            case MESSAGES.CANCEL:
-                ui.notifications.warn(`Barter: trade cancelled${data.reason ? ` — ${data.reason}` : ""}.`);
+            case MESSAGES.CANCEL: {
+                const reason = Object.hasOwn(CANCEL_REASONS, data.reason) ? CANCEL_REASONS[data.reason] : null;
+                ui.notifications.warn(reason
+                    ? game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.cancelledReason", { reason: game.i18n.localize(reason, { name: sender }) })
+                    : game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.cancelled"));
                 this._closingQuietly = true;
                 this.close();
                 return;
+            }
 
             case MESSAGES.COMPLETE:
                 this.session.status = "completed";
-                ui.notifications.info("Barter: trade completed.");
+                ui.notifications.info(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.completed"));
                 this._closingQuietly = true;
                 this.close();
                 return;
@@ -1116,10 +1176,7 @@ class BarterApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         const peerId = this.theirs.userId;
         if (peerId && ["pending", "active"].includes(this.session.status)) {
-            emitBarter(MESSAGES.CANCEL, [peerId], {
-                sessionId: this.session.id,
-                reason: `${game.user.name} closed the trade window`
-            });
+            emitBarter(MESSAGES.CANCEL, [peerId], { sessionId: this.session.id, reason: "closed" });
         }
     }
 }
@@ -1174,18 +1231,22 @@ function isSameStack(a, b) {
 function planTransfer(offer, from, to, plan) {
     for (const entry of offer.items ?? []) {
         const item = from.items.get(entry.id);
-        if (!item) throw new Error(`${from.name} no longer carries one of the offered items`);
-        if (!BARTER_ITEM_TYPES.includes(item.type)) throw new Error(`${item.name} is not a tradeable item`);
+        if (!item) throw new BarterError("DH_QUICKACTIONS.BARTER.error.itemGone", { actor: from.name });
+
+        // The summary and any refusal reach the players, so they are always written for the widest
+        // possible audience — a mystified item stays mystified even though a GM built the plan.
+        const label = itemDisplay(item, { asGM: false }).name;
+        if (!BARTER_ITEM_TYPES.includes(item.type)) throw new BarterError("DH_QUICKACTIONS.BARTER.error.notTradeable", { item: label });
 
         const source = ledgerEntry(plan.ledger, from, item);
         const quantity = Math.floor(Number(entry.quantity) || 0);
-        if (quantity < 1 || quantity > source.original) throw new Error(`invalid quantity offered for ${item.name}`);
+        if (quantity < 1 || quantity > source.original) throw new BarterError("DH_QUICKACTIONS.BARTER.error.badQuantity", { item: label });
         source.quantity -= quantity;
 
-        // The summary becomes a public chat card, so it is always written for the widest possible
-        // audience — a mystified item stays mystified there even though a GM built the plan.
-        const label = itemDisplay(item, { asGM: false }).name;
-        plan.summary.push({ fromId: from.id, label: `${label}${quantity > 1 ? ` ×${quantity}` : ""}` });
+        plan.summary.push({
+            fromId: from.id,
+            label: quantity > 1 ? game.i18n.localize("DH_QUICKACTIONS.BARTER.summaryItem", { name: label, count: quantity }) : label
+        });
 
         // Character actors merge loot and consumables into existing stacks; anything else — and
         // any item the receiver does not already own — arrives as its own document.
@@ -1206,16 +1267,20 @@ function planTransfer(offer, from, to, plan) {
         plan.creates.get(to).push(...copies);
     }
 
+    const currencies = getCurrencies();
     for (const [key, raw] of Object.entries(offer.gold ?? {})) {
-        if (!GOLD_KEYS.includes(key)) throw new Error(`unknown currency "${key}"`);
+        if (!GOLD_KEYS.includes(key)) throw new BarterError("DH_QUICKACTIONS.BARTER.error.badCurrency", { key });
 
         const amount = Math.floor(Number(raw) || 0);
         if (amount <= 0) continue;
-        if (amount > (from.system?.gold?.[key] ?? 0)) throw new Error(`${from.name} does not have ${amount} ${key}`);
+        const currency = currencies.find(c => c.key === key)?.label ?? game.i18n.localize(GOLD_FALLBACK[key].label);
+        if (amount > (from.system?.gold?.[key] ?? 0)) {
+            throw new BarterError("DH_QUICKACTIONS.BARTER.error.notEnoughGold", { actor: from.name, amount, currency });
+        }
 
         adjustGold(plan.gold, from, key, -amount);
         adjustGold(plan.gold, to, key, amount);
-        plan.summary.push({ fromId: from.id, label: `${amount} ${key}` });
+        plan.summary.push({ fromId: from.id, label: game.i18n.localize("DH_QUICKACTIONS.BARTER.summaryGold", { amount, currency }) });
     }
 }
 
@@ -1249,7 +1314,7 @@ function buildBarterPlan(session, fromActor, toActor) {
     const plan = { ledger: new Map(), creates: new Map(), gold: new Map(), summary: [] };
     planTransfer(session.initiator, fromActor, toActor, plan);
     planTransfer(session.recipient, toActor, fromActor, plan);
-    if (!plan.summary.length) throw new Error("there is nothing to trade");
+    if (!plan.summary.length) throw new BarterError("DH_QUICKACTIONS.BARTER.error.nothing");
     return plan;
 }
 
@@ -1299,27 +1364,29 @@ async function applyBarterPlan(plan) {
  * @returns {Promise<{ok: true}>} Resolves once the batch has been written.
  */
 async function settleBarter(session, requester) {
-    if (!game.user.isGM) throw new Error("only a Gamemaster can settle a trade");
+    if (!game.user.isGM) throw new BarterError("DH_QUICKACTIONS.BARTER.error.notGM");
 
     const { initiator, recipient } = session ?? {};
-    if (!initiator?.actorUuid || !recipient?.actorUuid) throw new Error("the trade session is incomplete");
-    if (requester.id !== initiator.userId) throw new Error("only the user who started the trade can approve it");
-    if (!recipient.locked) throw new Error("the other trader has not confirmed their offer");
+    if (!initiator?.actorUuid || !recipient?.actorUuid) throw new BarterError("DH_QUICKACTIONS.BARTER.error.incomplete");
+    if (requester.id !== initiator.userId) throw new BarterError("DH_QUICKACTIONS.BARTER.error.notInitiator");
+    if (!recipient.locked) throw new BarterError("DH_QUICKACTIONS.BARTER.error.notConfirmed");
 
     const [fromActor, toActor] = await Promise.all([
         foundry.utils.fromUuid(initiator.actorUuid),
         foundry.utils.fromUuid(recipient.actorUuid)
     ]);
-    if (!fromActor || !toActor) throw new Error("one of the trading actors no longer exists");
-    if (fromActor.id === toActor.id) throw new Error("an actor cannot trade with itself");
-    if (fromActor.type !== "character" || toActor.type !== "character") throw new Error("both traders must use a character actor");
+    if (!fromActor || !toActor) throw new BarterError("DH_QUICKACTIONS.BARTER.error.actorMissing");
+    if (fromActor.id === toActor.id) throw new BarterError("DH_QUICKACTIONS.BARTER.error.sameActor");
+    if (fromActor.type !== "character" || toActor.type !== "character") throw new BarterError("DH_QUICKACTIONS.BARTER.error.notCharacters");
 
     // The claimed actors must really belong to the claimed users — the session travelled over an
     // untrusted socket, so nothing in it is taken on faith.
     for (const [side, actor] of [[initiator, fromActor], [recipient, toActor]]) {
         const user = game.users.get(side.userId);
-        if (!user) throw new Error("one of the traders is no longer connected");
-        if (user.character?.id !== actor.id) throw new Error(`${actor.name} is not ${user.name}'s assigned character`);
+        if (!user) throw new BarterError("DH_QUICKACTIONS.BARTER.error.traderGone");
+        if (user.character?.id !== actor.id) {
+            throw new BarterError("DH_QUICKACTIONS.BARTER.error.notAssigned", { actor: actor.name, user: user.name });
+        }
     }
 
     const plan = buildBarterPlan(session, fromActor, toActor);
@@ -1339,9 +1406,11 @@ async function settleBarter(session, requester) {
  */
 async function settlePartyTrade(session, actor) {
     const party = await foundry.utils.fromUuid(session?.recipient?.actorUuid);
-    if (!party || party.type !== PARTY_TYPE) throw new Error("the party sheet no longer exists");
-    if (!party.isOwner) throw new Error(`you do not have owner permission on ${party.name}`);
-    if (!partyIncludesActor(party, actor)) throw new Error(`${actor.name} is not a member of ${party.name}`);
+    if (!party || party.type !== PARTY_TYPE) throw new BarterError("DH_QUICKACTIONS.BARTER.error.partyMissing");
+    if (!party.isOwner) throw new BarterError("DH_QUICKACTIONS.BARTER.error.partyNotOwner", { party: party.name });
+    if (!partyIncludesActor(party, actor)) {
+        throw new BarterError("DH_QUICKACTIONS.BARTER.error.notMember", { actor: actor.name, party: party.name });
+    }
 
     const plan = buildBarterPlan(session, actor, party);
     await applyBarterPlan(plan);
@@ -1361,11 +1430,11 @@ async function postBarterSummary(fromActor, toActor, summary) {
         const given = summary.filter(line => line.fromId === actor.id);
         const body = given.length
             ? given.map(line => `<li style="list-style: none;">${foundry.utils.escapeHTML(line.label)}</li>`).join("")
-            : `<li style="list-style: none; font-style: italic; opacity: 0.7;">nothing</li>`;
+            : `<li style="list-style: none; font-style: italic; opacity: 0.7;">${game.i18n.localize("DH_QUICKACTIONS.BARTER.nothingGiven")}</li>`;
         return `
             <div style="width: 100%; margin-bottom: 10px;">
                 <div style="color: #C9A060 !important; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">
-                    ${foundry.utils.escapeHTML(actor.name)} gave
+                    ${game.i18n.localize("DH_QUICKACTIONS.BARTER.gave", { name: foundry.utils.escapeHTML(actor.name) })}
                 </div>
                 <ul style="margin: 0; padding: 0; color: #ffffff !important;">${body}</ul>
             </div>`;
@@ -1373,7 +1442,7 @@ async function postBarterSummary(fromActor, toActor, summary) {
 
     await ChatMessage.create({
         author: game.user.id,
-        content: buildChatCard("Barter", `
+        content: buildChatCard(game.i18n.localize("DH_QUICKACTIONS.BARTER.title"), `
             <div style="width: 100%; text-align: left;">
                 ${block(fromActor)}
                 ${block(toActor)}
@@ -1399,18 +1468,22 @@ async function onBarterInvite(data) {
     const decline = (reason) => emitBarter(MESSAGES.DECLINE, [session.initiator.userId], { sessionId: session.id, reason });
 
     const actor = game.user.character;
-    if (!actor || actor.type !== "character") return decline("they have no linked character");
-    if (currentApp) return decline("they are already in a trade");
+    if (!actor || actor.type !== "character") return decline("noCharacter");
+    if (currentApp) return decline("busy");
 
     const initiatorActor = foundry.utils.fromUuidSync(session.initiator.actorUuid);
     const offerCount = session.initiator.items.length + Object.values(session.initiator.gold ?? {}).filter(v => v > 0).length;
+    const inviter = foundry.utils.escapeHTML(initiatorUser?.name ?? game.i18n.localize("DH_QUICKACTIONS.BARTER.someone"));
+    const inviterActor = foundry.utils.escapeHTML(initiatorActor?.name ?? game.i18n.localize("DH_QUICKACTIONS.BARTER.unknownCharacter"));
+    const opening = offerCount === 1
+        ? game.i18n.localize("DH_QUICKACTIONS.BARTER.inviteOfferOne", { count: offerCount })
+        : game.i18n.localize("DH_QUICKACTIONS.BARTER.inviteOfferMany", { count: offerCount });
     const accepted = await DialogV2.confirm({
-        window: { title: "Barter", icon: "fas fa-right-left" },
-        content: `<p><strong>${foundry.utils.escapeHTML(initiatorUser?.name ?? "Someone")}</strong>
-            (${foundry.utils.escapeHTML(initiatorActor?.name ?? "unknown character")}) wants to trade with you.</p>
-            <p>They are opening with ${offerCount} item${offerCount === 1 ? "" : "s"} on the table.</p>`,
-        yes: { label: "Open Trade" },
-        no: { label: "Decline" },
+        window: { title: "DH_QUICKACTIONS.BARTER.title", icon: "fas fa-right-left" },
+        content: `<p>${game.i18n.localize("DH_QUICKACTIONS.BARTER.inviteBody", { user: inviter, actor: inviterActor })}</p>
+            <p>${opening}</p>`,
+        yes: { label: "DH_QUICKACTIONS.BARTER.openTrade" },
+        no: { label: "DH_QUICKACTIONS.BARTER.decline" },
         modal: false,
         rejectClose: false
     });
@@ -1418,7 +1491,7 @@ async function onBarterInvite(data) {
     if (!accepted) return decline("");
 
     // The window may have been opened for another session while the prompt was up.
-    if (currentApp) return decline("they are already in a trade");
+    if (currentApp) return decline("busy");
 
     session.recipient = emptySide(game.user.id, actor.uuid);
     session.status = "active";
@@ -1454,10 +1527,7 @@ function onBarterSocket(data) {
     // The session this packet belongs to is gone on this end (window closed, page reloaded).
     // Answer anything that expects a partner so the sender is not left waiting.
     if (data.message !== MESSAGES.CANCEL && data.message !== MESSAGES.COMPLETE && data.senderId) {
-        emitBarter(MESSAGES.CANCEL, [data.senderId], {
-            sessionId: data.sessionId,
-            reason: `${game.user.name} is no longer in this trade`
-        });
+        emitBarter(MESSAGES.CANCEL, [data.senderId], { sessionId: data.sessionId, reason: "gone" });
     }
 }
 
@@ -1472,7 +1542,16 @@ function onBarterSocket(data) {
  */
 export function registerBarter() {
     game.socket.on(`module.${MODULE_ID}`, onBarterSocket);
-    CONFIG.queries[COMMIT_QUERY] = (data, { user }) => settleBarter(data?.session, user);
+    CONFIG.queries[COMMIT_QUERY] = async (data, { user }) => {
+        try {
+            return await settleBarter(data?.session, user);
+        } catch (error) {
+            // A thrown error reaches the requester as its message alone, worded in this GM's
+            // language; a refusal goes back as its key, for the requester to word.
+            if (error instanceof BarterError) return { ok: false, error: error.key, data: error.data };
+            throw error;
+        }
+    };
 }
 
 /**
@@ -1490,7 +1569,7 @@ export async function activateBarter() {
 
     const actor = game.user.character;
     if (!actor || actor.type !== "character") {
-        ui.notifications.warn("Barter: you need a linked character actor to trade.");
+        ui.notifications.warn(game.i18n.localize("DH_QUICKACTIONS.BARTER.notify.noCharacter"));
         return;
     }
 
