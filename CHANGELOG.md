@@ -1,3 +1,8 @@
+# 0.7.12
+
+- [Removed] The **Hide Biography Tab** switch and the Character Sheet section of the Interface Settings window. The tab it hid is the one Daggerheart: Nice Sheets uses for its Notes, so turning it on took the Notes away there. A world that had the tab hidden shows it again.
+- Checked in a disposable Foundry 14.369 / Daggerheart 2.10.13 world with Daggerheart: Nice Sheets enabled: the Quick Actions button shows in the Nice Sheets header, fits when the sheet is collapsed and opens the macro list, the Notes tab is shown, and the Interface Settings window lists only the Menu and Tokens switches. Nothing went to the error log.
+
 # 0.7.11
 
 - [Added] The module can be translated. Every window, chat card, notification and setting reads its text from `lang/en.json`, and each client shows it in its own language, including shared windows such as Downtime and Barter. Move names, stat labels and rest titles reuse the Daggerheart system's own translations. The README's new Translations section explains how to send a translated copy.
