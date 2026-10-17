@@ -16,7 +16,7 @@
  */
 
 import {
-    MODULE_ID, HIDE_BIOGRAPHY_TAB, MENU_ENHANCEMENTS_ENABLED, TOKEN_TOOLTIP_ENABLED, HOPE_BAR_ENABLED
+    MODULE_ID, MENU_ENHANCEMENTS_ENABLED, TOKEN_TOOLTIP_ENABLED, HOPE_BAR_ENABLED
 } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -49,8 +49,7 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             menuEnhancements: game.settings.get(MODULE_ID, MENU_ENHANCEMENTS_ENABLED),
             tokenTooltip: game.settings.get(MODULE_ID, TOKEN_TOOLTIP_ENABLED),
-            hopeBar: game.settings.get(MODULE_ID, HOPE_BAR_ENABLED),
-            hideBiography: game.settings.get(MODULE_ID, HIDE_BIOGRAPHY_TAB)
+            hopeBar: game.settings.get(MODULE_ID, HOPE_BAR_ENABLED)
         };
     }
 
@@ -73,10 +72,6 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this.element.querySelector('[name="hopeBar"]')?.addEventListener("change", event => {
             game.settings.set(MODULE_ID, HOPE_BAR_ENABLED, event.target.checked);
-        });
-
-        this.element.querySelector('[name="hideBiography"]')?.addEventListener("change", event => {
-            game.settings.set(MODULE_ID, HIDE_BIOGRAPHY_TAB, event.target.checked);
         });
     }
 }

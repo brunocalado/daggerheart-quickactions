@@ -38,8 +38,6 @@ import { registerFallingDamageSettings } from "./falling-damage-settings.js";
 import { registerLootConsumableSettings } from "./loot-consumable-settings.js";
 // Import Custom Tables (GM-curated roll tables for the Custom Tables roller)
 import { registerCustomTablesSettings } from "./custom-tables-settings.js";
-// Import Biography Tab visibility
-import { registerBiographyTabSettings, initBiographyTab } from "./biography-tab.js";
 // Import Quick Actions macro list (settings menu + character sheet header button)
 import { registerQuickActionsMacrosSettings, initQuickActionsButton, showQuickActionsMacros } from "./quick-actions-macros.js";
 // Import Cinematic Roll Images (settings menu for the Request Roll cinematic prompt images)
@@ -256,12 +254,10 @@ Hooks.once("init", () => {
     registerFallingDamageSettings();
     registerLootConsumableSettings();
     registerCustomTablesSettings();
-    registerBiographyTabSettings();
     registerQuickActionsMacrosSettings();
     registerCinematicImagesSettings();
     initTokenTooltip();
     initHopeBar();
-    initBiographyTab();
     initQuickActionsButton();
     initDaggerheartMenuEnhancer();
     registerChainLightning();

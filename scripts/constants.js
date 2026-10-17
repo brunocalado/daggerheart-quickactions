@@ -110,12 +110,6 @@ export const LOOT_SOURCE_LABELS = Object.freeze({
 export const CUSTOM_TABLES = "customTables";
 
 /**
- * World setting key: when true, the Biography tab is hidden on character sheets for everyone.
- * @type {string}
- */
-export const HIDE_BIOGRAPHY_TAB = "hideBiographyTab";
-
-/**
  * Client-scope setting key holding the collapsed/expanded state of every fieldset in the
  * Daggerheart system's sidebar menu, keyed by a slug of each fieldset's legend text.
  * @type {string}
