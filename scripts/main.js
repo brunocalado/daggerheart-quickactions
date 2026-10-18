@@ -310,19 +310,30 @@ Hooks.on("ready", async () => {
 // PARTY SHEET HOOK — Replace rest buttons with Downtime button (GM only)
 // ==================================================================
 Hooks.on("renderPartySheet", (app, html) => {
-    // Always remove Short Rest and Long Rest buttons — this module replaces them
-    html.querySelectorAll('button[data-action="triggerRest"]').forEach(btn => btn.remove());
+    // Always remove Short Rest and Long Rest — this module replaces them. Matched by action alone:
+    // the Nice Sheets party sheet (a PartySheet subclass, so this hook fires on it) renders them as links.
+    html.querySelectorAll('[data-action="triggerRest"]').forEach(btn => btn.remove());
 
     if (!game.user.isGM) return;
     if (html.querySelector(".dqa-downtime-party-btn")) return;
 
-    const actionsSection = html.querySelector(".actions-section");
+    const label = game.i18n.localize("DAGGERHEART.GENERAL.downtime");
+    const niceActions = html.querySelector(".nice-party-actions");
+    const actionsSection = niceActions ?? html.querySelector(".actions-section");
     if (!actionsSection) return;
 
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.classList.add("dqa-downtime-party-btn");
-    btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>${game.i18n.localize("DAGGERHEART.GENERAL.downtime")}</span>`;
+    // On the Nice party sheet the button takes the place of the rest coins, with their markup and
+    // classes, so the Nice stylesheet draws it.
+    const btn = document.createElement(niceActions ? "a" : "button");
+    if (niceActions) {
+        btn.classList.add("nice-party-action", "rest", "dqa-downtime-party-btn");
+        btn.dataset.tooltip = label;
+        btn.innerHTML = `<span class="coin"><i class="fa-solid fa-moon" inert></i></span><span class="caption">${label}</span>`;
+    } else {
+        btn.type = "button";
+        btn.classList.add("dqa-downtime-party-btn");
+        btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>${label}</span>`;
+    }
 
     btn.addEventListener("click", (e) => {
         e.preventDefault();
