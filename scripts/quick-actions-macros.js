@@ -363,6 +363,8 @@ function onRenderCharacterSheet(_app, element) {
     button.className = `header-control ${MODULE_ID} ${HEADER_BUTTON_CLASS}`;
     const buttonLabel = game.i18n.localize("DH_QUICKACTIONS.MACROS.buttonLabel");
     button.setAttribute("aria-label", buttonLabel);
+    // The label is hidden on a narrow header (see quick-actions-macros.css); the tooltip names the icon.
+    button.dataset.tooltip = buttonLabel;
     button.innerHTML = `<i class="fa-solid fa-bolt"></i><span>${buttonLabel}</span>`;
 
     // The header is inside the sheet's own click delegation; stop the event so it cannot bubble

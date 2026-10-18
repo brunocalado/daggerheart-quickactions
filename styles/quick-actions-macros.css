@@ -35,7 +35,26 @@
             text-shadow: 0 0 6px var(--daggerheart-quickactions-accent);
             box-shadow: 0 0 6px var(--daggerheart-quickactions-accent);
         }
+
+        /* Icon only on a narrow header (a collapsed Nice Sheets character sheet is 270px wide),
+           so the label doesn't take the room the window is dragged by. */
+        @container dqa-sheet-header (max-width: 500px) {
+            padding: 0 0.375rem;
+
+            & span {
+                display: none;
+            }
+        }
     }
+}
+
+/* The header becomes a size container only when it carries the button, so the query above
+   leaves every other window alone. */
+.window-header:has(> .dqa-quick-actions-btn) {
+    container: dqa-sheet-header / inline-size;
+}
+
+.daggerheart-quickactions {
 
     & .dqa-qam-wrapper {
         display: flex;
