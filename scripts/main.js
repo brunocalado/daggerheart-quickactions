@@ -307,33 +307,26 @@ Hooks.on("ready", async () => {
 });
 
 // ==================================================================
-// PARTY SHEET HOOK — Replace rest buttons with Downtime button (GM only)
+// PARTY SHEET HOOKS — Replace rest buttons with Downtime button (GM only)
 // ==================================================================
 Hooks.on("renderPartySheet", (app, html) => {
-    // Always remove Short Rest and Long Rest — this module replaces them. Matched by action alone:
-    // the Nice Sheets party sheet (a PartySheet subclass, so this hook fires on it) renders them as links.
-    html.querySelectorAll('[data-action="triggerRest"]').forEach(btn => btn.remove());
+    // The Nice Sheets party sheet subclasses PartySheet, so this hook fires on it too; its coins
+    // are changed through its own hook below instead of in the markup.
+    if (app.element.classList.contains("dh-nice-sheets-party")) return;
+
+    // Always remove Short Rest and Long Rest buttons — this module replaces them
+    html.querySelectorAll('button[data-action="triggerRest"]').forEach(btn => btn.remove());
 
     if (!game.user.isGM) return;
     if (html.querySelector(".dqa-downtime-party-btn")) return;
 
-    const label = game.i18n.localize("DAGGERHEART.GENERAL.downtime");
-    const niceActions = html.querySelector(".nice-party-actions");
-    const actionsSection = niceActions ?? html.querySelector(".actions-section");
+    const actionsSection = html.querySelector(".actions-section");
     if (!actionsSection) return;
 
-    // On the Nice party sheet the button takes the place of the rest coins, with their markup and
-    // classes, so the Nice stylesheet draws it.
-    const btn = document.createElement(niceActions ? "a" : "button");
-    if (niceActions) {
-        btn.classList.add("nice-party-action", "rest", "dqa-downtime-party-btn");
-        btn.dataset.tooltip = label;
-        btn.innerHTML = `<span class="coin"><i class="fa-solid fa-moon" inert></i></span><span class="caption">${label}</span>`;
-    } else {
-        btn.type = "button";
-        btn.classList.add("dqa-downtime-party-btn");
-        btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>${label}</span>`;
-    }
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add("dqa-downtime-party-btn");
+    btn.innerHTML = `<i class="fa-solid fa-moon"></i><span>${game.i18n.localize("DAGGERHEART.GENERAL.downtime")}</span>`;
 
     btn.addEventListener("click", (e) => {
         e.preventDefault();
@@ -342,6 +335,20 @@ Hooks.on("renderPartySheet", (app, html) => {
     });
 
     actionsSection.appendChild(btn);
+});
+
+// The Nice Sheets party sheet draws its header coins from a list (see its docs/DEVELOPERS.md);
+// the Downtime coin takes the place of the two rests.
+Hooks.on("dh-nice-sheets.partyActions", (sheet, actions) => {
+    const at = actions.findIndex(a => a.id === "shortRest");
+    actions.splice(0, actions.length, ...actions.filter(a => a.id !== "shortRest" && a.id !== "longRest"));
+    actions.splice(at < 0 ? actions.length : at, 0, {
+        id: `${MODULE_ID}-downtime`,
+        label: "DAGGERHEART.GENERAL.downtime",
+        icon: "fa-solid fa-moon",
+        gmOnly: true,
+        onClick: () => activateDowntimeUI()
+    });
 });
 
 // ==================================================================
