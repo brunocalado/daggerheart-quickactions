@@ -1,3 +1,8 @@
+# 0.7.14
+
+- [Fixed] With Daggerheart: Nice Sheets, the GM's **Downtime** button shows on the Nice party sheet, as a coin in place of the Short Rest and Long Rest coins it replaces. Before, the system's rests stayed there and the Downtime button never appeared. It uses the party actions hook that Nice Sheets offers to other modules, so it needs a Nice Sheets version that has that hook. The system's own party sheet is unchanged.
+- Checked in a disposable Foundry 14.369 / Daggerheart 2.10.13 world with Daggerheart: Nice Sheets, as GM: the Nice party sheet shows Tag Team, Group Roll and Downtime with no rests, the coin opens the Downtime window and stays single after the members redraw, and the system's party sheet still swaps its rests for the Downtime button. Nothing went to the error log.
+
 # 0.7.13
 
 - [Changed] On a narrow character sheet, such as a collapsed Daggerheart: Nice Sheets sheet, the **Quick Actions** header button shows only its icon, so the header keeps room to drag the window. Hovering the icon shows its name. Wider sheets keep the labelled button.
