@@ -1,3 +1,8 @@
+# 0.7.13
+
+- [Changed] On a narrow character sheet, such as a collapsed Daggerheart: Nice Sheets sheet, the **Quick Actions** header button shows only its icon, so the header keeps room to drag the window. Hovering the icon shows its name. Wider sheets keep the labelled button.
+- Checked in a disposable Foundry 14.369 / Daggerheart 2.10.13 world with Daggerheart: Nice Sheets: the button is labelled on the expanded sheet and icon-only on the collapsed one, and other windows are unaffected. Nothing went to the error log.
+
 # 0.7.12
 
 - [Removed] The **Hide Biography Tab** switch and the Character Sheet section of the Interface Settings window. The tab it hid is the one Daggerheart: Nice Sheets uses for its Notes, so turning it on took the Notes away there. A world that had the tab hidden shows it again.
