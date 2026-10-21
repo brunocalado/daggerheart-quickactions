@@ -140,8 +140,8 @@ export const TOKEN_TOOLTIP_ENABLED = "tokenTooltip";
 export const HOPE_BAR_ENABLED = "hopeBarEnabled";
 
 /**
- * World setting key holding the on/off switch for the chat card that records items moved between
- * a character and a party stash by dragging.
+ * World setting key holding the on/off switch for the chat card that records items and currency moved
+ * between a character and a party stash by dragging.
  * @type {string}
  */
 export const TRANSFER_LOG_ENABLED = "transferLogEnabled";

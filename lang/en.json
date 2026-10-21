@@ -72,7 +72,7 @@
       },
       "transferLog": {
         "name": "Party Stash Chat Log",
-        "hint": "Posts a chat card whenever items are dragged between a character and a party sheet, listing what each side gave. Drops made close together are grouped into one card. Trades made through Barter keep their own card."
+        "hint": "Posts a chat card whenever items or currency are dragged between a character and a party sheet, listing what each side gave. Drops made close together are grouped into one card. Trades made through Barter keep their own card."
       },
       "cinematicImages": {
         "name": "Cinematic Roll Images"

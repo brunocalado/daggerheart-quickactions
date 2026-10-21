@@ -53,7 +53,7 @@ const BARTER_TAB_ICONS = Object.freeze({
 });
 
 /** Currency keys of the Daggerheart gold schema, smallest denomination first. @type {string[]} */
-const GOLD_KEYS = ["coins", "handfuls", "bags", "chests"];
+export const GOLD_KEYS = ["coins", "handfuls", "bags", "chests"];
 
 /** Fallback currency labels/icons used when the system's homebrew setting cannot be read. */
 const GOLD_FALLBACK = Object.freeze({
@@ -220,7 +220,7 @@ function getEligibleParties(actor) {
  * stock four when the setting is unavailable (system version drift, setting not yet registered).
  * @returns {Array<{key: string, label: string, icon: string}>} Enabled currencies in schema order.
  */
-function getCurrencies() {
+export function getCurrencies() {
     let configured = null;
     try {
         configured = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.Homebrew)?.currency ?? null;
@@ -1351,7 +1351,12 @@ async function applyBarterPlan(plan) {
         for (const [key, value] of Object.entries(purse)) update[`system.gold.${key}`] = value;
         return update;
     });
-    if (actorUpdates.length) operations.push({ action: "update", documentName: "Actor", updates: actorUpdates });
+    // Tagged so the transfer log (transfer-log.js) does not record Barter's purse writes a second
+    // time: a coins-only party trade looks exactly like the system's currency drop. A per-write tag
+    // rather than a module-level "barter running" flag, which a thrown batch could leave set.
+    if (actorUpdates.length) {
+        operations.push({ action: "update", documentName: "Actor", updates: actorUpdates, [MODULE_ID]: { barter: true } });
+    }
 
     await foundry.documents.modifyBatch(operations);
 }

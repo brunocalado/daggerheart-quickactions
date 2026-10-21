@@ -48,7 +48,7 @@ import { registerLightSources } from "./light-sources-integration.js";
 import { initDaggerheartMenuEnhancer } from "./daggerheart-menu-enhancer.js";
 // Import Interface Settings (single window for every UI change this module makes)
 import { registerUISettings } from "./ui-settings.js";
-// Import Transfer Log (chat card for items dragged between a character and a party stash)
+// Import Transfer Log (chat card for items and currency dragged between a character and a party stash)
 import { registerTransferLog } from "./transfer-log.js";
 
 // ==================================================================
@@ -308,7 +308,7 @@ Hooks.on("ready", async () => {
     // Register this module's compendium light sources with the Light Sources module, if active.
     registerLightSources();
 
-    // Record items dragged between a character and a party stash.
+    // Record items and currency dragged between a character and a party stash.
     registerTransferLog();
 
     // Re-render DowntimeUI when any user's flags change (player choices via setFlag)
