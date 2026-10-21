@@ -1,3 +1,7 @@
+# Unreleased
+
+- [Added] Moving items between a character and the party stash by dragging posts a chat card listing what each side gave. Drops close together are grouped into one card. It can be switched off in the Interface Settings window.
+
 # 0.7.14
 
 - [Fixed] With Daggerheart: Nice Sheets, the GM's **Downtime** button shows on the Nice party sheet, as a coin in place of the Short Rest and Long Rest coins it replaces. Before, the system's rests stayed there and the Downtime button never appeared. It uses the party actions hook that Nice Sheets offers to other modules, so it needs a Nice Sheets version that has that hook. The system's own party sheet is unchanged.

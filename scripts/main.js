@@ -11,7 +11,7 @@
  * Main module that injects buttons into the menu and exposes the global API.
  */
 
-import { MODULE_ID, DOWNTIME_DISABLED_USERS, HOPE_BAR_ENABLED, TOKEN_TOOLTIP_ENABLED } from "./constants.js";
+import { MODULE_ID, DOWNTIME_DISABLED_USERS, HOPE_BAR_ENABLED, TOKEN_TOOLTIP_ENABLED, TRANSFER_LOG_ENABLED } from "./constants.js";
 
 // Import all functions from consolidated files
 import { activateDowntime, activateFallingDamage, helpAnAlly, scarCheck, activateLootConsumable, activateCustomTables, spotlightToken, showMacros, fateRoll, activateSpendHope, activateLevelUp } from "./apps.js";
@@ -48,6 +48,8 @@ import { registerLightSources } from "./light-sources-integration.js";
 import { initDaggerheartMenuEnhancer } from "./daggerheart-menu-enhancer.js";
 // Import Interface Settings (single window for every UI change this module makes)
 import { registerUISettings } from "./ui-settings.js";
+// Import Transfer Log (chat card for items dragged between a character and a party stash)
+import { registerTransferLog } from "./transfer-log.js";
 
 // ==================================================================
 // GLOBAL API
@@ -250,6 +252,16 @@ Hooks.once("init", () => {
         onChange: () => refreshHopeBars()
     });
 
+    // 8d. Transfer Log — edited from the Interface Settings window (ui-settings.js).
+    game.settings.register(MODULE_ID, TRANSFER_LOG_ENABLED, {
+        name: "DH_QUICKACTIONS.SETTINGS.transferLog.name",
+        hint: "DH_QUICKACTIONS.SETTINGS.transferLog.hint",
+        scope: "world",
+        config: false,
+        type: Boolean,
+        default: true
+    });
+
     registerScanSettings();
     registerFallingDamageSettings();
     registerLootConsumableSettings();
@@ -295,6 +307,9 @@ Hooks.once("init", () => {
 Hooks.on("ready", async () => {
     // Register this module's compendium light sources with the Light Sources module, if active.
     registerLightSources();
+
+    // Record items dragged between a character and a party stash.
+    registerTransferLog();
 
     // Re-render DowntimeUI when any user's flags change (player choices via setFlag)
     Hooks.on("updateUser", (user, change) => {

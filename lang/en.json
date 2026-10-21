@@ -70,6 +70,10 @@
         "name": "Token Hope Bar",
         "hint": "Draw a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens."
       },
+      "transferLog": {
+        "name": "Party Stash Chat Log",
+        "hint": "Posts a chat card whenever items are dragged between a character and a party sheet, listing what each side gave. Drops made close together are grouped into one card. Trades made through Barter keep their own card."
+      },
       "cinematicImages": {
         "name": "Cinematic Roll Images"
       },
@@ -179,7 +183,11 @@
       "menuHint": "Turns off everything this module changes in the system's own sidebar menu: the purple skull tab icon, the search bar, the alphabetical section ordering, the collapsible sections and the two-column button grid. The module's own <strong>Quick Actions</strong> section stays in the menu either way — only its layout falls back to the system default.",
       "tokensLegend": "Tokens",
       "tooltipHint": "Shows a stat summary tooltip when hovering over character tokens on the canvas. Each player picks its size with <strong>Token Tooltip Size</strong> in the module settings list.",
-      "hopeHint": "Draws a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens."
+      "hopeHint": "Draws a row of Hope diamonds above character tokens, following each token's own Display Bars setting. Turn this off when another module already renders Hope on tokens.",
+      "stashLegend": "Party Stash"
+    },
+    "TRANSFER_LOG": {
+      "title": "Party Stash"
     },
     "TOOLTIP": {
       "actions": "Actions:",

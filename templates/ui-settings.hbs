@@ -42,4 +42,18 @@
         </p>
     </fieldset>
 
+    <fieldset class="dqa-ui-section">
+        <legend><i class="fas fa-sack"></i> {{localize "DH_QUICKACTIONS.INTERFACE.stashLegend"}}</legend>
+
+        <div class="dqa-ui-row">
+            <label for="dqa-transfer-log">{{localize "DH_QUICKACTIONS.SETTINGS.transferLog.name"}}</label>
+            <input type="checkbox" id="dqa-transfer-log" class="dh-toggle" name="transferLog"
+                   {{#if transferLog}}checked{{/if}}>
+        </div>
+
+        <p class="dqa-ui-hint">
+            {{localize "DH_QUICKACTIONS.SETTINGS.transferLog.hint"}}
+        </p>
+    </fieldset>
+
 </div>

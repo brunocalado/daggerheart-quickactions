@@ -16,7 +16,7 @@
  */
 
 import {
-    MODULE_ID, MENU_ENHANCEMENTS_ENABLED, TOKEN_TOOLTIP_ENABLED, HOPE_BAR_ENABLED
+    MODULE_ID, MENU_ENHANCEMENTS_ENABLED, TOKEN_TOOLTIP_ENABLED, HOPE_BAR_ENABLED, TRANSFER_LOG_ENABLED
 } from "./constants.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -49,7 +49,8 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
         return {
             menuEnhancements: game.settings.get(MODULE_ID, MENU_ENHANCEMENTS_ENABLED),
             tokenTooltip: game.settings.get(MODULE_ID, TOKEN_TOOLTIP_ENABLED),
-            hopeBar: game.settings.get(MODULE_ID, HOPE_BAR_ENABLED)
+            hopeBar: game.settings.get(MODULE_ID, HOPE_BAR_ENABLED),
+            transferLog: game.settings.get(MODULE_ID, TRANSFER_LOG_ENABLED)
         };
     }
 
@@ -72,6 +73,10 @@ class UISettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
         this.element.querySelector('[name="hopeBar"]')?.addEventListener("change", event => {
             game.settings.set(MODULE_ID, HOPE_BAR_ENABLED, event.target.checked);
+        });
+
+        this.element.querySelector('[name="transferLog"]')?.addEventListener("change", event => {
+            game.settings.set(MODULE_ID, TRANSFER_LOG_ENABLED, event.target.checked);
         });
     }
 }

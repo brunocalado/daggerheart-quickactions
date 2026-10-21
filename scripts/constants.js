@@ -140,6 +140,13 @@ export const TOKEN_TOOLTIP_ENABLED = "tokenTooltip";
 export const HOPE_BAR_ENABLED = "hopeBarEnabled";
 
 /**
+ * World setting key holding the on/off switch for the chat card that records items moved between
+ * a character and a party stash by dragging.
+ * @type {string}
+ */
+export const TRANSFER_LOG_ENABLED = "transferLogEnabled";
+
+/**
  * World setting key holding the ids of users switched off in the Downtime configuration.
  * Stored as an array of user ids — those users are skipped by the whole Downtime flow
  * (row list, state initialization and effect application) even while they are connected.

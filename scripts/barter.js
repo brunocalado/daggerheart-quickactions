@@ -171,7 +171,7 @@ function unidentifiedApi() {
  * @param {boolean} [options.asGM=game.user.isGM] - Whether the audience may see the real identity.
  * @returns {{name: string, img: string, unidentified: boolean}} Presentation values for that audience.
  */
-function itemDisplay(item, { asGM = game.user.isGM } = {}) {
+export function itemDisplay(item, { asGM = game.user.isGM } = {}) {
     const api = unidentifiedApi();
     const unidentified = !!api?.isUnidentified?.(item);
     if (!unidentified || asGM) return { name: item.name, img: item.img, unidentified };
@@ -1391,7 +1391,7 @@ async function settleBarter(session, requester) {
 
     const plan = buildBarterPlan(session, fromActor, toActor);
     await applyBarterPlan(plan);
-    await postBarterSummary(fromActor, toActor, plan.summary);
+    await postTransferSummary(game.i18n.localize("DH_QUICKACTIONS.BARTER.title"), fromActor, toActor, plan.summary);
 
     return { ok: true };
 }
@@ -1414,18 +1414,22 @@ async function settlePartyTrade(session, actor) {
 
     const plan = buildBarterPlan(session, actor, party);
     await applyBarterPlan(plan);
-    await postBarterSummary(actor, party, plan.summary);
+    await postTransferSummary(game.i18n.localize("DH_QUICKACTIONS.BARTER.title"), actor, party, plan.summary);
 }
 
 /**
- * Posts the public record of a completed trade. Authored by the settling GM so both participants
- * see the same card.
+ * Posts the public record of a completed trade or transfer. Authored by the client that wrote the
+ * change — the settling GM for a peer-to-peer trade — so every participant sees the same card.
+ * Shared with the transfer log (transfer-log.js), which records drag-and-drop moves the same way.
+ * @param {string} title - Card header, already localized.
  * @param {foundry.documents.Actor} fromActor - The initiator's character.
  * @param {foundry.documents.Actor} toActor - The recipient's character.
  * @param {Array<{fromId: string, label: string}>} summary - Everything that changed hands.
+ * @param {object} [options={}]
+ * @param {object} [options.speaker] - Chat speaker; left out, the card has the default speaker.
  * @returns {Promise<void>}
  */
-async function postBarterSummary(fromActor, toActor, summary) {
+export async function postTransferSummary(title, fromActor, toActor, summary, { speaker } = {}) {
     const block = (actor) => {
         const given = summary.filter(line => line.fromId === actor.id);
         const body = given.length
@@ -1442,7 +1446,8 @@ async function postBarterSummary(fromActor, toActor, summary) {
 
     await ChatMessage.create({
         author: game.user.id,
-        content: buildChatCard(game.i18n.localize("DH_QUICKACTIONS.BARTER.title"), `
+        ...(speaker ? { speaker } : {}),
+        content: buildChatCard(title, `
             <div style="width: 100%; text-align: left;">
                 ${block(fromActor)}
                 ${block(toActor)}
