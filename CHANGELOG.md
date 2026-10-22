@@ -1,6 +1,7 @@
-# Unreleased
+# 0.7.15
 
 - [Added] Moving items or currency between a character and the party stash by dragging posts a chat card listing what each side gave. Drops close together are grouped into one card. It can be switched off in the Interface Settings window.
+- Checked in a disposable Foundry 14.369 / Daggerheart 2.10.13 world, with a GM and a player client, with and without Daggerheart: Nice Sheets: dragging items and coins between a character and the party posts one card per group of drops, the GM's client posts it when the player doesn't own the party, and Barter, manual purse edits and character-to-character drops post nothing extra. Nothing from this module went to the error log.
 
 # 0.7.14
 
