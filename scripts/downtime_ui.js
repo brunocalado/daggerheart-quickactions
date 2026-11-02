@@ -111,8 +111,8 @@ const DEFAULT_CORE_FEATURES = [
 const ROLLING_MOVES = new Set(["tendWounds", "clearStress", "repairArmor", "core_forager"]);
 
 /**
- * Key the Daggerheart system uses for the Self-Healing armour feature, in an armour item's
- * `system.armorFeatures` list.
+ * Id the Daggerheart system uses for the Self-Healing armour feature, as a key of an armour item's
+ * `system.itemFeatures` object (keyed by feature id).
  * @type {string}
  */
 const SELF_HEALING_ARMOR_FEATURE = "selfHealing";
@@ -296,8 +296,8 @@ function _hasFavorFeature(actor) {
 
 /**
  * Whether the actor is wearing armour with the Self-Healing feature ("When you take a rest, clear
- * an Armor Slot"). The system models this as an entry in the armour's own `system.armorFeatures`
- * rather than as a separate item, so matching the feature covers the Trollhide Cuirass and any
+ * an Armor Slot"). The system models this as an entry in the armour's own `system.itemFeatures`,
+ * keyed by feature id, rather than as a separate item, so matching the feature covers the Trollhide Cuirass and any
  * homebrew armour carrying it — a name match would only ever catch the one. Unworn armour does
  * nothing, hence the `equipped` check.
  * @param {Actor} actor - The actor to test.
@@ -307,7 +307,7 @@ function _hasSelfHealingArmor(actor) {
     return actor.items.some(item =>
         item.type === "armor"
         && item.system?.equipped
-        && (item.system?.armorFeatures ?? []).some(f => f?.value === SELF_HEALING_ARMOR_FEATURE));
+        && SELF_HEALING_ARMOR_FEATURE in item.system.itemFeatures);
 }
 
 function _hasChangeShapeFeature(actor) {
