@@ -1,3 +1,7 @@
+# Unreleased
+
+- [Fixed] Chain Lightning works again on Daggerheart 2.12: casting it stopped with an error before any roll or card, with Apply Damage on or off.
+
 # 0.7.15
 
 - [Added] Moving items or currency between a character and the party stash by dragging posts a chat card listing what each side gave. Drops close together are grouped into one card. It can be switched off in the Interface Settings window.

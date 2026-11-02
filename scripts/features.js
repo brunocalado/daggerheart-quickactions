@@ -529,7 +529,7 @@ async function waitForDiceToClear() {
 }
 
 /**
- * Rolls an adversary reaction roll the way the system builds one, so roll
+ * Rolls an adversary reaction roll from the system's own MoveContext, so roll
  * bonuses and effects that apply to reaction rolls are included. A natural 20
  * succeeds. Built and evaluated here rather than through actor.diceRoll, which
  * shows every roll in Dice So Nice on its own; the roll is added to `rolls`
@@ -540,19 +540,16 @@ async function waitForDiceToClear() {
  * @returns {Promise<{total: number, critical: boolean, success: boolean}>}
  */
 async function rollReaction(actor, difficulty, rolls) {
-    const roll = await actor.rollClass.buildConfigure({
+    const context = await game.system.api.data.actions.MoveContext.build({
+        actor,
         title: game.i18n.localize("DAGGERHEART.GENERAL.reactionRoll"),
-        effects: await game.system.api.data.actions.actionsTypes.base.getActionRelevantEffects(
-            { action: { actionType: "reaction", roll: {} } },
-            actor
-        ),
-        roll: { type: "trait", difficulty },
         actionType: "reaction",
-        hasRoll: true,
-        dialog: { configure: false },
-        source: { actor: actor.uuid },
-        data: actor.getRollData()
+        roll: { type: "trait", difficulty }
     });
+    // Set after build(): the constructor discards a passed dialog, and
+    // initialize() turns it on whenever there is no click event.
+    context.dialog.configure = false;
+    const roll = await actor.rollClass.buildConfigure(context);
     await roll.evaluate();
     rolls.push(roll);
     return { total: roll.total, critical: roll.isCritical, success: roll.isCritical || roll.total >= difficulty };
@@ -578,7 +575,17 @@ async function showDice(rolls) {
  */
 async function damageAdversary(actor, total, apply) {
     const damageTypes = ["magical"];
-    if (!apply) return { hitPoints: actor.convertDamageToThreshold(actor.calculateDamage(total, damageTypes)), updates: [] };
+    if (!apply) {
+        // The system's own threshold rule, ported: its helper isn't exposed on game.system.api.
+        const damage = actor.calculateDamage(total, damageTypes);
+        const { major, severe } = actor.system.damageThresholds;
+        const massive = game.settings.get(CONFIG.DH.id, CONFIG.DH.SETTINGS.gameSettings.variantRules).massiveDamage.enabled;
+        const hitPoints = damage <= 0 ? 0
+            : massive && damage >= severe * 2 ? 4
+            : severe && damage >= severe ? 3
+            : major && damage >= major ? 2 : 1;
+        return { hitPoints, updates: [] };
+    }
 
     const { value: hpBefore, max: hpMax } = actor.system.resources.hitPoints;
     // The updates carry a Set of damage types, which a flag can't store and
