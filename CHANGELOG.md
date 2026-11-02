@@ -1,8 +1,9 @@
-# Unreleased
+# 0.8.0
 
 - [Breaking][Changed] Requires Daggerheart 2.12.3 or later. Update the system before updating the module.
 - [Fixed] Barter adds traded consumables and loot to a stack the receiver already has, instead of creating one item per copy. This broke with Daggerheart 2.12.
 - [Fixed] Chain Lightning works again on Daggerheart 2.12: casting it stopped with an error before any roll or card, with Apply Damage on or off.
+- Checked in a disposable Foundry 14.369 / Daggerheart 2.12.3 world: Chain Lightning with Apply Damage on and off, its undo, natural 20 reactions, a reaction bonus from an effect, a player's cast with the GM writing HP, and the window pre-filled from a real Spellcast Roll; Barter stacking on a character and the party stash; Self-Healing with and without the armour worn and next to a Protective weapon; a long and a short rest, item and coin transfers with the party in both directions, `/dr` reaching the system's dialog with its reaction and difficulty, and the other tools' windows. Nothing from this module went to the error log. Barter between two players, the Chain Lightning animation and how the windows look were not checked.
 
 # 0.7.15
 

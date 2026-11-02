@@ -234,7 +234,7 @@ Install it from the Foundry VTT module browser, or use this manifest link:
 https://github.com/brunocalado/daggerheart-quickactions/releases/latest/download/module.json
 ```
 
-It needs Foundry VTT v14 and the Daggerheart system 2.9.2 or later. Dice So Nice and Light Sources are recommended but not required.
+It needs Foundry VTT v14 and the Daggerheart system 2.12.3 or later. Dice So Nice and Light Sources are recommended but not required.
 
 ## ⚖️ Credits & License
 
