@@ -180,8 +180,7 @@ export function registerTransferLog() {
         const result = await original.call(this, args);
 
         if (tracked && Array.isArray(result) && result.length) {
-            // What left the origin, not the requested quantity: the system's transfer dialog
-            // resolves undefined when closed without confirming, and the drop still reaches here.
+            // What left the origin, not the requested quantity, so the card reports the move that happened.
             const moved = before - (origin.items.get(id)?.system?.quantity ?? 0);
             if (moved > 0) record(origin, this, { kind: "item", name, count: moved });
         }

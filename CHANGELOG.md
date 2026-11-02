@@ -1,5 +1,6 @@
 # Unreleased
 
+- [Breaking][Changed] Requires Daggerheart 2.12.3 or later. Update the system before updating the module.
 - [Fixed] Barter adds traded consumables and loot to a stack the receiver already has, instead of creating one item per copy. This broke with Daggerheart 2.12.
 - [Fixed] Chain Lightning works again on Daggerheart 2.12: casting it stopped with an error before any roll or card, with Apply Damage on or off.
 
