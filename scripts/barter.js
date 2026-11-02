@@ -1248,9 +1248,10 @@ function planTransfer(offer, from, to, plan) {
             label: quantity > 1 ? game.i18n.localize("DH_QUICKACTIONS.BARTER.summaryItem", { name: label, count: quantity }) : label
         });
 
-        // Character actors merge loot and consumables into existing stacks; anything else — and
-        // any item the receiver does not already own — arrives as its own document.
-        const stackable = to.system?.metadata?.quantifiable?.includes(item.type) ?? false;
+        // Same rule as the system's own transfers: a type the receiver's actor type lists as
+        // unquantifiable (weapons and armour on a character) arrives one document per copy;
+        // anything else merges into an existing stack.
+        const stackable = !to.system.metadata.unquantifiable.includes(item.type);
         const existing = stackable ? to.items.find(candidate => isSameStack(candidate, item)) : null;
 
         if (existing) {
