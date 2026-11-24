@@ -1,8 +1,9 @@
-# Unreleased
+# 0.8.1
 
 - [Changed] Verified with Daggerheart 2.13.2.
 - [Fixed] Chain Lightning leaves a Colossus framework out, instead of listing it as defeated on the card. Its segments are struck like any other adversary.
 - [Fixed] The token tooltip of a Colossus framework no longer shows an empty 0/0 Hit Points bar.
+- Checked in a disposable Foundry 14.370 / Daggerheart 2.13.2 world: Chain Lightning through its window, with reaction rolls, damage and the card, next to a Colossus framework; the tooltip of a Colossus framework and of a standard adversary; the Downtime button on the party sheet, the Quick Actions button on the character sheet, and the other tools' windows. Nothing from this module went to the error log. A full rest in the Downtime window and Barter between two players were not checked.
 
 # 0.8.0
 
