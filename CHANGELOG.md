@@ -1,3 +1,9 @@
+# Unreleased
+
+- [Changed] Verified with Daggerheart 2.13.2.
+- [Fixed] Chain Lightning leaves a Colossus framework out, instead of listing it as defeated on the card. Its segments are struck like any other adversary.
+- [Fixed] The token tooltip of a Colossus framework no longer shows an empty 0/0 Hit Points bar.
+
 # 0.8.0
 
 - [Breaking][Changed] Requires Daggerheart 2.12.3 or later. Update the system before updating the module.

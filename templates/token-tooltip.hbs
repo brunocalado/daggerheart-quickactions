@@ -7,6 +7,8 @@
 
 <div class="dh-qa-tt-body">
 
+    {{!-- A Colossus framework has no Hit Points of its own (0/0); its segments carry them. --}}
+    {{#if hp.max}}
     <div class="dh-qa-tt-row">
         <span class="dh-qa-tt-label"><i class="fas fa-heart"></i> {{localize "DAGGERHEART.GENERAL.HitPoints.short"}}</span>
         <div class="dh-qa-tt-bar-wrap">
@@ -14,6 +16,7 @@
         </div>
         <span class="dh-qa-tt-value">{{hp.value}}/{{hp.max}}</span>
     </div>
+    {{/if}}
 
     <div class="dh-qa-tt-row">
         <span class="dh-qa-tt-label"><i class="fas fa-bolt"></i> {{localize "DAGGERHEART.GENERAL.stress"}}</span>

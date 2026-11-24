@@ -314,10 +314,14 @@ function castResult(message) {
 /**
  * Adversary tokens the lightning can reach. Anything not Friendly counts, the
  * same split the system's combat tracker makes, so a Neutral adversary token
- * isn't silently left out.
+ * isn't silently left out. A Colossus framework has no Hit Points of its own
+ * (its segments carry them, and are struck as adversaries of their own), so it
+ * is left out rather than listed as defeated.
  */
 function isAdversary(token) {
-    return token.actor?.type === "adversary" && token.document.disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY;
+    return token.actor?.type === "adversary"
+        && token.document.disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY
+        && token.actor.system.resources.hitPoints.max > 0;
 }
 
 /**
